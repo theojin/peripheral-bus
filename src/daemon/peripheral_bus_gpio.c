@@ -124,6 +124,7 @@ int peripheral_bus_gpio_open(gint pin, gint *edge, gint *direction, gpointer use
 	gpio->pin = pin;
 	gpio->edge = *edge;
 	gpio->direction = *direction;
+	gpio->gpio_skeleton = pb_data->gpio_skeleton;
 
 	return PERIPHERAL_ERROR_NONE;
 
@@ -271,6 +272,128 @@ int peripheral_bus_gpio_read(gint pin, gint *value, gpointer user_data)
 	if ((ret = gpio_read(pin, value)) < 0) {
 		_E("gpio_read error (%d)", ret);
 		return ret;
+	}
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
+static gboolean  peripheral_bus_gpio_cb(GIOChannel *io, GIOCondition condition, gpointer data)
+{
+	pb_gpio_data_h gpio_data = (pb_gpio_data_h)data;
+	GIOStatus status;
+	gchar* strval;
+	int value;
+
+	if (!gpio_data->irq_en)
+		return TRUE;
+
+	if (gpio_data->direction != PERIPHERAL_GPIO_DIRECTION_IN
+		|| gpio_data->edge == PERIPHERAL_GPIO_EDGE_NONE)
+		return TRUE;
+
+	g_io_channel_seek_position(io, 0, G_SEEK_SET, NULL);
+	status = g_io_channel_read_line(io, &strval, NULL, NULL, NULL);
+	if (status != G_IO_STATUS_NORMAL) {
+		_E("Unable to read gpio value (%d)", status);
+		return FALSE;
+	}
+	g_strstrip(strval);
+
+	_D("gpio = %d, data = %s", gpio_data->pin, strval);
+
+	if (g_ascii_strcasecmp(strval, "1") == 0)
+		value = 1;
+	else if (g_ascii_strcasecmp(strval, "0") == 0)
+		value = 0;
+	else {
+		g_free(strval);
+		_E("Error: gpio value is error");
+		return FALSE;
+	}
+	g_free(strval);
+
+	if (gpio_data->edge == PERIPHERAL_GPIO_EDGE_RISING && value == 0)
+		return TRUE;
+	else if (gpio_data->edge == PERIPHERAL_GPIO_EDGE_FALLING && value == 1)
+		return TRUE;
+
+	peripheral_bus_emit_gpio_changed(gpio_data->gpio_skeleton, gpio_data->pin, value);
+
+	return TRUE;
+}
+
+int peripheral_bus_gpio_register_irq(gint pin, gpointer user_data)
+{
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	pb_gpio_data_h gpio;
+	GIOStatus status;
+	gchar* strval;
+
+	gpio = peripheral_bus_gpio_data_get(pin, &pb_data->gpio_list);
+	if (!gpio) {
+		_E("peripheral_bus_gpio_data_get error");
+		return PERIPHERAL_ERROR_UNKNOWN;
+	}
+
+	if ((gpio->value_fd = gpio_open_isr(pin)) < 0)
+		goto err_open_isr;
+
+	gpio->io = g_io_channel_unix_new(gpio->value_fd);
+	if (gpio->io == NULL) {
+		_E("g_io_channel_unix_new error (%d)", gpio->value_fd);
+		goto err_io_channel_new;
+	}
+
+	g_io_channel_seek_position(gpio->io, 0, G_SEEK_SET, NULL);
+	status = g_io_channel_read_line(gpio->io, &strval, NULL, NULL, NULL);
+	if (status != G_IO_STATUS_NORMAL) {
+		_E("Unable to read gpio value (%d)", status);
+		goto err_io_channel_read;
+	}
+	g_free(strval);
+
+	gpio->io_id = g_io_add_watch(gpio->io, G_IO_PRI, peripheral_bus_gpio_cb, gpio);
+	if (gpio->io_id < 0) {
+		_E("g_io_add_watch error (%d)", gpio->io);
+		goto err_io_add_watch;
+	}
+	g_io_channel_unref(gpio->io);
+	gpio->irq_en = 1;
+
+	return PERIPHERAL_ERROR_NONE;
+
+err_io_add_watch:
+err_io_channel_read:
+	g_io_channel_unref(gpio->io);
+	gpio->io_id = 0;
+err_io_channel_new:
+	gpio_close_isr(gpio->value_fd);
+	gpio->io = 0;
+err_open_isr:
+	gpio->value_fd = 0;
+
+	return PERIPHERAL_ERROR_UNKNOWN;
+}
+
+int peripheral_bus_gpio_unregister_irq(gint pin, gpointer user_data)
+{
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	pb_gpio_data_h gpio;
+
+	gpio = peripheral_bus_gpio_data_get(pin, &pb_data->gpio_list);
+	if (!gpio) {
+		_E("peripheral_bus_gpio_data_get error");
+		return PERIPHERAL_ERROR_UNKNOWN;
+	}
+
+	if (gpio->io) {
+		gpio->irq_en = 0;
+		g_source_remove(gpio->io_id);
+		gpio->io_id = 0;
+		g_io_channel_unref(gpio->io);
+		gpio->io = 0;
+		gpio_close_isr(gpio->value_fd);
+		gpio->value_fd = 0;
 	}
 
 	return PERIPHERAL_ERROR_NONE;

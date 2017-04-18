@@ -150,6 +150,34 @@ gboolean handle_gpio_set_edge_mode(
 	return true;
 }
 
+gboolean handle_gpio_register_irq(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint pin,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+
+	ret = peripheral_bus_gpio_register_irq(pin, user_data);
+	peripheral_io_gdbus_gpio_complete_register_irq(gpio, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_gpio_unregister_irq(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint pin,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+
+	ret = peripheral_bus_gpio_unregister_irq(pin, user_data);
+	peripheral_io_gdbus_gpio_complete_unregister_irq(gpio, invocation, ret);
+
+	return true;
+}
+
 gboolean handle_i2c_open(
 		PeripheralIoGdbusI2c *i2c,
 		GDBusMethodInvocation *invocation,
@@ -382,6 +410,14 @@ gboolean handle_pwm_get_period(
 	return true;
 }
 
+void peripheral_bus_emit_gpio_changed(PeripheralIoGdbusGpio *gpio,
+									gint pin,
+									gint state)
+{
+	g_assert(gpio != NULL);
+
+	peripheral_io_gdbus_gpio_emit_gpio_changed(gpio, pin, state);
+}
 
 static gboolean __gpio_init(peripheral_bus_s *pb_data)
 {
@@ -423,6 +459,14 @@ static gboolean __gpio_init(peripheral_bus_s *pb_data)
 	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-set-edge-mode",
 			G_CALLBACK(handle_gpio_set_edge_mode),
+			pb_data);
+	g_signal_connect(pb_data->gpio_skeleton,
+			"handle-register-irq",
+			G_CALLBACK(handle_gpio_register_irq),
+			pb_data);
+	g_signal_connect(pb_data->gpio_skeleton,
+			"handle-unregister-irq",
+			G_CALLBACK(handle_gpio_unregister_irq),
 			pb_data);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_DBUS_GPIO_PATH);

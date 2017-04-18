@@ -35,11 +35,17 @@ typedef struct {
 	int direction;
 	int edge;
 	/* interrupt variable */
+	int irq_en;
 	int value_fd;
 	GIOChannel *io;
 	guint io_id;
+	/* gdbus variable */
+	PeripheralIoGdbusGpio *gpio_skeleton;
 } peripheral_bus_gpio_data_s;
 
 typedef peripheral_bus_gpio_data_s * pb_gpio_data_h;
 
+void peripheral_bus_emit_gpio_changed(PeripheralIoGdbusGpio *gpio,
+									gint pin,
+									gint state);
 #endif /* __PERIPHERAL_BUS_H__ */

@@ -24,6 +24,8 @@ int peripheral_bus_gpio_set_edge(gint pin, gint edge, gpointer user_data);
 int peripheral_bus_gpio_get_edge(gint pin, gint *edge, gpointer user_data);
 int peripheral_bus_gpio_write(gint pin, gint value, gpointer user_data);
 int peripheral_bus_gpio_read(gint pin, gint *value, gpointer user_data);
+int peripheral_bus_gpio_register_irq(gint pin, gpointer user_data);
+int peripheral_bus_gpio_unregister_irq(gint pin, gpointer user_data);
 int peripheral_bus_gpio_close(gint pin, gpointer user_data);
 
 #endif /* __PERIPHERAL_BUS_GPIO_H__ */
