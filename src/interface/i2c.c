@@ -60,42 +60,6 @@ int i2c_close(int file_hndl)
 	return 0;
 }
 
-int i2c_set_frequency(int file_hndl, i2c_mode_e speed)
-{
-	int status;
-	int fd;
-	char i2c_dev[I2C_BUFFER_MAX] = {0,};
-	int frequency = 0;
-
-	snprintf(i2c_dev, sizeof(i2c_dev)-1, SYSFS_I2C_DIR"-%d", file_hndl);
-	fd = open(i2c_dev, O_RDWR);
-
-	if (fd < 0)
-		return -ENODEV;
-
-	if (speed == I2C_STD) {
-		frequency = 10000;
-	} else if (speed == I2C_FAST) {
-		frequency = 400000;
-	} else if (speed == I2C_HIGH) {
-		frequency = 3400000;
-	} else {
-		_E("Error: speed is not supported [%d]\n", speed);
-		close(fd);
-		return -EINVAL;
-	}
-
-	status = ioctl(fd, I2C_FREQUENCY, (unsigned long)((unsigned int*)&frequency));
-
-	if (status < 0) {
-		_E("Error  I2C_FREQUENCY, speed[%d]:\n",  speed);
-		close(fd);
-		return -EIO;
-	}
-	close(fd);
-	return 0;
-}
-
 int i2c_set_address(int file_hndl, int address)
 {
 	int status;

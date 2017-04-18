@@ -28,11 +28,6 @@ int peripheral_bus_i2c_init(peripheral_i2c_context_h dev, int bus)
 	return i2c_open(bus, &dev->fd);
 }
 
-int peripheral_bus_i2c_set_freq(peripheral_i2c_context_h dev, int mode)
-{
-	return i2c_set_frequency(dev->fd, mode);
-}
-
 int peripheral_bus_i2c_set_addr(peripheral_i2c_context_h dev, int addr)
 {
 	return i2c_set_address(dev->fd, addr);
@@ -64,8 +59,6 @@ int peripheral_bus_i2c_process(peripheral_i2c_context_h dev, char *func_name, in
 
 	if (!g_strcmp0(func_name, "INIT"))
 		ret = peripheral_bus_i2c_init(dev, value);
-	else if (!g_strcmp0(func_name, "SET_FREQ"))
-		ret = peripheral_bus_i2c_set_freq(dev, value);
 	else if (!g_strcmp0(func_name, "SET_ADDR"))
 		ret = peripheral_bus_i2c_set_addr(dev, value);
 	else if (!g_strcmp0(func_name, "READ"))
