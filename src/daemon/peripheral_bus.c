@@ -29,6 +29,44 @@
 #include "peripheral_bus_pwm.h"
 #include "peripheral_common.h"
 
+static const gchar peripheral_data_xml[] =
+	"<node>"
+	"  <interface name='org.tizen.system.peripheral_io'>"
+	"    <method name='gpio'>"
+	"      <arg type='s' name='function' direction='in'/>"
+	"      <arg type='i' name='pin' direction='in'/>"
+	"      <arg type='i' name='dir' direction='in'/>"
+	"      <arg type='i' name='edge' direction='in'/>"
+	"      <arg type='i' name='value' direction='in' />"
+	"      <arg type='i' name='re_pin' direction='out'/>"
+	"      <arg type='i' name='re_drive' direction='out'/>"
+	"      <arg type='i' name='re_edge' direction='out'/>"
+	"      <arg type='i' name='re_value' direction='out' />" // read value
+	"      <arg type='i' name='re_status' direction='out' />" // return value
+	"    </method>"
+	"    <method name='i2c'>"
+	"      <arg type='s' name='function' direction='in' />"
+	"      <arg type='i' name='value' direction='in' />"
+	"      <arg type='i' name='fd' direction='in' />"
+	"      <arg type='ay' name='data' direction='in' />"
+	"      <arg type='i' name='addr' direction='in' />"
+	"      <arg type='i' name='re_fd' direction='out' />"
+	"      <arg type='ay' name='re_data' direction='out' />"
+	"      <arg type='i' name='re_status' direction='out' />" //return value
+	"    </method>"
+	"    <method name='pwm'>"
+	"      <arg type='s' name='function' direction='in' />"
+	"      <arg type='i' name='device' direction='in' />"
+	"      <arg type='i' name='channel' direction='in' />"
+	"      <arg type='i' name='period' direction='in' />"
+	"      <arg type='i' name='duty_cycle' direction='in' />"
+	"      <arg type='i' name='enabled' direction='in' />"
+	"      <arg type='i' name='re_period' direction='out' />"
+	"      <arg type='i' name='re_duty' direction='out' />"
+	"      <arg type='i' name='re_status' direction='out' />" //return value
+	"    </method>"
+	"  </interface>"
+	"</node>";
 
 static GDBusNodeInfo *introspection_data = NULL;
 
@@ -180,28 +218,33 @@ static const GDBusInterfaceVTable interface_vtable = {
 	NULL,
 };
 
-guint registration_id = 0;
-
 static void on_bus_acquired(GDBusConnection *connection,
 							const gchar *name,
 							gpointer user_data)
 {
-	guint registration_id;
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 
 	if (!connection) {
 		_E("connection is null");
 		return;
 	}
 
-	registration_id = g_dbus_connection_register_object(connection,
+	if (!pb_data) {
+		_E("pb_data is null");
+		return;
+	}
+
+	pb_data->connection = connection;
+
+	pb_data->reg_id = g_dbus_connection_register_object(connection,
 														PERIPHERAL_DBUS_PATH,
 														introspection_data->interfaces[0],
 														&interface_vtable,
-														NULL,  /* user_data */
-														NULL,  /* user_data_free_func */
-														NULL); /* GError** */
+														user_data,	/* user_data */
+														NULL,		/* user_data_free_func */
+														NULL);		/* GError** */
 
-	if (registration_id == 0)
+	if (pb_data->reg_id == 0)
 		_E("Failed to g_dbus_connection_register_object");
 
 	_D("Gdbus method call registered");
@@ -221,7 +264,14 @@ static void on_name_lost(GDBusConnection *conn,
 int main(int argc, char *argv[])
 {
 	GMainLoop *loop;
-	guint owner_id;
+	guint owner_id = 0;
+	peripheral_bus_s *pb_data;
+
+	pb_data = (peripheral_bus_s*)calloc(1, sizeof(peripheral_bus_s));
+	if (pb_data == NULL) {
+		_E("failed to allocate peripheral_bus_s");
+		return -1;
+	}
 
 	introspection_data = g_dbus_node_info_new_for_xml(peripheral_data_xml, NULL);
 	g_assert(introspection_data != NULL);
@@ -233,14 +283,25 @@ int main(int argc, char *argv[])
 							  on_bus_acquired,
 							  on_name_acquired,
 							  on_name_lost,
-							  NULL,
+							  pb_data,
 							  NULL);
-	_D("owner_id : %d", owner_id);
+	if (!owner_id) {
+		_E("g_bus_own_name_error");
+		g_dbus_node_info_unref(introspection_data);
+		free(pb_data);
+		return -1;
+	}
 
 	loop = g_main_loop_new(NULL, FALSE);
 
 	_D("Enter main loop!");
 	g_main_loop_run(loop);
+
+	if (introspection_data)
+		g_dbus_node_info_unref(introspection_data);
+
+	if (pb_data)
+		free(pb_data);
 
 	if (loop != NULL)
 		g_main_loop_unref(loop);
