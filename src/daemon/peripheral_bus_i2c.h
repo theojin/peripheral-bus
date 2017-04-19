@@ -17,6 +17,6 @@
 #ifndef __PERIPHERAL_BUS_I2C_H__
 #define __PERIPHERAL_BUS_I2C_H__
 
-int peripheral_bus_i2c_process(peripheral_i2c_context_h dev, char *func_name, int value, unsigned char *data, int addr);
+int peripheral_bus_i2c_process(peripheral_i2c_h i2c, char *func_name, int value, unsigned char *data, int addr);
 
 #endif /* __PERIPHERAL_BUS_I2C_H__ */
