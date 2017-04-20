@@ -32,10 +32,7 @@ int gpio_open(int gpiopin)
 	int fd, len, status;
 	char gpio_export[GPIO_BUFFER_MAX] = {0, };
 
-	gpio_close(gpiopin);
-
 	fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
-
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
