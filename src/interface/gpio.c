@@ -300,7 +300,7 @@ int gpio_close(int gpiopin)
 
 	if (status != len) {
 		close(fd);
-		_E("Error: gpio open error \n");
+		_E("Error: gpio close error \n");
 		return -EIO;
 	}
 
