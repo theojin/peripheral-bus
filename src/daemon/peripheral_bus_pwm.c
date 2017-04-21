@@ -23,64 +23,37 @@
 #include "pwm.h"
 #include "peripheral_common.h"
 
-int peripheral_bus_pwm_open(int device, int channel)
+int peripheral_bus_pwm_open(peripheral_pwm_context_h pwm)
 {
-	return pwm_open(device, channel);
+	return pwm_open(pwm->device, pwm->channel);
 }
 
-int peripheral_bus_pwm_close(int device, int channel)
+int peripheral_bus_pwm_close(peripheral_pwm_context_h pwm)
 {
-	return pwm_close(device, channel);
+	return pwm_close(pwm->device, pwm->channel);
 }
 
-int peripheral_bus_pwm_setduty(int device, int channel, int duty_cycle)
+int peripheral_bus_pwm_set_duty_cycle(peripheral_pwm_context_h pwm, int duty_cycle)
 {
-	return pwm_set_duty_cycle(device, channel, duty_cycle);
+	return pwm_set_duty_cycle(pwm->device, pwm->channel, duty_cycle);
 }
 
-int peripheral_bus_pwm_setperiod(int device, int channel, int period)
+int peripheral_bus_pwm_set_period(peripheral_pwm_context_h pwm, int period)
 {
-	return pwm_set_period(device, channel, period);
+	return pwm_set_period(pwm->device, pwm->channel, period);
 }
 
-int peripheral_bus_pwm_setenable(int device, int channel, int enable)
+int peripheral_bus_pwm_set_enable(peripheral_pwm_context_h pwm, int enable)
 {
-	return pwm_set_enabled(device, channel, enable);
+	return pwm_set_enabled(pwm->device, pwm->channel, enable);
 }
 
-int peripheral_bus_pwm_getduty(int device, int channel, int * duty_cycle)
+int peripheral_bus_pwm_get_duty_cycle(peripheral_pwm_context_h pwm, int *duty_cycle)
 {
-	return pwm_get_duty_cycle(device, channel, duty_cycle);
+	return pwm_get_duty_cycle(pwm->device, pwm->channel, duty_cycle);
 }
 
-int peripheral_bus_pwm_getperiod(int device, int channel, int *period)
+int peripheral_bus_pwm_get_period(peripheral_pwm_context_h pwm, int *period)
 {
-	return pwm_get_period(device, channel, period);
-}
-
-int peripheral_bus_pwm_process(peripheral_pwm_context_h dev, char *function)
-{
-	int ret = PERIPHERAL_ERROR_NONE;
-
-	if (dev == NULL) {
-		_E("dev null error");
-		return PERIPHERAL_ERROR_INVALID_PARAMETER;
-	}
-
-	if (!g_strcmp0(function, "OPEN"))
-		ret = peripheral_bus_pwm_open(dev->device, dev->channel);
-	else if (!g_strcmp0(function, "CLOSE"))
-		ret = peripheral_bus_pwm_close(dev->device, dev->channel);
-	else if (!g_strcmp0(function, "SET_DUTY"))
-		ret = peripheral_bus_pwm_setduty(dev->device, dev->channel, dev->duty_cycle);
-	else if (!g_strcmp0(function, "SET_PERIOD"))
-		ret = peripheral_bus_pwm_setperiod(dev->device, dev->channel, dev->period);
-	else if (!g_strcmp0(function, "SET_ENABLE"))
-		ret = peripheral_bus_pwm_setenable(dev->device, dev->channel, dev->enabled);
-	else if (!g_strcmp0(function, "GET_DUTY"))
-		ret = peripheral_bus_pwm_getduty(dev->device, dev->channel, &dev->duty_cycle);
-	else if (!g_strcmp0(function, "GET_PERIOD"))
-		ret = peripheral_bus_pwm_getperiod(dev->device, dev->channel, &dev->period);
-
-	return ret;
+	return pwm_get_period(pwm->device, pwm->channel, period);
 }

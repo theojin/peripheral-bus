@@ -86,32 +86,3 @@ int peripheral_bus_gpio_close(peripheral_gpio_h gpio)
 {
 	return gpio_close(gpio->pin);
 }
-
-int peripheral_bus_gpio_process(peripheral_gpio_h gpio, char *func_name, int write_value, int * read_value)
-{
-	int ret = PERIPHERAL_ERROR_NONE;
-
-	if (gpio == NULL) {
-		_E("gpio null error");
-		return PERIPHERAL_ERROR_INVALID_PARAMETER;
-	}
-
-	if (!g_strcmp0(func_name, "OPEN"))
-		ret = peripheral_bus_gpio_open(gpio);
-	else if (!g_strcmp0(func_name, "SET_DIR"))
-		ret = peripheral_bus_gpio_set_direction(gpio);
-	else if (!g_strcmp0(func_name, "GET_DIR"))
-		ret = peripheral_bus_gpio_get_direction(gpio);
-	else if (!g_strcmp0(func_name, "SET_EDGE"))
-		ret = peripheral_bus_gpio_set_edge(gpio);
-	else if (!g_strcmp0(func_name, "GET_EDGE"))
-		ret = peripheral_bus_gpio_get_edge(gpio);
-	else if (!g_strcmp0(func_name, "WRITE"))
-		ret = peripheral_bus_gpio_write(gpio, write_value);
-	else if (!g_strcmp0(func_name, "READ"))
-		ret = peripheral_bus_gpio_read(gpio, read_value);
-	else if (!g_strcmp0(func_name, "CLOSE"))
-		ret = peripheral_bus_gpio_close(gpio);
-
-	return ret;
-}

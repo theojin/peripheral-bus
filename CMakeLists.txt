@@ -4,7 +4,16 @@ PROJECT(peripheral-bus C)
 SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(VERSION 0.0.1)
 
-SET(dependents "dlog glib-2.0 gio-2.0")
+SET(dependents "dlog glib-2.0 gio-2.0 gio-unix-2.0")
+
+FIND_PROGRAM(GDBUS_CODEGEN NAMES gdbus-codegen)
+EXEC_PROGRAM(${GDBUS_CODEGEN} ARGS
+                " \\
+                --generate-c-code ${CMAKE_SOURCE_DIR}/src/daemon/peripheral_io_gdbus \\
+                --c-namespace PeripheralIoGdbus \\
+                --interface-prefix org.tizen.system.peripheral_io. \\
+                ${CMAKE_SOURCE_DIR}/src/daemon/peripheral_io.xml \\
+                ")
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/daemon)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/interface/include)
@@ -15,6 +24,7 @@ SET(SRCS
 	src/daemon/peripheral_bus_pwm.c
 	src/daemon/peripheral_bus_i2c.c
 	src/daemon/peripheral_bus_gpio.c
+	src/daemon/peripheral_io_gdbus.c
 	src/interface/adc.c
 	src/interface/gpio.c
 	src/interface/i2c.c

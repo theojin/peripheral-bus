@@ -24,7 +24,7 @@
 int i2c_open(int bus, int *file_hndl);
 int i2c_close(int file_hndl);
 int i2c_set_address(int file_hndl, int address);
-int i2c_read(int file_hndl, unsigned char *data, int length, int addr);
-int i2c_write(int file_hndl, const unsigned char *data, int length, int addr);
+int i2c_read(int file_hndl, unsigned char *data, int length);
+int i2c_write(int file_hndl, const unsigned char *data, int length);
 
 #endif/* __I2C_H__ */

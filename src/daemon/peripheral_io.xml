@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<node>
+	<interface name="org.tizen.system.peripheral_io.gpio">
+		<method name="Open">
+			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="Close">
+			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="GetDirection">
+			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="direction" direction="out"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="SetDirection">
+			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="direction" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="Read">
+			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="value" direction="out"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="Write">
+			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="value" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="GetEdgeMode">
+			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="edge" direction="out"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="SetEdgeMode">
+			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="edge" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+	</interface>
+	<interface name="org.tizen.system.peripheral_io.i2c">
+		<method name="Init">
+			<arg type="i" name="bus" direction="in"/>
+			<arg type="i" name="fd" direction="out"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="Stop">
+			<arg type="i" name="fd" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="SetAddress">
+			<arg type="i" name="fd" direction="in"/>
+			<arg type="i" name="address" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="Read">
+			<arg type="i" name="fd" direction="in"/>
+			<arg type="i" name="length" direction="in"/>
+			<arg type="a(y)" name="data" direction="out">
+				<annotation name="org.gtk.GDBus.C.ForceGVariant" value="true"/>
+			</arg>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="Write">
+			<arg type="i" name="fd" direction="in"/>
+			<arg type="i" name="length" direction="in"/>
+			<arg type="a(y)" name="data" direction="in">
+				<annotation name="org.gtk.GDBus.C.ForceGVariant" value="true"/>
+			</arg>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+	</interface>
+	<interface name="org.tizen.system.peripheral_io.pwm">
+		<method name="Open">
+			<arg type="i" name="device" direction="in"/>
+			<arg type="i" name="channel" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="Close">
+			<arg type="i" name="device" direction="in"/>
+			<arg type="i" name="channel" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="GetDutyCycle">
+			<arg type="i" name="device" direction="in"/>
+			<arg type="i" name="channel" direction="in"/>
+			<arg type="i" name="duty_cycle" direction="out"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="SetDutyCycle">
+			<arg type="i" name="device" direction="in"/>
+			<arg type="i" name="channel" direction="in"/>
+			<arg type="i" name="duty_cycle" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="GetPeriod">
+			<arg type="i" name="device" direction="in"/>
+			<arg type="i" name="channel" direction="in"/>
+			<arg type="i" name="period" direction="out"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="SetPeriod">
+			<arg type="i" name="device" direction="in"/>
+			<arg type="i" name="channel" direction="in"/>
+			<arg type="i" name="period" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="SetEnable">
+			<arg type="i" name="device" direction="in"/>
+			<arg type="i" name="channel" direction="in"/>
+			<arg type="i" name="enable" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+	</interface>
+</node>

@@ -17,6 +17,13 @@
 #ifndef __PERIPHERAL_BUS_GPIO_H__
 #define __PERIPHERAL_BUS_GPIO_H__
 
-int peripheral_bus_gpio_process(peripheral_gpio_h dev, char *func_name, int write_value, int * read_value);
+int peripheral_bus_gpio_open(peripheral_gpio_h gpio);
+int peripheral_bus_gpio_set_direction(peripheral_gpio_h gpio);
+int peripheral_bus_gpio_get_direction(peripheral_gpio_h gpio);
+int peripheral_bus_gpio_set_edge(peripheral_gpio_h gpio);
+int peripheral_bus_gpio_get_edge(peripheral_gpio_h gpio);
+int peripheral_bus_gpio_write(peripheral_gpio_h gpio, int value);
+int peripheral_bus_gpio_read(peripheral_gpio_h gpio, int *read_value);
+int peripheral_bus_gpio_close(peripheral_gpio_h gpio);
 
 #endif /* __PERIPHERAL_BUS_GPIO_H__ */

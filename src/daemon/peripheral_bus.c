@@ -23,231 +23,583 @@
 #include <peripheral_dbus.h>
 #include <peripheral_internal.h>
 
+#include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
 #include "peripheral_bus_gpio.h"
 #include "peripheral_bus_i2c.h"
 #include "peripheral_bus_pwm.h"
 #include "peripheral_common.h"
 
-static const gchar peripheral_data_xml[] =
-	"<node>"
-	"  <interface name='org.tizen.system.peripheral_io'>"
-	"    <method name='gpio'>"
-	"      <arg type='s' name='function' direction='in'/>"
-	"      <arg type='i' name='pin' direction='in'/>"
-	"      <arg type='i' name='dir' direction='in'/>"
-	"      <arg type='i' name='edge' direction='in'/>"
-	"      <arg type='i' name='value' direction='in' />"
-	"      <arg type='i' name='re_pin' direction='out'/>"
-	"      <arg type='i' name='re_drive' direction='out'/>"
-	"      <arg type='i' name='re_edge' direction='out'/>"
-	"      <arg type='i' name='re_value' direction='out' />" // read value
-	"      <arg type='i' name='re_status' direction='out' />" // return value
-	"    </method>"
-	"    <method name='i2c'>"
-	"      <arg type='s' name='function' direction='in' />"
-	"      <arg type='i' name='value' direction='in' />"
-	"      <arg type='i' name='fd' direction='in' />"
-	"      <arg type='ay' name='data' direction='in' />"
-	"      <arg type='i' name='addr' direction='in' />"
-	"      <arg type='i' name='re_fd' direction='out' />"
-	"      <arg type='ay' name='re_data' direction='out' />"
-	"      <arg type='i' name='re_status' direction='out' />" //return value
-	"    </method>"
-	"    <method name='pwm'>"
-	"      <arg type='s' name='function' direction='in' />"
-	"      <arg type='i' name='device' direction='in' />"
-	"      <arg type='i' name='channel' direction='in' />"
-	"      <arg type='i' name='period' direction='in' />"
-	"      <arg type='i' name='duty_cycle' direction='in' />"
-	"      <arg type='i' name='enabled' direction='in' />"
-	"      <arg type='i' name='re_period' direction='out' />"
-	"      <arg type='i' name='re_duty' direction='out' />"
-	"      <arg type='i' name='re_status' direction='out' />" //return value
-	"    </method>"
-	"  </interface>"
-	"</node>";
-
-static GDBusNodeInfo *introspection_data = NULL;
-
-static void handle_request_gpio(GDBusMethodInvocation *invocation,
-								GVariant *parameters,
-								gpointer user_data)
+gboolean handle_gpio_open(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint pin,
+		gpointer user_data)
 {
-	gchar *function;
-	gint32 ret = PERIPHERAL_ERROR_NONE;
-	gint32 pin;
-	gint32 direction;
-	gint32 edge;
-	gint32 read_value = 0;
-	gint32 write_value;
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	struct _peripheral_gpio_s st_gpio;
 
-	g_variant_get(parameters, "(siiii)", &function, &pin, &direction, &edge, &write_value);
+	st_gpio.pin = pin;
+
+	ret = peripheral_bus_gpio_open(&st_gpio);
+	peripheral_io_gdbus_gpio_complete_open(gpio, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_gpio_close(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint pin,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_gpio_s st_gpio;
+
+	st_gpio.pin = pin;
+
+	ret = peripheral_bus_gpio_close(&st_gpio);
+	peripheral_io_gdbus_gpio_complete_close(gpio, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_gpio_get_direction(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint pin,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_gpio_s st_gpio;
+
+	st_gpio.pin = pin;
+
+	ret = peripheral_bus_gpio_get_direction(&st_gpio);
+	peripheral_io_gdbus_gpio_complete_get_direction(gpio, invocation, st_gpio.direction, ret);
+
+	return true;
+}
+
+gboolean handle_gpio_set_direction(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint pin,
+		gint direction,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_gpio_s st_gpio;
+
+	st_gpio.pin = pin;
+	st_gpio.direction = direction;
+
+	ret = peripheral_bus_gpio_set_direction(&st_gpio);
+	peripheral_io_gdbus_gpio_complete_set_direction(gpio, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_gpio_read(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint pin,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_gpio_s st_gpio;
+	gint32 read_value = 0;
+
+	st_gpio.pin = pin;
+
+	ret = peripheral_bus_gpio_read(&st_gpio, &read_value);
+	peripheral_io_gdbus_gpio_complete_read(gpio, invocation, read_value, ret);
+
+	return true;
+}
+
+gboolean handle_gpio_write(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint pin,
+		gint value,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_gpio_s st_gpio;
+
+	st_gpio.pin = pin;
+
+	ret = peripheral_bus_gpio_write(&st_gpio, value);
+	peripheral_io_gdbus_gpio_complete_write(gpio, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_gpio_get_edge_mode(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint pin,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_gpio_s st_gpio;
+
+	st_gpio.pin = pin;
+
+	ret = peripheral_bus_gpio_get_edge(&st_gpio);
+	peripheral_io_gdbus_gpio_complete_get_edge_mode(gpio, invocation, st_gpio.edge, ret);
+
+	return true;
+}
+
+gboolean handle_gpio_set_edge_mode(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint pin,
+		gint edge,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_gpio_s st_gpio;
 
 	st_gpio.pin = pin;
 	st_gpio.edge = edge;
-	st_gpio.direction = direction;
 
-	ret = peripheral_bus_gpio_process(&st_gpio, function, write_value, &read_value);
+	ret = peripheral_bus_gpio_set_edge(&st_gpio);
+	peripheral_io_gdbus_gpio_complete_set_edge_mode(gpio, invocation, ret);
 
-	g_dbus_method_invocation_return_value(invocation,
-									g_variant_new("(iiiii)", st_gpio.pin, st_gpio.direction, st_gpio.edge, read_value, ret));
-
-	g_free(function);
+	return true;
 }
 
-static void handle_request_i2c(GDBusMethodInvocation *invocation,
-							   GVariant *parameters,
-							   gpointer user_data)
+gboolean handle_i2c_init(
+		PeripheralIoGdbusI2c *i2c,
+		GDBusMethodInvocation *invocation,
+		gint bus,
+		gint fd,
+		gpointer user_data)
 {
-	gchar *function;
-	gint32 ret = PERIPHERAL_ERROR_NONE;
-	gint32 fd;
-	GVariantIter *data;
-	guint8 str;
-	unsigned char data_value[100];
-	GVariantBuilder *builder;
-	gint32 value = 0;
-	gint32 addr;
-	int i = 0;
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	struct _peripheral_i2c_s st_i2c;
 
-	g_variant_get(parameters, "(siiayi)", &function, &value, &fd, &data, &addr);
+	// TODO: Create i2c instance
 
-	if (!strcmp(function, "READ") || !strcmp(function, "WRITE")) {
-		while (g_variant_iter_loop(data, "y", &str)) {
-			data_value[i] = str;
-			i++;
-		}
-	}
+	ret = peripheral_bus_i2c_init(&st_i2c, bus);
+	peripheral_io_gdbus_i2c_complete_init(i2c, invocation, st_i2c.fd, ret);
 
-	g_variant_iter_free(data);
+	return true;
+}
+
+gboolean handle_i2c_stop(
+		PeripheralIoGdbusI2c *i2c,
+		GDBusMethodInvocation *invocation,
+		gint fd,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_i2c_s st_i2c;
 
 	st_i2c.fd = fd;
 
-	ret = peripheral_bus_i2c_process(&st_i2c, function, value, data_value, addr);
+	ret = peripheral_bus_i2c_stop(&st_i2c);
+	peripheral_io_gdbus_i2c_complete_stop(i2c, invocation, ret);
 
-	builder = g_variant_builder_new(G_VARIANT_TYPE("ay"));
-
-	if (!strcmp(function, "READ") || !strcmp(function, "WRITE")) {
-		for (i = 0; i < value; i++)
-			g_variant_builder_add(builder, "y", data_value[i]);
-	} else {
-		g_variant_builder_add(builder, "y", 0x10);
-		g_variant_builder_add(builder, "y", 0x10);
-	}
-	g_dbus_method_invocation_return_value(invocation,
-									g_variant_new("(iayi)", st_i2c.fd, builder, ret));
-
-	g_free(function);
+	return true;
 }
 
-static void handle_request_pwm(GDBusMethodInvocation *invocation,
-							   GVariant *parameters,
-							   gpointer user_data)
+gboolean handle_i2c_set_address(
+		PeripheralIoGdbusI2c *i2c,
+		GDBusMethodInvocation *invocation,
+		gint fd,
+		gint addr,
+		gpointer user_data)
 {
-	gchar *function;
-	gint32 ret = PERIPHERAL_ERROR_NONE;
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_i2c_s st_i2c;
+
+	st_i2c.fd = fd;
+
+	ret = peripheral_bus_i2c_set_address(&st_i2c, addr);
+	peripheral_io_gdbus_i2c_complete_set_address(i2c, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_i2c_read(
+		PeripheralIoGdbusI2c *i2c,
+		GDBusMethodInvocation *invocation,
+		gint fd,
+		gint length,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_i2c_s st_i2c;
+	// TODO: Fix size of data buffer
+	unsigned char data[128];
+	GVariantBuilder *builder;
+	GVariant *data_array;
+	int i = 0;
+
+	st_i2c.fd = fd;
+	ret = peripheral_bus_i2c_read(&st_i2c, length, data);
+
+	builder = g_variant_builder_new(G_VARIANT_TYPE("a(y)"));
+
+	for (i = 0; i < length; i++)
+		g_variant_builder_add(builder, "(y)", data[i]);
+	g_variant_builder_add(builder, "(y)", 0x00);
+	data_array = g_variant_new("a(y)", builder);
+	g_variant_builder_unref(builder);
+
+	peripheral_io_gdbus_i2c_complete_read(i2c, invocation, data_array, ret);
+
+	return true;
+}
+
+gboolean handle_i2c_write(
+		PeripheralIoGdbusI2c *i2c,
+		GDBusMethodInvocation *invocation,
+		gint fd,
+		gint length,
+		GVariant *data_array,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_i2c_s st_i2c;
+	// TODO: Fix size of data buffer
+	unsigned char data[128];
+	GVariantIter *iter;
+	guchar str;
+	int i = 0;
+
+	st_i2c.fd = fd;
+	g_variant_get(data_array, "a(y)", &iter);
+	while (g_variant_iter_loop(iter, "(y)", &str)) {
+		data[i++] = str;
+		if (i == length || i >= 128) break;
+	}
+	g_variant_iter_free(iter);
+
+	ret = peripheral_bus_i2c_write(&st_i2c, length, (unsigned char*)data);
+	peripheral_io_gdbus_i2c_complete_write(i2c, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_pwm_open(
+		PeripheralIoGdbusPwm *pwm,
+		GDBusMethodInvocation *invocation,
+		gint device,
+		gint channel,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	struct _peripheral_pwm_s st_pwm;
 
-	g_variant_get(parameters, "(siiiii)", &function, &st_pwm.device,
-				&st_pwm.channel, &st_pwm.period, &st_pwm.duty_cycle, &st_pwm.enabled);
+	st_pwm.device = device;
+	st_pwm.channel = channel;
 
-	ret = peripheral_bus_pwm_process(&st_pwm, function);
+	ret = peripheral_bus_pwm_open(&st_pwm);
+	peripheral_io_gdbus_pwm_complete_open(pwm, invocation, ret);
 
-	g_dbus_method_invocation_return_value(invocation,
-									 g_variant_new("(iii)", st_pwm.period, st_pwm.duty_cycle, ret));
-
-	g_free(function);
+	return true;
 }
 
-static void handle_request_spi(GDBusMethodInvocation *invocation,
-							   GVariant *parameters,
-							   gpointer user_data)
+gboolean handle_pwm_close(
+		PeripheralIoGdbusPwm *pwm,
+		GDBusMethodInvocation *invocation,
+		gint device,
+		gint channel,
+		gpointer user_data)
 {
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_pwm_s st_pwm;
+
+	st_pwm.device = device;
+	st_pwm.channel = channel;
+
+	ret = peripheral_bus_pwm_close(&st_pwm);
+	peripheral_io_gdbus_pwm_complete_close(pwm, invocation, ret);
+
+	return true;
 }
 
-static void handle_request_uart(GDBusMethodInvocation *invocation,
-								GVariant *parameters,
-								gpointer user_data)
+gboolean handle_pwm_set_duty_cycle(
+		PeripheralIoGdbusPwm *pwm,
+		GDBusMethodInvocation *invocation,
+		gint device,
+		gint channel,
+		gint duty_cycle,
+		gpointer user_data)
 {
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_pwm_s st_pwm;
+
+	st_pwm.device = device;
+	st_pwm.channel = channel;
+
+	ret = peripheral_bus_pwm_set_duty_cycle(&st_pwm, duty_cycle);
+	peripheral_io_gdbus_pwm_complete_set_duty_cycle(pwm, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_pwm_set_period(
+		PeripheralIoGdbusPwm *pwm,
+		GDBusMethodInvocation *invocation,
+		gint device,
+		gint channel,
+		gint period,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_pwm_s st_pwm;
+
+	st_pwm.device = device;
+	st_pwm.channel = channel;
+
+	ret = peripheral_bus_pwm_set_period(&st_pwm, period);
+	peripheral_io_gdbus_pwm_complete_set_period(pwm, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_pwm_set_enable(
+		PeripheralIoGdbusPwm *pwm,
+		GDBusMethodInvocation *invocation,
+		gint device,
+		gint channel,
+		gint enable,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_pwm_s st_pwm;
+
+	st_pwm.device = device;
+	st_pwm.channel = channel;
+
+	ret = peripheral_bus_pwm_set_enable(&st_pwm, enable);
+	peripheral_io_gdbus_pwm_complete_set_enable(pwm, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_pwm_get_duty_cycle(
+		PeripheralIoGdbusPwm *pwm,
+		GDBusMethodInvocation *invocation,
+		gint device,
+		gint channel,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_pwm_s st_pwm;
+
+	st_pwm.device = device;
+	st_pwm.channel = channel;
+
+	ret = peripheral_bus_pwm_get_duty_cycle(&st_pwm, &st_pwm.duty_cycle);
+	peripheral_io_gdbus_pwm_complete_get_duty_cycle(pwm, invocation, st_pwm.duty_cycle, ret);
+
+	return true;
+}
+
+gboolean handle_pwm_get_period(
+		PeripheralIoGdbusPwm *pwm,
+		GDBusMethodInvocation *invocation,
+		gint device,
+		gint channel,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	struct _peripheral_pwm_s st_pwm;
+
+	st_pwm.device = device;
+	st_pwm.channel = channel;
+
+	ret = peripheral_bus_pwm_get_period(&st_pwm, &st_pwm.period);
+	peripheral_io_gdbus_pwm_complete_get_period(pwm, invocation, st_pwm.period, ret);
+
+	return true;
 }
 
 
-static void handle_method_call(GDBusConnection *connection,
-							   const gchar *sender,
-							   const gchar *object_path,
-							   const gchar *interface_name,
-							   const gchar *method_name,
-							   GVariant *parameters,
-							   GDBusMethodInvocation *invocation,
-							   gpointer user_data)
+static gboolean __gpio_init(GDBusConnection *connection)
 {
+	GDBusObjectManagerServer *manager;
+	PeripheralIoGdbusGpio *gpio_skeleton;
+	gboolean ret = FALSE;
+	GError *error = NULL;
 
-	if (parameters == NULL) {
-		_E("Client : parameters Null !");
-		return;
+	/* Add interface to default object path */
+	gpio_skeleton = peripheral_io_gdbus_gpio_skeleton_new();
+	/* Register for method callbacks as signal callbacks */
+	g_signal_connect(gpio_skeleton,
+			"handle-open",
+			G_CALLBACK(handle_gpio_open),
+			NULL);
+	g_signal_connect(gpio_skeleton,
+			"handle-close",
+			G_CALLBACK(handle_gpio_close),
+			NULL);
+	g_signal_connect(gpio_skeleton,
+			"handle-get-direction",
+			G_CALLBACK(handle_gpio_get_direction),
+			NULL);
+	g_signal_connect(gpio_skeleton,
+			"handle-set-direction",
+			G_CALLBACK(handle_gpio_set_direction),
+			NULL);
+	g_signal_connect(gpio_skeleton,
+			"handle-read",
+			G_CALLBACK(handle_gpio_read),
+			NULL);
+	g_signal_connect(gpio_skeleton,
+			"handle-write",
+			G_CALLBACK(handle_gpio_write),
+			NULL);
+	g_signal_connect(gpio_skeleton,
+			"handle-get-edge-mode",
+			G_CALLBACK(handle_gpio_get_edge_mode),
+			NULL);
+	g_signal_connect(gpio_skeleton,
+			"handle-set-edge-mode",
+			G_CALLBACK(handle_gpio_set_edge_mode),
+			NULL);
+
+	manager = g_dbus_object_manager_server_new(PERIPHERAL_DBUS_GPIO_PATH);
+
+	/* Set connection to 'manager' */
+	g_dbus_object_manager_server_set_connection(manager, connection);
+
+	/* Export 'manager' interface on peripheral-io DBUS */
+	ret = g_dbus_interface_skeleton_export(
+		G_DBUS_INTERFACE_SKELETON(gpio_skeleton),
+		connection, PERIPHERAL_DBUS_GPIO_PATH, &error);
+
+	if (ret == FALSE) {
+		_E("Can not skeleton_export %s", error->message);
+		g_error_free(error);
 	}
 
-	if (invocation == NULL) {
-		_E("client : invocation NULL !");
-		return;
-	}
-
-	if (method_name == NULL) {
-		_E("Client : method_name NULL !");
-		return;
-	}
-
-	if (!strcmp(method_name, PERIPHERAL_METHOD_GPIO))
-		handle_request_gpio(invocation, parameters, user_data);
-	else if (!strcmp(method_name, PERIPHERAL_METHOD_I2C))
-		handle_request_i2c(invocation, parameters, user_data);
-	else if (!strcmp(method_name, PERIPHERAL_METHOD_PWM))
-		handle_request_pwm(invocation, parameters, user_data);
-	else if (!strcmp(method_name, PERIPHERAL_METHOD_SPI))
-		handle_request_spi(invocation, parameters, user_data);
-	else if (!strcmp(method_name, PERIPHERAL_METHOD_UART))
-		handle_request_uart(invocation, parameters, user_data);
+	return true;
 }
 
-static const GDBusInterfaceVTable interface_vtable = {
-	handle_method_call,
-	NULL,
-	NULL,
-};
+static gboolean __i2c_init(GDBusConnection *connection)
+{
+	GDBusObjectManagerServer *manager;
+	PeripheralIoGdbusI2c *i2c_skeleton;
+	gboolean ret = FALSE;
+	GError *error = NULL;
+
+	/* Add interface to default object path */
+	i2c_skeleton = peripheral_io_gdbus_i2c_skeleton_new();
+	g_signal_connect(i2c_skeleton,
+			"handle-init",
+			G_CALLBACK(handle_i2c_init),
+			NULL);
+	g_signal_connect(i2c_skeleton,
+			"handle-stop",
+			G_CALLBACK(handle_i2c_stop),
+			NULL);
+	g_signal_connect(i2c_skeleton,
+			"handle-set-address",
+			G_CALLBACK(handle_i2c_set_address),
+			NULL);
+	g_signal_connect(i2c_skeleton,
+			"handle-read",
+			G_CALLBACK(handle_i2c_read),
+			NULL);
+	g_signal_connect(i2c_skeleton,
+			"handle-write",
+			G_CALLBACK(handle_i2c_write),
+			NULL);
+
+	manager = g_dbus_object_manager_server_new(PERIPHERAL_DBUS_I2C_PATH);
+
+	/* Set connection to 'manager' */
+	g_dbus_object_manager_server_set_connection(manager, connection);
+
+	/* Export 'manager' interface on peripheral-io DBUS */
+	ret = g_dbus_interface_skeleton_export(
+		G_DBUS_INTERFACE_SKELETON(i2c_skeleton),
+		connection, PERIPHERAL_DBUS_I2C_PATH, &error);
+
+	if (ret == FALSE) {
+		_E("Can not skeleton_export %s", error->message);
+		g_error_free(error);
+	}
+
+	return true;
+}
+
+static gboolean __pwm_init(GDBusConnection *connection)
+{
+	GDBusObjectManagerServer *manager;
+	PeripheralIoGdbusPwm *pwm_skeleton;
+	gboolean ret = FALSE;
+	GError *error = NULL;
+
+	/* Add interface to default object path */
+	pwm_skeleton = peripheral_io_gdbus_pwm_skeleton_new();
+	g_signal_connect(pwm_skeleton,
+			"handle-open",
+			G_CALLBACK(handle_pwm_open),
+			NULL);
+	g_signal_connect(pwm_skeleton,
+			"handle-close",
+			G_CALLBACK(handle_pwm_close),
+			NULL);
+	g_signal_connect(pwm_skeleton,
+			"handle-set-duty-cycle",
+			G_CALLBACK(handle_pwm_set_duty_cycle),
+			NULL);
+	g_signal_connect(pwm_skeleton,
+			"handle-set-period",
+			G_CALLBACK(handle_pwm_set_period),
+			NULL);
+	g_signal_connect(pwm_skeleton,
+			"handle-set-enable",
+			G_CALLBACK(handle_pwm_set_enable),
+			NULL);
+	g_signal_connect(pwm_skeleton,
+			"handle-get-duty",
+			G_CALLBACK(handle_pwm_get_duty_cycle),
+			NULL);
+	g_signal_connect(pwm_skeleton,
+			"handle-get-period",
+			G_CALLBACK(handle_pwm_get_period),
+			NULL);
+
+	manager = g_dbus_object_manager_server_new(PERIPHERAL_DBUS_PWM_PATH);
+
+	/* Set connection to 'manager' */
+	g_dbus_object_manager_server_set_connection(manager, connection);
+
+	/* Export 'manager' interface on peripheral-io DBUS */
+	ret = g_dbus_interface_skeleton_export(
+		G_DBUS_INTERFACE_SKELETON(pwm_skeleton),
+		connection, PERIPHERAL_DBUS_PWM_PATH, &error);
+
+	if (ret == FALSE) {
+		_E("Can not skeleton_export %s", error->message);
+		g_error_free(error);
+	}
+
+	return true;
+}
 
 static void on_bus_acquired(GDBusConnection *connection,
 							const gchar *name,
 							gpointer user_data)
 {
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	if (__gpio_init(connection) == FALSE)
+		_E("Can not signal connect");
 
-	if (!connection) {
-		_E("connection is null");
-		return;
-	}
+	if (__i2c_init(connection) == FALSE)
+		_E("Can not signal connect");
 
-	if (!pb_data) {
-		_E("pb_data is null");
-		return;
-	}
-
-	pb_data->connection = connection;
-
-	pb_data->reg_id = g_dbus_connection_register_object(connection,
-														PERIPHERAL_DBUS_PATH,
-														introspection_data->interfaces[0],
-														&interface_vtable,
-														user_data,	/* user_data */
-														NULL,		/* user_data_free_func */
-														NULL);		/* GError** */
-
-	if (pb_data->reg_id == 0)
-		_E("Failed to g_dbus_connection_register_object");
-
-	_D("Gdbus method call registered");
+	if (__pwm_init(connection) == FALSE)
+		_E("Can not signal connect");
 }
 
 static void on_name_acquired(GDBusConnection *conn,
@@ -273,9 +625,6 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	introspection_data = g_dbus_node_info_new_for_xml(peripheral_data_xml, NULL);
-	g_assert(introspection_data != NULL);
-
 	owner_id = g_bus_own_name(G_BUS_TYPE_SYSTEM,
 							  PERIPHERAL_DBUS_NAME,
 							  (GBusNameOwnerFlags) (G_BUS_NAME_OWNER_FLAGS_ALLOW_REPLACEMENT
@@ -287,7 +636,6 @@ int main(int argc, char *argv[])
 							  NULL);
 	if (!owner_id) {
 		_E("g_bus_own_name_error");
-		g_dbus_node_info_unref(introspection_data);
 		free(pb_data);
 		return -1;
 	}
@@ -296,9 +644,6 @@ int main(int argc, char *argv[])
 
 	_D("Enter main loop!");
 	g_main_loop_run(loop);
-
-	if (introspection_data)
-		g_dbus_node_info_unref(introspection_data);
 
 	if (pb_data)
 		free(pb_data);

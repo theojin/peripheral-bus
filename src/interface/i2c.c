@@ -76,7 +76,7 @@ int i2c_set_address(int file_hndl, int address)
 	return 0;
 }
 
-int i2c_read(int file_hndl, unsigned char *data, int length, int addr)
+int i2c_read(int file_hndl, unsigned char *data, int length)
 {
 	int status;
 	//int fd;
@@ -109,7 +109,7 @@ int i2c_read(int file_hndl, unsigned char *data, int length, int addr)
 	return 0;
 }
 
-int i2c_write(int file_hndl, const unsigned char *data, int length, int addr)
+int i2c_write(int file_hndl, const unsigned char *data, int length)
 {
 	int status;
 	//int fd;

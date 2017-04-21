@@ -17,6 +17,12 @@
 #ifndef __PERIPHERAL_BUS_PWM_H__
 #define __PERIPHERAL_BUS_PWM_H__
 
-int peripheral_bus_pwm_process(peripheral_pwm_context_h dev, char *function);
+int peripheral_bus_pwm_open(peripheral_pwm_context_h pwm);
+int peripheral_bus_pwm_close(peripheral_pwm_context_h pwm);
+int peripheral_bus_pwm_set_duty_cycle(peripheral_pwm_context_h pwm, int duty_cycle);
+int peripheral_bus_pwm_set_period(peripheral_pwm_context_h pwm, int period);
+int peripheral_bus_pwm_set_enable(peripheral_pwm_context_h pwm, int enable);
+int peripheral_bus_pwm_get_duty_cycle(peripheral_pwm_context_h pwm, int *duty_cycle);
+int peripheral_bus_pwm_get_period(peripheral_pwm_context_h pwm, int*period);
 
 #endif /* __PERIPHERAL_BUS_PWM_H__ */
