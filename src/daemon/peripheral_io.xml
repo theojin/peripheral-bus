@@ -1,46 +1,46 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <node>
-	<interface name="org.tizen.system.peripheral_io.gpio">
+	<interface name="org.tizen.peripheral_io.gpio">
 		<method name="Open">
-			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="pin" direction="in"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="Close">
-			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="pin" direction="in"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="GetDirection">
-			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="pin" direction="in"/>
 			<arg type="i" name="direction" direction="out"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="SetDirection">
-			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="pin" direction="in"/>
 			<arg type="i" name="direction" direction="in"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="Read">
-			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="pin" direction="in"/>
 			<arg type="i" name="value" direction="out"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="Write">
-			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="pin" direction="in"/>
 			<arg type="i" name="value" direction="in"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="GetEdgeMode">
-			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="pin" direction="in"/>
 			<arg type="i" name="edge" direction="out"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="SetEdgeMode">
-			<arg type="i" name="pin" dyyirection="in"/>
+			<arg type="i" name="pin" direction="in"/>
 			<arg type="i" name="edge" direction="in"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 	</interface>
-	<interface name="org.tizen.system.peripheral_io.i2c">
+	<interface name="org.tizen.peripheral_io.i2c">
 		<method name="Init">
 			<arg type="i" name="bus" direction="in"/>
 			<arg type="i" name="fd" direction="out"/>
@@ -72,7 +72,7 @@
 			<arg type="i" name="result" direction="out"/>
 		</method>
 	</interface>
-	<interface name="org.tizen.system.peripheral_io.pwm">
+	<interface name="org.tizen.peripheral_io.pwm">
 		<method name="Open">
 			<arg type="i" name="device" direction="in"/>
 			<arg type="i" name="channel" direction="in"/>

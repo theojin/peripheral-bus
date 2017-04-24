@@ -11,7 +11,7 @@ EXEC_PROGRAM(${GDBUS_CODEGEN} ARGS
                 " \\
                 --generate-c-code ${CMAKE_SOURCE_DIR}/src/daemon/peripheral_io_gdbus \\
                 --c-namespace PeripheralIoGdbus \\
-                --interface-prefix org.tizen.system.peripheral_io. \\
+                --interface-prefix org.tizen.peripheral_io. \\
                 ${CMAKE_SOURCE_DIR}/src/daemon/peripheral_io.xml \\
                 ")
 
