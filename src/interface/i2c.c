@@ -28,117 +28,81 @@
 
 #define MAX_ERR_LEN 255
 
-int i2c_open(int bus, int *file_hndl)
+int i2c_open(int bus, int *fd)
 {
-	int fd;
+	int new_fd;
 	char i2c_dev[I2C_BUFFER_MAX] = {0,};
 
 	snprintf(i2c_dev, sizeof(i2c_dev)-1, SYSFS_I2C_DIR"-%d", bus);
+	new_fd = open(i2c_dev, O_RDWR);
 
-	fd = open(i2c_dev, O_RDWR);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Can't Open /dev/i2c-%d : %s\n", bus, errmsg);
+		_E("Can't Open /dev/i2c-%d : %s", bus, errmsg);
 		return -ENODEV;
 	}
-
-	*file_hndl = fd;
-	//*file_hndl = bus;
-	//close(fd);
+	*fd = new_fd;
 
 	return 0;
 }
 
-int i2c_close(int file_hndl)
+int i2c_close(int fd)
 {
-	if (file_hndl == (int)NULL)
-		return -EINVAL;
-
-	close(file_hndl);
+	if (fd == NULL) return -EINVAL;
+	close(fd);
 
 	return 0;
 }
 
-int i2c_set_address(int file_hndl, int address)
+int i2c_set_address(int fd, int address)
 {
 	int status;
 
-	_D("I2C SLAVE address = [%x]\n", address);
-
-	status = ioctl(file_hndl, I2C_SLAVE, address);
+	_D("I2C SLAVE address = [%x]", address);
+	status = ioctl(fd, I2C_SLAVE, address);
 
 	if (status < 0) {
-		_E("Error I2C_SLAVE, address[%x]:\n", address);
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Failed to set slave address(%x) : %s", address, errmsg);
 		return -EIO;
 	}
 
 	return 0;
 }
 
-int i2c_read(int file_hndl, unsigned char *data, int length)
+int i2c_read(int fd, unsigned char *data, int length)
 {
 	int status;
-	//int fd;
-	//char i2c_dev[I2C_BUFFER_MAX] = {0,};
 
-	//snprintf(i2c_dev, sizeof(i2c_dev)-1, SYSFS_I2C_DIR"-%d", file_hndl);
-
-	//fd = open(i2c_dev, O_RDWR);
-
-	//if (fd < 0) {
-	//	_E("Can't Open /dev/i2c-%d : %s\n", file_hndl, strerror(errno));
-	//	return PERIPHERAL_ERROR_INVALID_PARAMETER;
-	//}
-	//status = ioctl(fd, I2C_SLAVE, addr);
-	//if (status < 0) {
-	//	_E("Error I2C_SLAVE, address[%x]:\n", addr);
-	//	return PERIPHERAL_ERROR_UNKNOWN;
-	//}
-	_D("[Read] file_hndle = %d\n", file_hndl);
-	status = read(file_hndl, data, length);
+	_D("fd : %d, length : %d", fd, length);
+	status = read(fd, data, length);
 
 	if (status != length) {
-		_E("i2c transaction read failed\n");
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("i2c_read failed : %s", errmsg);
 		return -EIO;
 	} else
-		_D("[SUCCESS] data[%02x][%02x]\n", data[0], data[1]);
-
-	//close(fd);
+		_D("[SUCCESS] data : [%02x][%02x]", data[0], data[1]);
 
 	return 0;
 }
 
-int i2c_write(int file_hndl, const unsigned char *data, int length)
+int i2c_write(int fd, const unsigned char *data, int length)
 {
 	int status;
-	//int fd;
-	//char i2c_dev[I2C_BUFFER_MAX] = {0,};
 
-	//snprintf(i2c_dev, sizeof(i2c_dev)-1, SYSFS_I2C_DIR"-%d", file_hndl);
-
-	//fd = open(i2c_dev, O_RDWR);
-
-	//if (fd < 0) {
-	//	_E("Can't Open /dev/i2c-%d : %s\n", file_hndl, strerror(errno));
-	//	return PERIPHERAL_ERROR_INVALID_PARAMETER;
-	//}
-
-//	status = ioctl(fd, I2C_SLAVE, addr);
-	//if (status < 0) {
-	//	_E("Error I2C_SLAVE, address[%x]:\n", addr);
-	//	return PERIPHERAL_ERROR_UNKNOWN;
-	//}
-
-	status = write(file_hndl, data, length);
+	_D("fd : %d, length : %d", fd, length);
+	status = write(fd, data, length);
 
 	if (status != length) {
-		_E("i2c transaction wrtie failed \n");
-	//	close(fd);
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("i2c write failed : %s\n", fd, errmsg);
 		return -EIO;
 	}
-
-	//close(fd);
 
 	return 0;
 }

@@ -21,10 +21,10 @@
 #define I2C_BUFFER_MAX 64
 #define I2C_SLAVE 0x0703
 
-int i2c_open(int bus, int *file_hndl);
-int i2c_close(int file_hndl);
-int i2c_set_address(int file_hndl, int address);
-int i2c_read(int file_hndl, unsigned char *data, int length);
-int i2c_write(int file_hndl, const unsigned char *data, int length);
+int i2c_open(int bus, int *fd);
+int i2c_close(int fd);
+int i2c_set_address(int fd, int address);
+int i2c_read(int fd, unsigned char *data, int length);
+int i2c_write(int fd, const unsigned char *data, int length);
 
 #endif/* __I2C_H__ */
