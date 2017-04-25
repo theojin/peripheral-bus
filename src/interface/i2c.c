@@ -49,7 +49,7 @@ int i2c_open(int bus, int *fd)
 
 int i2c_close(int fd)
 {
-	if (fd == NULL) return -EINVAL;
+	if (fd < 0) return -EINVAL;
 	close(fd);
 
 	return 0;
@@ -59,7 +59,7 @@ int i2c_set_address(int fd, int address)
 {
 	int status;
 
-	_D("I2C SLAVE address = [%x]", address);
+	_D("slave address : %x", address);
 	status = ioctl(fd, I2C_SLAVE, address);
 
 	if (status < 0) {

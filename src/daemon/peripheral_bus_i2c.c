@@ -24,13 +24,13 @@
 #include "i2c.h"
 #include "peripheral_common.h"
 
-int peripheral_bus_i2c_init(peripheral_i2c_h i2c, int bus)
+int peripheral_bus_i2c_open(peripheral_i2c_h i2c, int bus, int address)
 {
-	return i2c_open(bus, &i2c->fd);
-}
+	int ret;
 
-int peripheral_bus_i2c_set_address(peripheral_i2c_h i2c, int address)
-{
+	if ((ret = i2c_open(bus, &i2c->fd)) < 0)
+		return ret;
+
 	return i2c_set_address(i2c->fd, address);
 }
 
@@ -44,7 +44,7 @@ int peripheral_bus_i2c_write(peripheral_i2c_h i2c, int length, unsigned char * d
 	return i2c_write(i2c->fd, data, length);
 }
 
-int peripheral_bus_i2c_stop(peripheral_i2c_h i2c)
+int peripheral_bus_i2c_close(peripheral_i2c_h i2c)
 {
 	return i2c_close(i2c->fd);
 }

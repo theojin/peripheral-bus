@@ -150,10 +150,11 @@ gboolean handle_gpio_set_edge_mode(
 	return true;
 }
 
-gboolean handle_i2c_init(
+gboolean handle_i2c_open(
 		PeripheralIoGdbusI2c *i2c,
 		GDBusMethodInvocation *invocation,
 		gint bus,
+		gint address,
 		gint fd,
 		gpointer user_data)
 {
@@ -161,14 +162,13 @@ gboolean handle_i2c_init(
 	struct _peripheral_i2c_s st_i2c;
 
 	// TODO: Create i2c instance
-
-	ret = peripheral_bus_i2c_init(&st_i2c, bus);
-	peripheral_io_gdbus_i2c_complete_init(i2c, invocation, st_i2c.fd, ret);
+	ret = peripheral_bus_i2c_open(&st_i2c, bus, address);
+	peripheral_io_gdbus_i2c_complete_open(i2c, invocation, st_i2c.fd, ret);
 
 	return true;
 }
 
-gboolean handle_i2c_stop(
+gboolean handle_i2c_close(
 		PeripheralIoGdbusI2c *i2c,
 		GDBusMethodInvocation *invocation,
 		gint fd,
@@ -179,26 +179,8 @@ gboolean handle_i2c_stop(
 
 	st_i2c.fd = fd;
 
-	ret = peripheral_bus_i2c_stop(&st_i2c);
-	peripheral_io_gdbus_i2c_complete_stop(i2c, invocation, ret);
-
-	return true;
-}
-
-gboolean handle_i2c_set_address(
-		PeripheralIoGdbusI2c *i2c,
-		GDBusMethodInvocation *invocation,
-		gint fd,
-		gint addr,
-		gpointer user_data)
-{
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	struct _peripheral_i2c_s st_i2c;
-
-	st_i2c.fd = fd;
-
-	ret = peripheral_bus_i2c_set_address(&st_i2c, addr);
-	peripheral_io_gdbus_i2c_complete_set_address(i2c, invocation, ret);
+	ret = peripheral_bus_i2c_close(&st_i2c);
+	peripheral_io_gdbus_i2c_complete_close(i2c, invocation, ret);
 
 	return true;
 }
@@ -471,16 +453,12 @@ static gboolean __i2c_init(GDBusConnection *connection)
 	/* Add interface to default object path */
 	i2c_skeleton = peripheral_io_gdbus_i2c_skeleton_new();
 	g_signal_connect(i2c_skeleton,
-			"handle-init",
-			G_CALLBACK(handle_i2c_init),
+			"handle-open",
+			G_CALLBACK(handle_i2c_open),
 			NULL);
 	g_signal_connect(i2c_skeleton,
-			"handle-stop",
-			G_CALLBACK(handle_i2c_stop),
-			NULL);
-	g_signal_connect(i2c_skeleton,
-			"handle-set-address",
-			G_CALLBACK(handle_i2c_set_address),
+			"handle-close",
+			G_CALLBACK(handle_i2c_close),
 			NULL);
 	g_signal_connect(i2c_skeleton,
 			"handle-read",
