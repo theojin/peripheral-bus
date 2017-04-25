@@ -22,8 +22,24 @@
 typedef struct {
 	/* daemon variable */
 	/* devices */
+	GList *gpio_list;
 	/* gdbus variable */
 	guint reg_id;
 	GDBusConnection *connection;
+	PeripheralIoGdbusGpio *gpio_skeleton;
 } peripheral_bus_s;
+
+typedef struct {
+	/* gpio info */
+	int pin;
+	int direction;
+	int edge;
+	/* interrupt variable */
+	int value_fd;
+	GIOChannel *io;
+	guint io_id;
+} peripheral_bus_gpio_data_s;
+
+typedef peripheral_bus_gpio_data_s * pb_gpio_data_h;
+
 #endif /* __PERIPHERAL_BUS_H__ */

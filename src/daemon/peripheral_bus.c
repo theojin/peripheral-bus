@@ -37,12 +37,11 @@ gboolean handle_gpio_open(
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	struct _peripheral_gpio_s st_gpio;
+	gint edge;
+	gint direction;
 
-	st_gpio.pin = pin;
-
-	ret = peripheral_bus_gpio_open(&st_gpio);
-	peripheral_io_gdbus_gpio_complete_open(gpio, invocation, ret);
+	ret = peripheral_bus_gpio_open(pin, &edge, &direction, user_data);
+	peripheral_io_gdbus_gpio_complete_open(gpio, invocation, edge, direction, ret);
 
 	return true;
 }
@@ -54,11 +53,8 @@ gboolean handle_gpio_close(
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	struct _peripheral_gpio_s st_gpio;
 
-	st_gpio.pin = pin;
-
-	ret = peripheral_bus_gpio_close(&st_gpio);
+	ret = peripheral_bus_gpio_close(pin, user_data);
 	peripheral_io_gdbus_gpio_complete_close(gpio, invocation, ret);
 
 	return true;
@@ -71,12 +67,10 @@ gboolean handle_gpio_get_direction(
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	struct _peripheral_gpio_s st_gpio;
+	gint direction;
 
-	st_gpio.pin = pin;
-
-	ret = peripheral_bus_gpio_get_direction(&st_gpio);
-	peripheral_io_gdbus_gpio_complete_get_direction(gpio, invocation, st_gpio.direction, ret);
+	ret = peripheral_bus_gpio_get_direction(pin, &direction, user_data);
+	peripheral_io_gdbus_gpio_complete_get_direction(gpio, invocation, direction, ret);
 
 	return true;
 }
@@ -89,12 +83,8 @@ gboolean handle_gpio_set_direction(
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	struct _peripheral_gpio_s st_gpio;
 
-	st_gpio.pin = pin;
-	st_gpio.direction = direction;
-
-	ret = peripheral_bus_gpio_set_direction(&st_gpio);
+	ret = peripheral_bus_gpio_set_direction(pin, direction, user_data);
 	peripheral_io_gdbus_gpio_complete_set_direction(gpio, invocation, ret);
 
 	return true;
@@ -107,12 +97,9 @@ gboolean handle_gpio_read(
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	struct _peripheral_gpio_s st_gpio;
-	gint32 read_value = 0;
+	gint read_value = 0;
 
-	st_gpio.pin = pin;
-
-	ret = peripheral_bus_gpio_read(&st_gpio, &read_value);
+	ret = peripheral_bus_gpio_read(pin, &read_value, user_data);
 	peripheral_io_gdbus_gpio_complete_read(gpio, invocation, read_value, ret);
 
 	return true;
@@ -126,11 +113,8 @@ gboolean handle_gpio_write(
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	struct _peripheral_gpio_s st_gpio;
 
-	st_gpio.pin = pin;
-
-	ret = peripheral_bus_gpio_write(&st_gpio, value);
+	ret = peripheral_bus_gpio_write(pin, value, user_data);
 	peripheral_io_gdbus_gpio_complete_write(gpio, invocation, ret);
 
 	return true;
@@ -143,12 +127,10 @@ gboolean handle_gpio_get_edge_mode(
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	struct _peripheral_gpio_s st_gpio;
+	gint edge;
 
-	st_gpio.pin = pin;
-
-	ret = peripheral_bus_gpio_get_edge(&st_gpio);
-	peripheral_io_gdbus_gpio_complete_get_edge_mode(gpio, invocation, st_gpio.edge, ret);
+	ret = peripheral_bus_gpio_get_edge(pin, &edge, user_data);
+	peripheral_io_gdbus_gpio_complete_get_edge_mode(gpio, invocation, edge, ret);
 
 	return true;
 }
@@ -161,12 +143,8 @@ gboolean handle_gpio_set_edge_mode(
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	struct _peripheral_gpio_s st_gpio;
 
-	st_gpio.pin = pin;
-	st_gpio.edge = edge;
-
-	ret = peripheral_bus_gpio_set_edge(&st_gpio);
+	ret = peripheral_bus_gpio_set_edge(pin, edge, user_data);
 	peripheral_io_gdbus_gpio_complete_set_edge_mode(gpio, invocation, ret);
 
 	return true;
@@ -423,45 +401,44 @@ gboolean handle_pwm_get_period(
 }
 
 
-static gboolean __gpio_init(GDBusConnection *connection)
+static gboolean __gpio_init(peripheral_bus_s *pb_data)
 {
 	GDBusObjectManagerServer *manager;
-	PeripheralIoGdbusGpio *gpio_skeleton;
 	gboolean ret = FALSE;
 	GError *error = NULL;
 
 	/* Add interface to default object path */
-	gpio_skeleton = peripheral_io_gdbus_gpio_skeleton_new();
+	pb_data->gpio_skeleton = peripheral_io_gdbus_gpio_skeleton_new();
 	/* Register for method callbacks as signal callbacks */
-	g_signal_connect(gpio_skeleton,
+	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-open",
 			G_CALLBACK(handle_gpio_open),
 			NULL);
-	g_signal_connect(gpio_skeleton,
+	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-close",
 			G_CALLBACK(handle_gpio_close),
 			NULL);
-	g_signal_connect(gpio_skeleton,
+	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-get-direction",
 			G_CALLBACK(handle_gpio_get_direction),
 			NULL);
-	g_signal_connect(gpio_skeleton,
+	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-set-direction",
 			G_CALLBACK(handle_gpio_set_direction),
 			NULL);
-	g_signal_connect(gpio_skeleton,
+	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-read",
 			G_CALLBACK(handle_gpio_read),
 			NULL);
-	g_signal_connect(gpio_skeleton,
+	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-write",
 			G_CALLBACK(handle_gpio_write),
 			NULL);
-	g_signal_connect(gpio_skeleton,
+	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-get-edge-mode",
 			G_CALLBACK(handle_gpio_get_edge_mode),
 			NULL);
-	g_signal_connect(gpio_skeleton,
+	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-set-edge-mode",
 			G_CALLBACK(handle_gpio_set_edge_mode),
 			NULL);
@@ -469,12 +446,12 @@ static gboolean __gpio_init(GDBusConnection *connection)
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_DBUS_GPIO_PATH);
 
 	/* Set connection to 'manager' */
-	g_dbus_object_manager_server_set_connection(manager, connection);
+	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
 
 	/* Export 'manager' interface on peripheral-io DBUS */
 	ret = g_dbus_interface_skeleton_export(
-		G_DBUS_INTERFACE_SKELETON(gpio_skeleton),
-		connection, PERIPHERAL_DBUS_GPIO_PATH, &error);
+		G_DBUS_INTERFACE_SKELETON(pb_data->gpio_skeleton),
+		pb_data->connection, PERIPHERAL_DBUS_GPIO_PATH, &error);
 
 	if (ret == FALSE) {
 		_E("Can not skeleton_export %s", error->message);
@@ -592,7 +569,10 @@ static void on_bus_acquired(GDBusConnection *connection,
 							const gchar *name,
 							gpointer user_data)
 {
-	if (__gpio_init(connection) == FALSE)
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+
+	pb_data->connection = connection;
+	if (__gpio_init(pb_data) == FALSE)
 		_E("Can not signal connect");
 
 	if (__i2c_init(connection) == FALSE)
