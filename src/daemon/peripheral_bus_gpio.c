@@ -19,13 +19,11 @@
 #include <gio/gio.h>
 
 #include <peripheral_io.h>
-#include <peripheral_internal.h>
 
 #include "gpio.h"
 #include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
 #include "peripheral_common.h"
-
 
 static pb_gpio_data_h peripheral_bus_gpio_data_get(int pin, GList **list)
 {
@@ -162,6 +160,7 @@ int peripheral_bus_gpio_get_direction(gint pin, gint *direction, gpointer user_d
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	pb_gpio_data_h gpio;
+	gint value;
 	int ret;
 
 	gpio = peripheral_bus_gpio_data_get(pin, &pb_data->gpio_list);
@@ -175,7 +174,14 @@ int peripheral_bus_gpio_get_direction(gint pin, gint *direction, gpointer user_d
 		return ret;
 	}
 
-	gpio->direction = *direction;
+	if (*direction == GPIO_DIRECTION_OUT) {
+		if ((ret = gpio_read(pin, &value)) < 0) {
+			return ret;
+		}
+		/* Update direction state with the current value */
+		*direction = GPIO_DIRECTION_OUT + value;
+		gpio->direction = *direction;
+	}
 
 	return PERIPHERAL_ERROR_NONE;
 }
@@ -236,10 +242,16 @@ int peripheral_bus_gpio_write(gint pin, gint value, gpointer user_data)
 		return PERIPHERAL_ERROR_UNKNOWN;
 	}
 
+	/* Return error if direction is input mode */
+	if (gpio->direction == GPIO_DIRECTION_IN)
+		return PERIPHERAL_ERROR_IO_ERROR;
+
 	if ((ret = gpio_write(pin, value)) < 0) {
 		_E("gpio_write error (%d)", ret);
 		return ret;
 	}
+	/* Update direction state along with the value */
+	gpio->direction = GPIO_DIRECTION_OUT + (value > 0) ? 1 : 0;
 
 	return PERIPHERAL_ERROR_NONE;
 }
