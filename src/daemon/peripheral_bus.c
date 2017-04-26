@@ -413,35 +413,35 @@ static gboolean __gpio_init(peripheral_bus_s *pb_data)
 	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-open",
 			G_CALLBACK(handle_gpio_open),
-			NULL);
+			pb_data);
 	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-close",
 			G_CALLBACK(handle_gpio_close),
-			NULL);
+			pb_data);
 	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-get-direction",
 			G_CALLBACK(handle_gpio_get_direction),
-			NULL);
+			pb_data);
 	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-set-direction",
 			G_CALLBACK(handle_gpio_set_direction),
-			NULL);
+			pb_data);
 	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-read",
 			G_CALLBACK(handle_gpio_read),
-			NULL);
+			pb_data);
 	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-write",
 			G_CALLBACK(handle_gpio_write),
-			NULL);
+			pb_data);
 	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-get-edge-mode",
 			G_CALLBACK(handle_gpio_get_edge_mode),
-			NULL);
+			pb_data);
 	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-set-edge-mode",
 			G_CALLBACK(handle_gpio_set_edge_mode),
-			NULL);
+			pb_data);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_DBUS_GPIO_PATH);
 
