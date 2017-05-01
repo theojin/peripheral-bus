@@ -487,28 +487,27 @@ static gboolean __gpio_init(peripheral_bus_s *pb_data)
 	return true;
 }
 
-static gboolean __i2c_init(GDBusConnection *connection)
+static gboolean __i2c_init(peripheral_bus_s *pb_data)
 {
 	GDBusObjectManagerServer *manager;
-	PeripheralIoGdbusI2c *i2c_skeleton;
 	gboolean ret = FALSE;
 	GError *error = NULL;
 
 	/* Add interface to default object path */
-	i2c_skeleton = peripheral_io_gdbus_i2c_skeleton_new();
-	g_signal_connect(i2c_skeleton,
+	pb_data->i2c_skeleton = peripheral_io_gdbus_i2c_skeleton_new();
+	g_signal_connect(pb_data->i2c_skeleton,
 			"handle-open",
 			G_CALLBACK(handle_i2c_open),
 			NULL);
-	g_signal_connect(i2c_skeleton,
+	g_signal_connect(pb_data->i2c_skeleton,
 			"handle-close",
 			G_CALLBACK(handle_i2c_close),
 			NULL);
-	g_signal_connect(i2c_skeleton,
+	g_signal_connect(pb_data->i2c_skeleton,
 			"handle-read",
 			G_CALLBACK(handle_i2c_read),
 			NULL);
-	g_signal_connect(i2c_skeleton,
+	g_signal_connect(pb_data->i2c_skeleton,
 			"handle-write",
 			G_CALLBACK(handle_i2c_write),
 			NULL);
@@ -516,12 +515,12 @@ static gboolean __i2c_init(GDBusConnection *connection)
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_DBUS_I2C_PATH);
 
 	/* Set connection to 'manager' */
-	g_dbus_object_manager_server_set_connection(manager, connection);
+	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
 
 	/* Export 'manager' interface on peripheral-io DBUS */
 	ret = g_dbus_interface_skeleton_export(
-		G_DBUS_INTERFACE_SKELETON(i2c_skeleton),
-		connection, PERIPHERAL_DBUS_I2C_PATH, &error);
+		G_DBUS_INTERFACE_SKELETON(pb_data->i2c_skeleton),
+		pb_data->connection, PERIPHERAL_DBUS_I2C_PATH, &error);
 
 	if (ret == FALSE) {
 		_E("Can not skeleton_export %s", error->message);
@@ -531,40 +530,39 @@ static gboolean __i2c_init(GDBusConnection *connection)
 	return true;
 }
 
-static gboolean __pwm_init(GDBusConnection *connection)
+static gboolean __pwm_init(peripheral_bus_s *pb_data)
 {
 	GDBusObjectManagerServer *manager;
-	PeripheralIoGdbusPwm *pwm_skeleton;
 	gboolean ret = FALSE;
 	GError *error = NULL;
 
 	/* Add interface to default object path */
-	pwm_skeleton = peripheral_io_gdbus_pwm_skeleton_new();
-	g_signal_connect(pwm_skeleton,
+	pb_data->pwm_skeleton = peripheral_io_gdbus_pwm_skeleton_new();
+	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-open",
 			G_CALLBACK(handle_pwm_open),
 			NULL);
-	g_signal_connect(pwm_skeleton,
+	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-close",
 			G_CALLBACK(handle_pwm_close),
 			NULL);
-	g_signal_connect(pwm_skeleton,
+	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-set-duty-cycle",
 			G_CALLBACK(handle_pwm_set_duty_cycle),
 			NULL);
-	g_signal_connect(pwm_skeleton,
+	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-set-period",
 			G_CALLBACK(handle_pwm_set_period),
 			NULL);
-	g_signal_connect(pwm_skeleton,
+	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-set-enable",
 			G_CALLBACK(handle_pwm_set_enable),
 			NULL);
-	g_signal_connect(pwm_skeleton,
+	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-get-duty",
 			G_CALLBACK(handle_pwm_get_duty_cycle),
 			NULL);
-	g_signal_connect(pwm_skeleton,
+	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-get-period",
 			G_CALLBACK(handle_pwm_get_period),
 			NULL);
@@ -572,12 +570,12 @@ static gboolean __pwm_init(GDBusConnection *connection)
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_DBUS_PWM_PATH);
 
 	/* Set connection to 'manager' */
-	g_dbus_object_manager_server_set_connection(manager, connection);
+	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
 
 	/* Export 'manager' interface on peripheral-io DBUS */
 	ret = g_dbus_interface_skeleton_export(
-		G_DBUS_INTERFACE_SKELETON(pwm_skeleton),
-		connection, PERIPHERAL_DBUS_PWM_PATH, &error);
+		G_DBUS_INTERFACE_SKELETON(pb_data->pwm_skeleton),
+		pb_data->connection, PERIPHERAL_DBUS_PWM_PATH, &error);
 
 	if (ret == FALSE) {
 		_E("Can not skeleton_export %s", error->message);
@@ -597,10 +595,10 @@ static void on_bus_acquired(GDBusConnection *connection,
 	if (__gpio_init(pb_data) == FALSE)
 		_E("Can not signal connect");
 
-	if (__i2c_init(connection) == FALSE)
+	if (__i2c_init(pb_data) == FALSE)
 		_E("Can not signal connect");
 
-	if (__pwm_init(connection) == FALSE)
+	if (__pwm_init(pb_data) == FALSE)
 		_E("Can not signal connect");
 }
 

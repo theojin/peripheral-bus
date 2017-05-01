@@ -27,6 +27,8 @@ typedef struct {
 	guint reg_id;
 	GDBusConnection *connection;
 	PeripheralIoGdbusGpio *gpio_skeleton;
+	PeripheralIoGdbusI2c *i2c_skeleton;
+	PeripheralIoGdbusPwm *pwm_skeleton;
 } peripheral_bus_s;
 
 typedef struct {
