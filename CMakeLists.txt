@@ -40,8 +40,7 @@ ENDFOREACH(flag)
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${pbus_pkg_LDFLAGS})
 
-SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fpic -Wall -Werror-implicit-function-declaration -fvisibility=hidden")
-SET(ARM_CFLAGS "${ARM_CFLAGS} -mapcs -mabi=aapcs-linux -msoft-float -Uarm -fpic")
+SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fpic -Wall -Werror -fvisibility=hidden")
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
 
 SET(CMAKE_EXE_LINKER_FLAGS " -Wl,--as-needed -pie -Wl,--hash-style=both")
