@@ -129,7 +129,7 @@ int peripheral_bus_gpio_open(gint pin, gint *edge, gint *direction, gpointer use
 	return PERIPHERAL_ERROR_NONE;
 
 err:
-	gpio_close(gpio->pin);
+	gpio_close(pin);
 
 open_err:
 	return ret;
@@ -176,9 +176,8 @@ int peripheral_bus_gpio_get_direction(gint pin, gint *direction, gpointer user_d
 	}
 
 	if (*direction == GPIO_DIRECTION_OUT) {
-		if ((ret = gpio_read(pin, &value)) < 0) {
+		if ((ret = gpio_read(pin, &value)) < 0)
 			return ret;
-		}
 		/* Update direction state with the current value */
 		*direction = GPIO_DIRECTION_OUT + value;
 		gpio->direction = *direction;
@@ -353,7 +352,7 @@ int peripheral_bus_gpio_register_irq(gint pin, gpointer user_data)
 	g_free(strval);
 
 	gpio->io_id = g_io_add_watch(gpio->io, G_IO_PRI, peripheral_bus_gpio_cb, gpio);
-	if (gpio->io_id < 0) {
+	if (gpio->io_id == 0) {
 		_E("g_io_add_watch error (%d)", gpio->io);
 		goto err_io_add_watch;
 	}
