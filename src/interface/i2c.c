@@ -36,10 +36,10 @@ int i2c_open(int bus, int *fd)
 	snprintf(i2c_dev, sizeof(i2c_dev)-1, SYSFS_I2C_DIR"-%d", bus);
 	new_fd = open(i2c_dev, O_RDWR);
 
-	if (fd < 0) {
+	if (new_fd < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Can't Open /dev/i2c-%d : %s", bus, errmsg);
+		_E("Can't Open %s : %s", i2c_dev, errmsg);
 		return -ENODEV;
 	}
 	*fd = new_fd;
@@ -49,8 +49,18 @@ int i2c_open(int bus, int *fd)
 
 int i2c_close(int fd)
 {
+	int status;
+
 	if (fd < 0) return -EINVAL;
-	close(fd);
+
+	status = close(fd);
+
+	if (status < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Failed to close fd : %d", fd);
+		return -EIO;
+	}
 
 	return 0;
 }
@@ -66,7 +76,7 @@ int i2c_set_address(int fd, int address)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Failed to set slave address(%x) : %s", address, errmsg);
-		return -EIO;
+		return status;
 	}
 
 	return 0;
