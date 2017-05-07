@@ -19,10 +19,13 @@
 
 #include <gio/gio.h>
 
+#include "peripheral_io_gdbus.h"
+
 typedef struct {
 	/* daemon variable */
 	/* devices */
 	GList *gpio_list;
+	GList *i2c_list;
 	/* gdbus variable */
 	guint reg_id;
 	GDBusConnection *connection;
@@ -30,6 +33,12 @@ typedef struct {
 	PeripheralIoGdbusI2c *i2c_skeleton;
 	PeripheralIoGdbusPwm *pwm_skeleton;
 } peripheral_bus_s;
+
+typedef struct {
+	char *id;
+	pid_t pid;
+	pid_t pgid;
+} pb_client_info_s;
 
 typedef struct {
 	/* gpio info */
@@ -45,7 +54,16 @@ typedef struct {
 	PeripheralIoGdbusGpio *gpio_skeleton;
 } peripheral_bus_gpio_data_s;
 
-typedef peripheral_bus_gpio_data_s * pb_gpio_data_h;
+typedef struct {
+	int bus;
+	int address;
+	int fd;
+	/* client info */
+	pb_client_info_s *client_info;
+} peripheral_bus_i2c_data_s;
+
+typedef peripheral_bus_gpio_data_s *pb_gpio_data_h;
+typedef peripheral_bus_i2c_data_s *pb_i2c_data_h;
 
 void peripheral_bus_emit_gpio_changed(PeripheralIoGdbusGpio *gpio,
 									gint pin,

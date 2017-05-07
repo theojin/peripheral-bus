@@ -183,15 +183,13 @@ gboolean handle_i2c_open(
 		GDBusMethodInvocation *invocation,
 		gint bus,
 		gint address,
-		gint fd,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	struct _peripheral_i2c_s st_i2c;
+	pb_i2c_data_h i2c_handle;
 
-	// TODO: Create i2c instance
-	ret = peripheral_bus_i2c_open(&st_i2c, bus, address);
-	peripheral_io_gdbus_i2c_complete_open(i2c, invocation, st_i2c.fd, ret);
+	ret = peripheral_bus_i2c_open(invocation, bus, address, &i2c_handle, user_data);
+	peripheral_io_gdbus_i2c_complete_open(i2c, invocation, GPOINTER_TO_UINT(i2c_handle), ret);
 
 	return true;
 }
@@ -199,15 +197,13 @@ gboolean handle_i2c_open(
 gboolean handle_i2c_close(
 		PeripheralIoGdbusI2c *i2c,
 		GDBusMethodInvocation *invocation,
-		gint fd,
+		gint handle,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	struct _peripheral_i2c_s st_i2c;
+	pb_i2c_data_h i2c_handle = GUINT_TO_POINTER(handle);
 
-	st_i2c.fd = fd;
-
-	ret = peripheral_bus_i2c_close(&st_i2c);
+	ret = peripheral_bus_i2c_close(invocation, i2c_handle, user_data);
 	peripheral_io_gdbus_i2c_complete_close(i2c, invocation, ret);
 
 	return true;
@@ -216,20 +212,19 @@ gboolean handle_i2c_close(
 gboolean handle_i2c_read(
 		PeripheralIoGdbusI2c *i2c,
 		GDBusMethodInvocation *invocation,
-		gint fd,
+		gint handle,
 		gint length,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	struct _peripheral_i2c_s st_i2c;
+	pb_i2c_data_h i2c_handle = GUINT_TO_POINTER(handle);
 	// TODO: Fix size of data buffer
 	unsigned char data[128];
 	GVariantBuilder *builder;
 	GVariant *data_array;
 	int i = 0;
 
-	st_i2c.fd = fd;
-	ret = peripheral_bus_i2c_read(&st_i2c, length, data);
+	ret = peripheral_bus_i2c_read(invocation, i2c_handle, length, data, user_data);
 
 	builder = g_variant_builder_new(G_VARIANT_TYPE("a(y)"));
 
@@ -247,20 +242,19 @@ gboolean handle_i2c_read(
 gboolean handle_i2c_write(
 		PeripheralIoGdbusI2c *i2c,
 		GDBusMethodInvocation *invocation,
-		gint fd,
+		gint handle,
 		gint length,
 		GVariant *data_array,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	struct _peripheral_i2c_s st_i2c;
+	pb_i2c_data_h i2c_handle = GUINT_TO_POINTER(handle);
 	// TODO: Fix size of data buffer
 	unsigned char data[128];
 	GVariantIter *iter;
 	guchar str;
 	int i = 0;
 
-	st_i2c.fd = fd;
 	g_variant_get(data_array, "a(y)", &iter);
 	while (g_variant_iter_loop(iter, "(y)", &str)) {
 		data[i++] = str;
@@ -268,7 +262,7 @@ gboolean handle_i2c_write(
 	}
 	g_variant_iter_free(iter);
 
-	ret = peripheral_bus_i2c_write(&st_i2c, length, (unsigned char*)data);
+	ret = peripheral_bus_i2c_write(invocation, i2c_handle, length, (unsigned char*)data, user_data);
 	peripheral_io_gdbus_i2c_complete_write(i2c, invocation, ret);
 
 	return true;
@@ -498,19 +492,19 @@ static gboolean __i2c_init(peripheral_bus_s *pb_data)
 	g_signal_connect(pb_data->i2c_skeleton,
 			"handle-open",
 			G_CALLBACK(handle_i2c_open),
-			NULL);
+			pb_data);
 	g_signal_connect(pb_data->i2c_skeleton,
 			"handle-close",
 			G_CALLBACK(handle_i2c_close),
-			NULL);
+			pb_data);
 	g_signal_connect(pb_data->i2c_skeleton,
 			"handle-read",
 			G_CALLBACK(handle_i2c_read),
-			NULL);
+			pb_data);
 	g_signal_connect(pb_data->i2c_skeleton,
 			"handle-write",
 			G_CALLBACK(handle_i2c_write),
-			NULL);
+			pb_data);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_DBUS_I2C_PATH);
 

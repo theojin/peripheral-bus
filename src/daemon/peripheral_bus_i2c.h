@@ -17,10 +17,9 @@
 #ifndef __PERIPHERAL_BUS_I2C_H__
 #define __PERIPHERAL_BUS_I2C_H__
 
-int peripheral_bus_i2c_open(peripheral_i2c_h i2c, int bus, int address);
-int peripheral_bus_i2c_set_address(peripheral_i2c_h i2c, int address);
-int peripheral_bus_i2c_read(peripheral_i2c_h i2c, int length, unsigned char * data);
-int peripheral_bus_i2c_write(peripheral_i2c_h i2c, int length, unsigned char * data);
-int peripheral_bus_i2c_close(peripheral_i2c_h i2c);
+int peripheral_bus_i2c_open(GDBusMethodInvocation *invocation, int bus, int address, pb_i2c_data_h *i2c, gpointer user_data);
+int peripheral_bus_i2c_read(GDBusMethodInvocation *invocation, pb_i2c_data_h i2c, int length, unsigned char *data, gpointer user_data);
+int peripheral_bus_i2c_write(GDBusMethodInvocation *invocation, pb_i2c_data_h i2c, int length, unsigned char *data, gpointer user_data);
+int peripheral_bus_i2c_close(GDBusMethodInvocation *invocation, pb_i2c_data_h i2c, gpointer user_data);
 
 #endif /* __PERIPHERAL_BUS_I2C_H__ */

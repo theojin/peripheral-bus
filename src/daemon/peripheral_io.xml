@@ -58,15 +58,15 @@
 		<method name="Open">
 			<arg type="i" name="bus" direction="in"/>
 			<arg type="i" name="address" direction="in"/>
-			<arg type="i" name="fd" direction="out"/>
+			<arg type="u" name="handle" direction="out"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="Close">
-			<arg type="i" name="fd" direction="in"/>
+			<arg type="u" name="handle" direction="in"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="Read">
-			<arg type="i" name="fd" direction="in"/>
+			<arg type="u" name="handle" direction="in"/>
 			<arg type="i" name="length" direction="in"/>
 			<arg type="a(y)" name="data" direction="out">
 				<annotation name="org.gtk.GDBus.C.ForceGVariant" value="true"/>
@@ -74,7 +74,7 @@
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="Write">
-			<arg type="i" name="fd" direction="in"/>
+			<arg type="u" name="handle" direction="in"/>
 			<arg type="i" name="length" direction="in"/>
 			<arg type="a(y)" name="data" direction="in">
 				<annotation name="org.gtk.GDBus.C.ForceGVariant" value="true"/>
