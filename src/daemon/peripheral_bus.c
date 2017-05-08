@@ -20,8 +20,7 @@
 #include <gio/gio.h>
 
 #include <peripheral_io.h>
-#include <peripheral_dbus.h>
-#include <peripheral_internal.h>
+#include <peripheral_gdbus.h>
 
 #include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
@@ -463,7 +462,7 @@ static gboolean __gpio_init(peripheral_bus_s *pb_data)
 			G_CALLBACK(handle_gpio_unregister_irq),
 			pb_data);
 
-	manager = g_dbus_object_manager_server_new(PERIPHERAL_DBUS_GPIO_PATH);
+	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_GPIO_PATH);
 
 	/* Set connection to 'manager' */
 	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
@@ -471,7 +470,7 @@ static gboolean __gpio_init(peripheral_bus_s *pb_data)
 	/* Export 'manager' interface on peripheral-io DBUS */
 	ret = g_dbus_interface_skeleton_export(
 		G_DBUS_INTERFACE_SKELETON(pb_data->gpio_skeleton),
-		pb_data->connection, PERIPHERAL_DBUS_GPIO_PATH, &error);
+		pb_data->connection, PERIPHERAL_GDBUS_GPIO_PATH, &error);
 
 	if (ret == FALSE) {
 		_E("Can not skeleton_export %s", error->message);
@@ -506,7 +505,7 @@ static gboolean __i2c_init(peripheral_bus_s *pb_data)
 			G_CALLBACK(handle_i2c_write),
 			pb_data);
 
-	manager = g_dbus_object_manager_server_new(PERIPHERAL_DBUS_I2C_PATH);
+	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_I2C_PATH);
 
 	/* Set connection to 'manager' */
 	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
@@ -514,7 +513,7 @@ static gboolean __i2c_init(peripheral_bus_s *pb_data)
 	/* Export 'manager' interface on peripheral-io DBUS */
 	ret = g_dbus_interface_skeleton_export(
 		G_DBUS_INTERFACE_SKELETON(pb_data->i2c_skeleton),
-		pb_data->connection, PERIPHERAL_DBUS_I2C_PATH, &error);
+		pb_data->connection, PERIPHERAL_GDBUS_I2C_PATH, &error);
 
 	if (ret == FALSE) {
 		_E("Can not skeleton_export %s", error->message);
@@ -561,7 +560,7 @@ static gboolean __pwm_init(peripheral_bus_s *pb_data)
 			G_CALLBACK(handle_pwm_get_period),
 			NULL);
 
-	manager = g_dbus_object_manager_server_new(PERIPHERAL_DBUS_PWM_PATH);
+	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_PWM_PATH);
 
 	/* Set connection to 'manager' */
 	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
@@ -569,7 +568,7 @@ static gboolean __pwm_init(peripheral_bus_s *pb_data)
 	/* Export 'manager' interface on peripheral-io DBUS */
 	ret = g_dbus_interface_skeleton_export(
 		G_DBUS_INTERFACE_SKELETON(pb_data->pwm_skeleton),
-		pb_data->connection, PERIPHERAL_DBUS_PWM_PATH, &error);
+		pb_data->connection, PERIPHERAL_GDBUS_PWM_PATH, &error);
 
 	if (ret == FALSE) {
 		_E("Can not skeleton_export %s", error->message);
@@ -620,7 +619,7 @@ int main(int argc, char *argv[])
 	}
 
 	owner_id = g_bus_own_name(G_BUS_TYPE_SYSTEM,
-							  PERIPHERAL_DBUS_NAME,
+							  PERIPHERAL_GDBUS_NAME,
 							  (GBusNameOwnerFlags) (G_BUS_NAME_OWNER_FLAGS_ALLOW_REPLACEMENT
 							  | G_BUS_NAME_OWNER_FLAGS_REPLACE),
 							  on_bus_acquired,
