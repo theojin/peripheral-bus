@@ -326,12 +326,11 @@ int gpio_open_isr(int gpiopin)
 	return fd;
 }
 
-int gpio_close_isr(int file_hndl)
+int gpio_close_isr(int fd)
 {
-	if (file_hndl == (int)NULL)
-		return -EINVAL;
+	if (fd <= 0) return -EINVAL;
 
-	close(file_hndl);
+	close(fd);
 
 	return 0;
 }
