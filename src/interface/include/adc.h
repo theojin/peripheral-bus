@@ -20,10 +20,10 @@
 /**
 * @brief adc_init() find adc device name.
 *
-* @param[in] *devName adc device name
+* @param[out] dev_name The name of adc device node which must be freed.
 * @return On success, 0 is returned. On failure, a negative value is returned.
 */
-int adc_get_device_name(char *devName);
+int adc_get_device_name(char **dev_name);
 
 /**
 * @brief adc_get_data() get adc data.

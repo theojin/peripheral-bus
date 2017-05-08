@@ -29,25 +29,26 @@
 #define PATH_BUF_MAX		64
 #define ADC_BUF_MAX			16
 
-int adc_get_device_name(char *devName)
+int adc_get_device_name(char **dev_name)
 {
 	int fd;
-	int device = 0;	/* for get adc device name, /sys/bus/iio/devices/iio:device"0" */
-	char fName[PATH_BUF_MAX] = {0};
+	int device = 0;
 	int bytes;
+	char buf[PATH_BUF_MAX];
 
-	snprintf(fName, PATH_BUF_MAX, "%s%d%s", SYSFS_ADC_PATH, device, "/name");
-	if ((fd = open(fName, O_RDONLY)) < 0) {
-		_E("Error[%d]: can't open adc device name, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+	snprintf(buf, PATH_BUF_MAX, "%s%d%s", SYSFS_ADC_PATH, device, "/name");
+	if ((fd = open(buf, O_RDONLY)) < 0) {
+		_E("Cannot open %s, errno : %d", buf, errno);
 		return -ENODEV;
 	}
-	bytes = read(fd, devName, PATH_BUF_MAX);
-	if (bytes == -1) {
+
+	if ((bytes = read(fd, buf, PATH_BUF_MAX)) == -1) {
+		_E("Cannot read %s, errno : %d", buf, errno);
 		close(fd);
 		return -EIO;
 	}
 
-	devName[strlen(devName) - 1] = '\0';
+	*dev_name = strndup(buf, PATH_BUF_MAX);
 	close(fd);
 
 	return 0;

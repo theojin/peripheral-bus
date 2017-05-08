@@ -21,7 +21,6 @@
 #include <peripheral_io.h>
 
 #include "gpio.h"
-#include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
 #include "peripheral_common.h"
 
@@ -251,7 +250,7 @@ int peripheral_bus_gpio_write(gint pin, gint value, gpointer user_data)
 		return ret;
 	}
 	/* Update direction state along with the value */
-	gpio->direction = GPIO_DIRECTION_OUT + (value > 0) ? 1 : 0;
+	gpio->direction = GPIO_DIRECTION_OUT + ((value > 0) ? 1 : 0);
 
 	return PERIPHERAL_ERROR_NONE;
 }
