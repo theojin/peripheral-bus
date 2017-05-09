@@ -55,9 +55,13 @@ typedef struct {
 } peripheral_bus_gpio_data_s;
 
 typedef struct {
+	/* i2c device information */
 	int bus;
 	int address;
 	int fd;
+	/* data buffer */
+	uint8_t *buffer;
+	int buffer_size;
 	/* client info */
 	pb_client_info_s *client_info;
 } peripheral_bus_i2c_data_s;

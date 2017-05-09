@@ -24,6 +24,9 @@
 #include "peripheral_bus.h"
 #include "peripheral_common.h"
 
+#define INITIAL_BUFFER_SIZE 128
+#define MAX_BUFFER_SIZE 8192
+
 static pb_client_info_s* peripheral_bus_i2c_get_client_info(GDBusMethodInvocation *invocation, peripheral_bus_s *pb_data)
 {
 	pb_client_info_s *client_info;
@@ -101,22 +104,24 @@ static int peripheral_bus_i2c_data_free(pb_i2c_data_h i2c_handle, GList **list)
 {
 	GList *i2c_list = *list;
 	GList *link;
-	pb_i2c_data_h i2c_data;
+	pb_i2c_data_h i2c;
 
-	if (i2c_list == NULL)
+	if (i2c_handle == NULL)
 		return -1;
 
 	link = i2c_list;
 	while (link) {
-		i2c_data = (pb_i2c_data_h)link->data;
+		i2c = (pb_i2c_data_h)link->data;
 
-		if (i2c_data == i2c_handle) {
+		if (i2c == i2c_handle) {
 			*list = g_list_remove_link(i2c_list, link);
-			if (i2c_data->client_info) {
-				free(i2c_data->client_info->id);
-				free(i2c_data->client_info);
+			if (i2c->client_info) {
+				free(i2c->client_info->id);
+				free(i2c->client_info);
 			}
-			free(i2c_data);
+			if (i2c->buffer)
+				free(i2c->buffer);
+			free(i2c);
 			g_list_free(link);
 			return 0;
 		}
@@ -152,6 +157,15 @@ int peripheral_bus_i2c_open(GDBusMethodInvocation *invocation, int bus, int addr
 	i2c_handle->bus = bus;
 	i2c_handle->address = address;
 	i2c_handle->client_info = peripheral_bus_i2c_get_client_info(invocation, pb_data);
+
+	i2c_handle->buffer = malloc(INITIAL_BUFFER_SIZE);
+	if (!(i2c_handle->buffer)) {
+		i2c_close(fd);
+		_E("Failed to allocate data buffer");
+		return PERIPHERAL_ERROR_OUT_OF_MEMORY;
+	}
+	i2c_handle->buffer_size = INITIAL_BUFFER_SIZE;
+
 	*i2c = i2c_handle;
 
 	_D("bus : %d, address : %d, pgid = %d, id = %s", bus, address,
@@ -161,32 +175,99 @@ int peripheral_bus_i2c_open(GDBusMethodInvocation *invocation, int bus, int addr
 	return ret;
 }
 
-int peripheral_bus_i2c_read(GDBusMethodInvocation *invocation, pb_i2c_data_h i2c, int length, unsigned char *data, gpointer user_data)
+int peripheral_bus_i2c_read(GDBusMethodInvocation *invocation, pb_i2c_data_h i2c, int length, GVariant **data_array, gpointer user_data)
 {
 	const gchar *id;
+	GVariantBuilder *builder;
+	int ret, i;
+
+	/* Handle validation */
+	RETVM_IF(!i2c || !(i2c->client_info), PERIPHERAL_ERROR_UNKNOWN, "i2c handle is not valid");
 
 	id = g_dbus_method_invocation_get_sender(invocation);
 
-	if (strcmp(i2c->client_info->id, id)) {
-		_E("Invalid access, handle id : %s, current id : %s", i2c->client_info->id, id);
-		return PERIPHERAL_ERROR_INVALID_OPERATION;
+	/* Limit maximum length */
+	if (length > MAX_BUFFER_SIZE) length = MAX_BUFFER_SIZE;
+
+	/* Increase buffer if needed */
+	if (length > i2c->buffer_size) {
+		uint8_t *new;
+		new = (uint8_t*)realloc(i2c->buffer, length);
+
+		if (!new) {
+			ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
+			_E("Failed to realloc buffer");
+			goto out;
+		}
+		i2c->buffer = new;
+		i2c->buffer_size = length;
 	}
 
-	return i2c_read(i2c->fd, data, length);
+	if (strcmp(i2c->client_info->id, id)) {
+		_E("Invalid access, handie id : %s, current id : %s", i2c->client_info->id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = i2c_read(i2c->fd, i2c->buffer, length);
+
+	builder = g_variant_builder_new(G_VARIANT_TYPE("a(y)"));
+
+	for (i = 0; i < length; i++)
+		g_variant_builder_add(builder, "(y)", i2c->buffer[i]);
+	*data_array = g_variant_new("a(y)", builder);
+	g_variant_builder_unref(builder);
+
+	return ret;
+
+out:
+	builder = g_variant_builder_new(G_VARIANT_TYPE("a(y)"));
+
+	for (i = 0; i < i2c->buffer_size; i++)
+		g_variant_builder_add(builder, "(y)", 0x0);
+	*data_array = g_variant_new("a(y)", builder);
+	g_variant_builder_unref(builder);
+
+	return ret;
 }
 
-int peripheral_bus_i2c_write(GDBusMethodInvocation *invocation, pb_i2c_data_h i2c, int length, unsigned char *data, gpointer user_data)
+int peripheral_bus_i2c_write(GDBusMethodInvocation *invocation, pb_i2c_data_h i2c, int length, GVariant *data_array, gpointer user_data)
 {
 	const gchar *id;
+	GVariantIter *iter;
+	guchar str;
+	int i = 0;
+
+	/* Handle validation */
+	RETVM_IF(!i2c || !(i2c->client_info), PERIPHERAL_ERROR_UNKNOWN, "i2c handle is not valid");
 
 	id = g_dbus_method_invocation_get_sender(invocation);
 
-	if (strcmp(i2c->client_info->id, id)) {
-		_E("Invalid access, handle id : %s, current id : %s", i2c->client_info->id, id);
-		return PERIPHERAL_ERROR_INVALID_OPERATION;
+	RETVM_IF(strcmp(i2c->client_info->id, id),
+		PERIPHERAL_ERROR_INVALID_OPERATION,
+		"Invalid access, handie id : %s, current id : %s",
+		i2c->client_info->id, id);
+
+	/* Limit maximum length */
+	if (length > MAX_BUFFER_SIZE) length = MAX_BUFFER_SIZE;
+
+	/* Increase buffer if needed */
+	if (length > i2c->buffer_size) {
+		uint8_t *new;
+		new = (uint8_t*)realloc(i2c->buffer, length);
+
+		RETVM_IF(new == NULL, PERIPHERAL_ERROR_OUT_OF_MEMORY, "Failed to realloc buffer");
+		i2c->buffer = new;
+		i2c->buffer_size = length;
 	}
 
-	return i2c_write(i2c->fd, data, length);
+	g_variant_get(data_array, "a(y)", &iter);
+	while (g_variant_iter_loop(iter, "(y)", &str) && i < length) {
+		i2c->buffer[i++] = str;
+	}
+	g_variant_iter_free(iter);
+
+	return i2c_write(i2c->fd, i2c->buffer, length);
 }
 
 int peripheral_bus_i2c_close(GDBusMethodInvocation *invocation, pb_i2c_data_h i2c, gpointer user_data)
@@ -195,14 +276,17 @@ int peripheral_bus_i2c_close(GDBusMethodInvocation *invocation, pb_i2c_data_h i2
 	const gchar *id;
 	int ret;
 
-	_D("i2c_close, bus : %d, address : %d, pgid = %d", i2c->bus, i2c->address, i2c->client_info->pgid);
+	/* Handle validation */
+	RETVM_IF(!i2c || !(i2c->client_info), PERIPHERAL_ERROR_UNKNOWN, "i2c handle is not valid");
+
+	_D("bus : %d, address : %d, pgid = %d", i2c->bus, i2c->address, i2c->client_info->pgid);
 
 	id = g_dbus_method_invocation_get_sender(invocation);
 
-	if (strcmp(i2c->client_info->id, id)) {
-		_E("Invalid access, handle id : %s, current id : %s", i2c->client_info->id, id);
-		return PERIPHERAL_ERROR_INVALID_OPERATION;
-	}
+	RETVM_IF(strcmp(i2c->client_info->id, id),
+		PERIPHERAL_ERROR_INVALID_OPERATION,
+		"Invalid access, handle id : %s, current id : %s",
+		i2c->client_info->id, id);
 
 	if ((ret = i2c_close(i2c->fd)) < 0)
 		return ret;

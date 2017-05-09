@@ -217,22 +217,9 @@ gboolean handle_i2c_read(
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_i2c_data_h i2c_handle = GUINT_TO_POINTER(handle);
-	// TODO: Fix size of data buffer
-	unsigned char data[128];
-	GVariantBuilder *builder;
-	GVariant *data_array;
-	int i = 0;
+	GVariant *data_array = NULL;
 
-	ret = peripheral_bus_i2c_read(invocation, i2c_handle, length, data, user_data);
-
-	builder = g_variant_builder_new(G_VARIANT_TYPE("a(y)"));
-
-	for (i = 0; i < length; i++)
-		g_variant_builder_add(builder, "(y)", data[i]);
-	g_variant_builder_add(builder, "(y)", 0x00);
-	data_array = g_variant_new("a(y)", builder);
-	g_variant_builder_unref(builder);
-
+	ret = peripheral_bus_i2c_read(invocation, i2c_handle, length, &data_array, user_data);
 	peripheral_io_gdbus_i2c_complete_read(i2c, invocation, data_array, ret);
 
 	return true;
@@ -248,20 +235,8 @@ gboolean handle_i2c_write(
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_i2c_data_h i2c_handle = GUINT_TO_POINTER(handle);
-	// TODO: Fix size of data buffer
-	unsigned char data[128];
-	GVariantIter *iter;
-	guchar str;
-	int i = 0;
 
-	g_variant_get(data_array, "a(y)", &iter);
-	while (g_variant_iter_loop(iter, "(y)", &str)) {
-		data[i++] = str;
-		if (i == length || i >= 128) break;
-	}
-	g_variant_iter_free(iter);
-
-	ret = peripheral_bus_i2c_write(invocation, i2c_handle, length, (unsigned char*)data, user_data);
+	ret = peripheral_bus_i2c_write(invocation, i2c_handle, length, data_array, user_data);
 	peripheral_io_gdbus_i2c_complete_write(i2c, invocation, ret);
 
 	return true;
