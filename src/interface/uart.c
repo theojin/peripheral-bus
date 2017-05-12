@@ -21,6 +21,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <termios.h>
+#include <stdbool.h>
 #include <sys/ioctl.h>
 
 #include "uart.h"
@@ -33,28 +34,14 @@
 
 #define UART_BAUDRATE_SIZE	19
 
-int g_peripheral_uart_br_input[UART_BAUDRATE_SIZE] = {
-	0,			50,			75,			110,		134,
-	150,		200,		300,		600,		1200,
-	1800,		2400,		4800,		9600,		19200,
-	38400,		57600,		115200,		230400
-};
-int g_peripheral_uart_br[UART_BAUDRATE_SIZE] = {
+static const int peripheral_uart_br[UART_BAUDRATE_SIZE] = {
 	B0,			B50,		B75,		B110,		B134,
 	B150,		B200,		B300,		B600,		B1200,
 	B1800,		B2400,		B4800,		B9600,		B19200,
 	B38400,		B57600,		B115200,	B230400
 };
 
-int uart_valid_baudrate(unsigned int baudrate)
-{
-	int i;
-	for (i = 0; i < UART_BAUDRATE_SIZE; i++) {
-		if (baudrate == g_peripheral_uart_br_input[i])
-			return g_peripheral_uart_br[i];
-	}
-	return -1;
-}
+static const int byteinfo[4] = {CS5, CS6, CS7, CS8};
 
 int uart_open(int port, int *file_hndl)
 {
@@ -97,9 +84,9 @@ int uart_flush(int file_hndl)
 	return 0;
 }
 
-int uart_set_baudrate(int file_hndl, unsigned int baud)
+int uart_set_baudrate(int file_hndl, uart_baudrate_e baud)
 {
-	int ret, baudrate;
+	int ret;
 	struct termios tio;
 
 	memset(&tio, 0, sizeof(tio));
@@ -108,7 +95,7 @@ int uart_set_baudrate(int file_hndl, unsigned int baud)
 		return -EINVAL;
 	}
 
-	if ((baudrate = uart_valid_baudrate(baud)) < 0) {
+	if (baud > UART_BAUDRATE_230400) {
 		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
 		return -EINVAL;
 	}
@@ -118,7 +105,7 @@ int uart_set_baudrate(int file_hndl, unsigned int baud)
 		_E("Error[%d]: tcgetattr, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
 		return -1;
 	}
-	tio.c_cflag = baudrate;
+	tio.c_cflag = peripheral_uart_br[baud];
 	tio.c_iflag = IGNPAR;
 	tio.c_oflag = 0;
 	tio.c_lflag = 0;
@@ -135,12 +122,10 @@ int uart_set_baudrate(int file_hndl, unsigned int baud)
 	return 0;
 }
 
-int uart_set_mode(int file_hndl, int bytesize, char *parity, int stopbits)
+int uart_set_mode(int file_hndl, uart_bytesize_e bytesize, uart_parity_e parity, uart_stopbits_e stopbits)
 {
 	int ret;
 	struct termios tio;
-	int byteinfo[4] = {CS5, CS6, CS7, CS8};
-	peripheral_uart_parity_e parityinfo;
 
 	if (!file_hndl) {
 		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
@@ -154,32 +139,26 @@ int uart_set_mode(int file_hndl, int bytesize, char *parity, int stopbits)
 	}
 
 	/* set byte size */
-	if (bytesize < 5 || bytesize > 8) {
+	if (bytesize < UART_BYTESIZE_5BIT || bytesize > UART_BYTESIZE_8BIT) {
 		_E("Error[%d]: Invalid parameter bytesize, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
 		return -EINVAL;
 	}
 	tio.c_cflag &= ~CSIZE;
-	tio.c_cflag |= byteinfo[bytesize - 5];
+	tio.c_cflag |= byteinfo[bytesize];
 	tio.c_cflag |= (CLOCAL | CREAD);
 
 	/* set parity info */
-	if (strcmp(parity, "even") == 0)
-		parityinfo = PERIPHERAL_UART_PARITY_EVEN;
-	else if (strcmp(parity, "odd") == 0)
-		parityinfo = PERIPHERAL_UART_PARITY_ODD;
-	else
-		parityinfo = PERIPHERAL_UART_PARITY_NONE;
-
-	switch (parityinfo) {
-	case PERIPHERAL_UART_PARITY_EVEN:
+	switch (parity) {
+	case UART_PARITY_EVEN:
 		tio.c_cflag |= PARENB;
 		tio.c_cflag &= ~PARODD;
 		break;
-	case PERIPHERAL_UART_PARITY_ODD:
+	case UART_PARITY_ODD:
 		tio.c_cflag |= PARENB;
 		tio.c_cflag |= PARODD;
 		break;
-	case PERIPHERAL_UART_PARITY_NONE:
+	case UART_PARITY_NONE:
+	default:
 		tio.c_cflag &= ~PARENB;
 		tio.c_cflag &= ~PARODD;
 		break;
@@ -187,10 +166,10 @@ int uart_set_mode(int file_hndl, int bytesize, char *parity, int stopbits)
 
 	/* set stop bit */
 	switch (stopbits) {
-	case 1:
+	case UART_STOPBITS_1BIT:
 		tio.c_cflag &= ~CSTOPB;
 		break;
-	case 2:
+	case UART_STOPBITS_2BIT:
 		tio.c_cflag |= CSTOPB;
 		break;
 	default:
@@ -208,7 +187,7 @@ int uart_set_mode(int file_hndl, int bytesize, char *parity, int stopbits)
 	return 0;
 }
 
-int uart_set_flowcontrol(int file_hndl, int xonxoff, int rtscts)
+int uart_set_flowcontrol(int file_hndl, bool xonxoff, bool rtscts)
 {
 	int ret;
 	struct termios tio;
@@ -225,24 +204,16 @@ int uart_set_flowcontrol(int file_hndl, int xonxoff, int rtscts)
 	}
 
 	/* rtscts => 1: rts/cts on, 0: off */
-	if (rtscts == 1) {
+	if (rtscts)
 		tio.c_cflag |= CRTSCTS;
-	} else if (rtscts == 0) {
+	else
 		tio.c_cflag &= ~CRTSCTS;
-	} else {
-		_E("Error[%d]: Invalid parameter rtscts, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
-		return -1;
-	}
 
 	/* xonxoff => 1: xon/xoff on, 0: off */
-	if (xonxoff == 1) {
+	if (xonxoff)
 		tio.c_iflag |= (IXON | IXOFF | IXANY);
-	} else if (xonxoff == 0) {
+	else
 		tio.c_iflag &= ~(IXON | IXOFF | IXANY);
-	} else {
-		_E("Error[%d]: Invalid parameter xonxoff, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
-		return -1;
-	}
 
 	ret = tcsetattr(file_hndl, TCSANOW, &tio);
 	if (ret) {
@@ -253,7 +224,7 @@ int uart_set_flowcontrol(int file_hndl, int xonxoff, int rtscts)
 	return 0;
 }
 
-int uart_read(int file_hndl, char *buf, unsigned int length)
+int uart_read(int file_hndl, uint8_t *buf, unsigned int length)
 {
 	int ret;
 	if (!file_hndl) {
@@ -270,7 +241,7 @@ int uart_read(int file_hndl, char *buf, unsigned int length)
 	return ret;
 }
 
-int uart_write(int file_hndl, char *buf, unsigned int length)
+int uart_write(int file_hndl, uint8_t *buf, unsigned int length)
 {
 	int ret;
 	if (!file_hndl) {
