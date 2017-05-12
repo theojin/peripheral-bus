@@ -24,6 +24,7 @@ SET(SRCS
 	src/daemon/peripheral_bus_pwm.c
 	src/daemon/peripheral_bus_i2c.c
 	src/daemon/peripheral_bus_gpio.c
+	src/daemon/peripheral_bus_uart.c
 	src/daemon/peripheral_io_gdbus.c
 	src/interface/adc.c
 	src/interface/gpio.c

@@ -27,6 +27,7 @@
 #include "peripheral_bus_gpio.h"
 #include "peripheral_bus_i2c.h"
 #include "peripheral_bus_pwm.h"
+#include "peripheral_bus_uart.h"
 #include "peripheral_common.h"
 
 gboolean handle_gpio_open(
@@ -378,6 +379,262 @@ gboolean handle_pwm_get_period(
 	return true;
 }
 
+gboolean handle_uart_open(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint port,
+		gpointer user_data)
+{
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_uart_data_h uart_handle;
+
+	ret = peripheral_bus_uart_open(port, &uart_handle, user_data);
+	if (ret == PERIPHERAL_ERROR_NONE) {
+		guint pid = 0;
+		GError *error = NULL;
+		GVariant *_ret;
+		const gchar *id;
+
+		id = g_dbus_method_invocation_get_sender(invocation);
+		_ret = g_dbus_connection_call_sync(pb_data->connection,
+			"org.freedesktop.DBus",
+			"/org/freedesktop/DBus",
+			"org.freedesktop.DBus",
+			"GetConnectionUnixProcessID",
+			g_variant_new("(s)", id),
+			NULL,
+			G_DBUS_CALL_FLAGS_NONE,
+			-1,
+			NULL,
+			&error);
+
+		if (_ret != NULL) {
+			g_variant_get(_ret, "(u)", &pid);
+			g_variant_unref(_ret);
+		} else
+			g_error_free(error);
+
+		uart_handle->client_info.pid = (pid_t)pid;
+		uart_handle->client_info.pgid = getpgid(pid);
+		uart_handle->client_info.id = strdup(id);
+
+		_D("port : %d, id = %s", port, uart_handle->client_info.id);
+	}
+
+	peripheral_io_gdbus_uart_complete_open(uart, invocation, GPOINTER_TO_UINT(uart_handle), ret);
+
+	return true;
+}
+
+gboolean handle_uart_close(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_uart_data_h uart_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+
+	/* Handle validation */
+	if (!uart_handle || !uart_handle->client_info.id) {
+		_E("uart handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(uart_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", uart_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_uart_close(uart_handle, user_data);
+	}
+
+	peripheral_io_gdbus_uart_complete_close(uart, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_uart_flush(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_uart_data_h uart_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+
+	/* Handle validation */
+	if (!uart_handle || !uart_handle->client_info.id) {
+		_E("uart handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(uart_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", uart_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_uart_flush(uart_handle);
+	}
+
+	peripheral_io_gdbus_uart_complete_flush(uart, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_uart_set_baudrate(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		guint baudrate,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_uart_data_h uart_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+
+	/* Handle validation */
+	if (!uart_handle || !uart_handle->client_info.id) {
+		_E("uart handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(uart_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", uart_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_uart_set_baudrate(uart_handle, baudrate);
+	}
+
+	peripheral_io_gdbus_uart_complete_set_baudrate(uart, invocation, ret);
+
+	return true;
+}
+gboolean handle_uart_set_mode(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		guint byte_size,
+		guint parity,
+		guint stop_bits,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_uart_data_h uart_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+
+	/* Handle validation */
+	if (!uart_handle || !uart_handle->client_info.id) {
+		_E("uart handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(uart_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", uart_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_uart_set_mode(uart_handle, byte_size, parity, stop_bits);
+	}
+
+	peripheral_io_gdbus_uart_complete_set_mode(uart, invocation, ret);
+
+	return true;
+}
+gboolean handle_uart_set_flowcontrol(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gboolean xonxoff,
+		gboolean rtscts,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_uart_data_h uart_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+
+	/* Handle validation */
+	if (!uart_handle || !uart_handle->client_info.id) {
+		_E("uart handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(uart_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", uart_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_uart_set_flowcontrol(uart_handle, xonxoff, rtscts);
+	}
+
+	peripheral_io_gdbus_uart_complete_set_flowcontrol(uart, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_uart_read(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gint length,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_uart_data_h uart_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+	uint8_t err_buf[2] = {0, };
+	GVariant *data_array = NULL;
+
+	/* Handle validation */
+	if (!uart_handle || !uart_handle->client_info.id) {
+		_E("uart handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(uart_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", uart_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_uart_read(uart_handle, &data_array, length);
+	}
+
+	if (!data_array)
+		data_array = peripheral_bus_build_variant_ay(err_buf, sizeof(err_buf));
+
+	peripheral_io_gdbus_uart_complete_read(uart, invocation, data_array, ret);
+
+	return true;
+}
+
+gboolean handle_uart_write(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gint length,
+		GVariant *data_array,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_uart_data_h uart_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+
+	/* Handle validation */
+	if (!uart_handle || !uart_handle->client_info.id) {
+		_E("uart handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(uart_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", uart_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_uart_write(uart_handle, data_array, length);
+	}
+
+	peripheral_io_gdbus_uart_complete_write(uart, invocation, ret);
+
+	return true;
+}
+
 void peripheral_bus_emit_gpio_changed(PeripheralIoGdbusGpio *gpio,
 									gint pin,
 									gint state)
@@ -553,6 +810,65 @@ static gboolean __pwm_init(peripheral_bus_s *pb_data)
 	return true;
 }
 
+static gboolean __uart_init(peripheral_bus_s *pb_data)
+{
+	GDBusObjectManagerServer *manager;
+	gboolean ret = FALSE;
+	GError *error = NULL;
+
+	/* Add interface to default object path */
+	pb_data->uart_skeleton = peripheral_io_gdbus_uart_skeleton_new();
+	g_signal_connect(pb_data->uart_skeleton,
+			"handle-open",
+			G_CALLBACK(handle_uart_open),
+			pb_data);
+	g_signal_connect(pb_data->uart_skeleton,
+			"handle-close",
+			G_CALLBACK(handle_uart_close),
+			pb_data);
+	g_signal_connect(pb_data->uart_skeleton,
+			"handle-flush",
+			G_CALLBACK(handle_uart_flush),
+			pb_data);
+	g_signal_connect(pb_data->uart_skeleton,
+			"handle-set-baudrate",
+			G_CALLBACK(handle_uart_set_baudrate),
+			pb_data);
+	g_signal_connect(pb_data->uart_skeleton,
+			"handle-set-mode",
+			G_CALLBACK(handle_uart_set_mode),
+			pb_data);
+	g_signal_connect(pb_data->uart_skeleton,
+			"handle-set-flowcontrol",
+			G_CALLBACK(handle_uart_set_flowcontrol),
+			pb_data);
+	g_signal_connect(pb_data->uart_skeleton,
+			"handle-read",
+			G_CALLBACK(handle_uart_read),
+			pb_data);
+	g_signal_connect(pb_data->uart_skeleton,
+			"handle-write",
+			G_CALLBACK(handle_uart_write),
+			pb_data);
+
+	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_UART_PATH);
+
+	/* Set connection to 'manager' */
+	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
+
+	/* Export 'manager' interface on peripheral-io DBUS */
+	ret = g_dbus_interface_skeleton_export(
+		G_DBUS_INTERFACE_SKELETON(pb_data->uart_skeleton),
+		pb_data->connection, PERIPHERAL_GDBUS_UART_PATH, &error);
+
+	if (ret == FALSE) {
+		_E("Can not skeleton_export %s", error->message);
+		g_error_free(error);
+	}
+
+	return true;
+}
+
 static void on_bus_acquired(GDBusConnection *connection,
 							const gchar *name,
 							gpointer user_data)
@@ -567,6 +883,9 @@ static void on_bus_acquired(GDBusConnection *connection,
 		_E("Can not signal connect");
 
 	if (__pwm_init(pb_data) == FALSE)
+		_E("Can not signal connect");
+
+	if (__uart_init(pb_data) == FALSE)
 		_E("Can not signal connect");
 }
 
