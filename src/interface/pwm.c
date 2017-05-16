@@ -101,6 +101,30 @@ int pwm_set_period(int device, int channel, int period)
 	return 0;
 }
 
+int pwm_get_period(int device, int channel, int *period)
+{
+	int fd, result, ret;
+	char buff[PWM_BUF_MAX] = {0};
+	char fName[PATH_BUF_MAX] = {0};
+
+	snprintf(fName, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/period", device, channel);
+	if ((fd = open(fName, O_RDONLY)) < 0) {
+		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
+		return -ENOENT;
+	}
+
+	if ((ret = read(fd, buff, PWM_BUF_MAX)) < 0) {
+		_E("Error[%d]: can't read %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
+		close(fd);
+		return -EIO;
+	}
+	result = atoi(buff);
+	*period = result;
+	close(fd);
+
+	return 0;
+}
+
 int pwm_set_duty_cycle(int device, int channel, int duty_cycle)
 {
 	int fd, len, ret;
@@ -120,6 +144,30 @@ int pwm_set_duty_cycle(int device, int channel, int duty_cycle)
 		close(fd);
 		return -EIO;
 	}
+	close(fd);
+
+	return 0;
+}
+
+int pwm_get_duty_cycle(int device, int channel, int *duty_cycle)
+{
+	int fd, result, ret;
+	char buff[PWM_BUF_MAX] = {0};
+	char fName[PATH_BUF_MAX] = {0};
+
+	snprintf(fName, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/duty_cycle", device, channel);
+	if ((fd = open(fName, O_RDONLY)) < 0) {
+		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
+		return -ENOENT;
+	}
+
+	if ((ret = read(fd, buff, PWM_BUF_MAX)) < 0) {
+		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
+		close(fd);
+		return -EIO;
+	}
+	result = atoi(buff);
+	*duty_cycle = result;
 	close(fd);
 
 	return 0;
@@ -167,54 +215,6 @@ int pwm_get_enabled(int device, int channel, int *enable)
 	}
 	result = atoi(buff);
 	enable = &result;
-	close(fd);
-
-	return 0;
-}
-
-int pwm_get_period(int device, int channel, int *period)
-{
-	int fd, result, ret;
-	char buff[PWM_BUF_MAX] = {0};
-	char fName[PATH_BUF_MAX] = {0};
-
-	snprintf(fName, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/period", device, channel);
-	if ((fd = open(fName, O_RDONLY)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
-		return -ENOENT;
-	}
-
-	if ((ret = read(fd, buff, PWM_BUF_MAX)) < 0) {
-		_E("Error[%d]: can't read %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
-		close(fd);
-		return -EIO;
-	}
-	result = atoi(buff);
-	*period = result;
-	close(fd);
-
-	return 0;
-}
-
-int pwm_get_duty_cycle(int device, int channel, int *duty_cycle)
-{
-	int fd, result, ret;
-	char buff[PWM_BUF_MAX] = {0};
-	char fName[PATH_BUF_MAX] = {0};
-
-	snprintf(fName, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/duty_cycle", device, channel);
-	if ((fd = open(fName, O_RDONLY)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
-		return -ENOENT;
-	}
-
-	if ((ret = read(fd, buff, PWM_BUF_MAX)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
-		close(fd);
-		return -EIO;
-	}
-	result = atoi(buff);
-	*duty_cycle = result;
 	close(fd);
 
 	return 0;

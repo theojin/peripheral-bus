@@ -46,6 +46,16 @@ int pwm_close(int device, int channel);
 int pwm_set_period(int device, int channel, int period);
 
 /**
+* @brief pwm_get_period() gets the pwm period.
+*
+* @param[in] device pwm chip number
+* @param[in] channel pwm channel number
+* @param[in] period pwm period
+* @return On success, current pwm period is returned. On failure, a negative value is returned.
+*/
+int pwm_get_period(int device, int channel, int *period);
+
+/**
 * @brief pwm_set_duty_cycle() sets the pwm duty cycle.
 *
 * @param[in] device pwm chip number
@@ -54,6 +64,16 @@ int pwm_set_period(int device, int channel, int period);
 * @return On success, 0 is returned. On failure, a negative value is returned.
 */
 int pwm_set_duty_cycle(int device, int channel, int duty_cycle);
+
+/**
+* @brief pwm_get_duty_cycle() gets the pwm duty cycle.
+*
+* @param[in] device pwm chip number
+* @param[in] channel pwm channel number
+* @param[in] duty_cycle pwm duty cycle
+* @return On success, current pwm duty cycle is returned. On failure, a negative value is returned.
+*/
+int pwm_get_duty_cycle(int device, int channel, int *duty_cycle);
 
 /**
 * @brief pwm_set_enabled() sets the pwm state.
@@ -74,25 +94,5 @@ int pwm_set_enabled(int device, int channel, int enable);
 * @return On success, current pwm state value is returned. On failure, a negative value is returned.
 */
 int pwm_get_enabled(int device, int channel, int *enable);
-
-/**
-* @brief pwm_get_period() gets the pwm period.
-*
-* @param[in] device pwm chip number
-* @param[in] channel pwm channel number
-* @param[in] period pwm period
-* @return On success, current pwm period is returned. On failure, a negative value is returned.
-*/
-int pwm_get_period(int device, int channel, int *period);
-
-/**
-* @brief pwm_get_duty_cycle() gets the pwm duty cycle.
-*
-* @param[in] device pwm chip number
-* @param[in] channel pwm channel number
-* @param[in] duty_cycle pwm duty cycle
-* @return On success, current pwm duty cycle is returned. On failure, a negative value is returned.
-*/
-int pwm_get_duty_cycle(int device, int channel, int *duty_cycle);
 
 #endif /* __PWM_H__ */
