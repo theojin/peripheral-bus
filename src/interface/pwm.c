@@ -27,98 +27,113 @@
 #define SYSFS_PWM_PATH	"/sys/class/pwm"
 
 #define PATH_BUF_MAX	64
-#define PWM_BUF_MAX		16
+#define PWM_BUF_MAX	16
+#define MAX_ERR_LEN	255
 
 int pwm_open(int device, int channel)
 {
-	int fd, len, ret;
-	char buff[PWM_BUF_MAX] = {0};
-	char fName[PATH_BUF_MAX] = {0};
+	int fd, len, status;
+	char pwm_dev[PATH_BUF_MAX] = {0};
+	char pwm_buf[PWM_BUF_MAX] = {0};
 
-	pwm_close(device, channel);
-
-	snprintf(fName, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/export", device);
-	if ((fd = open(fName, O_WRONLY)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
-		return -ENOENT;
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/export", device);
+	fd = open(pwm_dev, O_WRONLY);
+	if (fd < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
+		return -ENODEV;
 	}
 
-	len = snprintf(buff, sizeof(buff), "%d", channel);
-	if ((ret = write(fd, buff, len)) < 0) {
-		_E("Error[%d]: can't write %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
+	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", channel);
+	status = write(fd, pwm_buf, len);
+	if (status < 0) {
+		_E("Failed to export pwmchip%d, pwm%", device, channel);
 		close(fd);
 		return -EIO;
 	}
 	close(fd);
+
 	return 0;
 }
 
 int pwm_close(int device, int channel)
 {
-	int fd, len, ret;
-	char buff[PWM_BUF_MAX] = {0};
-	char fName[PATH_BUF_MAX] = {0};
+	int fd, len, status;
+	char pwm_dev[PATH_BUF_MAX] = {0};
+	char pwm_buf[PWM_BUF_MAX] = {0};
 
-	pwm_set_enabled(device, channel, 0); // disable
-
-	_D("[PWM] close!!\n");
-	snprintf(fName, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/unexport", device);
-	if ((fd = open(fName, O_WRONLY)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
-		return -ENOENT;
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/unexport", device);
+	fd = open(pwm_dev, O_WRONLY);
+	if (fd < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
+		return -ENODEV;
 	}
 
-	len = snprintf(buff, sizeof(buff), "%d", channel);
-
-	if ((ret = write(fd, buff, len)) < 0) {
-		_E("Error[%d]: can't write %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
+	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", channel);
+	status = write(fd, pwm_buf, len);
+	if (status < 0) {
+		_E("Failed to unexport pwmchip%d, pwm%", device, channel);
 		close(fd);
 		return -EIO;
 	}
 	close(fd);
+
 	return 0;
 }
 
 int pwm_set_period(int device, int channel, int period)
 {
-	int fd, len, ret;
-	char buff[PWM_BUF_MAX] = {0};
-	char fName[PATH_BUF_MAX] = {0};
+	int fd, len, status;
+	char pwm_buf[PWM_BUF_MAX] = {0};
+	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	snprintf(fName, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/period", device, channel);
-	if ((fd = open(fName, O_WRONLY)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
-		return -ENOENT;
+	_E("Set period : %d, device : %d, channel : %d", period, device, channel);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/period", device, channel);
+	fd = open(pwm_dev, O_WRONLY);
+	if (fd < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
+		return -ENODEV;
 	}
-	_D("[PWM] period = %d\n", period);
-	len = snprintf(buff, sizeof(buff), "%d", period);
-	if ((ret = write(fd, buff, len)) < 0) {
-		_E("Error[%d]: can't write %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
+
+	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", period);
+	status = write(fd, pwm_buf, len);
+	if (status < 0) {
 		close(fd);
+		_E("Failed to set period, path : %s", pwm_dev);
 		return -EIO;
 	}
 	close(fd);
+
 	return 0;
 }
 
 int pwm_get_period(int device, int channel, int *period)
 {
-	int fd, result, ret;
-	char buff[PWM_BUF_MAX] = {0};
-	char fName[PATH_BUF_MAX] = {0};
+	int fd, result, status;
+	char pwm_buf[PWM_BUF_MAX] = {0};
+	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	snprintf(fName, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/period", device, channel);
-	if ((fd = open(fName, O_RDONLY)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
-		return -ENOENT;
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/period", device, channel);
+	fd = open(pwm_dev, O_RDONLY);
+	if (fd < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
+		return -ENODEV;
 	}
 
-	if ((ret = read(fd, buff, PWM_BUF_MAX)) < 0) {
-		_E("Error[%d]: can't read %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
+	status = read(fd, pwm_buf, PWM_BUF_MAX);
+	if (status < 0) {
 		close(fd);
+		_E("Failed to get period, path : %s", pwm_dev);
 		return -EIO;
 	}
-	result = atoi(buff);
+	result = atoi(pwm_buf);
 	*period = result;
 	close(fd);
 
@@ -127,21 +142,25 @@ int pwm_get_period(int device, int channel, int *period)
 
 int pwm_set_duty_cycle(int device, int channel, int duty_cycle)
 {
-	int fd, len, ret;
-	char buff[PWM_BUF_MAX] = {0};
-	char fName[PATH_BUF_MAX] = {0};
+	int fd, len, status;
+	char pwm_buf[PWM_BUF_MAX] = {0};
+	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	snprintf(fName, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/duty_cycle", device, channel);
-	if ((fd = open(fName, O_WRONLY)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
-		return -ENOENT;
+	_E("Set duty_cycle : %d, device : %d, channel : %d", duty_cycle, device, channel);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/duty_cycle", device, channel);
+	fd = open(pwm_dev, O_WRONLY);
+	if (fd < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
+		return -ENODEV;
 	}
-	_D("[PWM] duty_cycle = %d\n", duty_cycle);
 
-	len = snprintf(buff, sizeof(buff), "%d", duty_cycle);
-	if ((ret = write(fd, buff, len)) < 0) {
-		_E("Error[%d]: can't write %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
+	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", duty_cycle);
+	status = write(fd, pwm_buf, len);
+	if (status < 0) {
 		close(fd);
+		_E("Failed to set duty cycle, path : %s", pwm_dev);
 		return -EIO;
 	}
 	close(fd);
@@ -151,22 +170,26 @@ int pwm_set_duty_cycle(int device, int channel, int duty_cycle)
 
 int pwm_get_duty_cycle(int device, int channel, int *duty_cycle)
 {
-	int fd, result, ret;
-	char buff[PWM_BUF_MAX] = {0};
-	char fName[PATH_BUF_MAX] = {0};
+	int fd, result, status;
+	char pwm_buf[PWM_BUF_MAX] = {0};
+	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	snprintf(fName, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/duty_cycle", device, channel);
-	if ((fd = open(fName, O_RDONLY)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
-		return -ENOENT;
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/duty_cycle", device, channel);
+	fd = open(pwm_dev, O_RDONLY);
+	if (fd < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
+		return -ENODEV;
 	}
 
-	if ((ret = read(fd, buff, PWM_BUF_MAX)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
+	status = read(fd, pwm_buf, PWM_BUF_MAX);
+	if (status < 0) {
 		close(fd);
+		_E("Failed to get duty cycle, path : %s", pwm_dev);
 		return -EIO;
 	}
-	result = atoi(buff);
+	result = atoi(pwm_buf);
 	*duty_cycle = result;
 	close(fd);
 
@@ -175,47 +198,57 @@ int pwm_get_duty_cycle(int device, int channel, int *duty_cycle)
 
 int pwm_set_enabled(int device, int channel, int enable)
 {
-	int fd, len, ret;
-	char buff[PWM_BUF_MAX] = {0};
-	char fName[PATH_BUF_MAX] = {0};
+	int fd, len, status;
+	char pwm_buf[PWM_BUF_MAX] = {0};
+	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	_D("[PWM] set enable = %d!!\n", enable);
-	snprintf(fName, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/enable", device, channel);
-	if ((fd = open(fName, O_WRONLY)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
-		return -ENOENT;
+	_E("Set enable : %d, device : %d, channel : %d", enable, device, channel);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/enable", device, channel);
+	fd = open(pwm_dev, O_WRONLY);
+	if (fd < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
+		return -ENODEV;
 	}
 
-	len = snprintf(buff, sizeof(buff), "%d", enable);
-	if ((ret = write(fd, buff, len)) < 0) {
-		_E("Error[%d]: can't write %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
+	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", enable);
+	status = write(fd, pwm_buf, len);
+	if (status < 0) {
 		close(fd);
+		_E("Failed to set enable, path : %s", pwm_dev);
 		return -EIO;
 	}
 	close(fd);
+
 	return 0;
 }
 
 int pwm_get_enabled(int device, int channel, int *enable)
 {
-	int fd, result, ret;
-	char buff[PWM_BUF_MAX] = {0};
-	char fName[PATH_BUF_MAX] = {0};
+	int fd, result, status;
+	char pwm_buf[PWM_BUF_MAX] = {0};
+	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	snprintf(fName, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/enable", device, channel);
-	if ((fd = open(fName, O_RDONLY)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
-		return -ENOENT;
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/enable", device, channel);
+	fd = open(pwm_dev, O_RDONLY);
+	if (fd < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
+		return -ENODEV;
 	}
 
-	if ((ret = read(fd, buff, PWM_BUF_MAX)) < 0) {
-		_E("Error[%d]: can't read %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
+	status = read(fd, pwm_buf, PWM_BUF_MAX);
+	if (status < 0) {
 		close(fd);
+		_E("Failed to get enable, path : %s", pwm_dev);
 		return -EIO;
 	}
-	result = atoi(buff);
+	result = atoi(pwm_buf);
 	enable = &result;
 	close(fd);
 
 	return 0;
 }
+
