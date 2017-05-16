@@ -90,7 +90,7 @@ int pwm_set_period(int device, int channel, int period)
 	char pwm_buf[PWM_BUF_MAX] = {0};
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	_E("Set period : %d, device : %d, channel : %d", period, device, channel);
+	_D("Set period : %d, device : %d, channel : %d", period, device, channel);
 	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/period", device, channel);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
@@ -146,7 +146,7 @@ int pwm_set_duty_cycle(int device, int channel, int duty_cycle)
 	char pwm_buf[PWM_BUF_MAX] = {0};
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	_E("Set duty_cycle : %d, device : %d, channel : %d", duty_cycle, device, channel);
+	_D("Set duty_cycle : %d, device : %d, channel : %d", duty_cycle, device, channel);
 	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/duty_cycle", device, channel);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
@@ -196,13 +196,84 @@ int pwm_get_duty_cycle(int device, int channel, int *duty_cycle)
 	return 0;
 }
 
-int pwm_set_enabled(int device, int channel, int enable)
+int pwm_set_polarity(int device, int channel, pwm_polarity_e polarity)
+{
+	int fd, status;
+	char pwm_dev[PATH_BUF_MAX] = {0};
+
+	_D("Set polarity : %d, device : %d, channel : %d", polarity, device, channel);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/polarity", device, channel);
+	fd = open(pwm_dev, O_WRONLY);
+	if (fd < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
+		return -ENODEV;
+	}
+
+	if (polarity == PWM_POLARITY_NORMAL)
+		status = write(fd, "normal", strlen("normal")+1);
+	else if (polarity == PWM_POLARITY_INVERSED)
+		status = write(fd, "inversed", strlen("inversed")+1);
+	else {
+		_E("Invalid pwm polarity : %d", polarity);
+		close(fd);
+		return -EINVAL;
+	}
+
+	if (status <= 0) {
+		close(fd);
+		_E("Failed to set polarity, path : %s", pwm_dev);
+		return -EIO;
+	}
+	close(fd);
+
+	return 0;
+}
+
+int pwm_get_polarity(int device, int channel, pwm_polarity_e *polarity)
+{
+	int fd, status;
+	char pwm_buf[PWM_BUF_MAX] = {0};
+	char pwm_dev[PATH_BUF_MAX] = {0};
+
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/polarity", device, channel);
+	fd = open(pwm_dev, O_RDONLY);
+	if (fd < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
+		return -ENODEV;
+	}
+
+	status = read(fd, pwm_buf, PWM_BUF_MAX);
+	if (status < 0) {
+		_E("Failed to get polarity, path : %s", pwm_dev);
+		close(fd);
+		return -EIO;
+	}
+
+	if (0 == strncmp(pwm_buf, "normal", strlen("normal")))
+		*polarity = PWM_POLARITY_NORMAL;
+	else if (0 == strncmp(pwm_buf, "inversed", strlen("inversed")))
+		*polarity = PWM_POLARITY_INVERSED;
+	else {
+		close(fd);
+		_E("Invalid pwm polarity : %d", pwm_buf);
+		return -EIO;
+	}
+	close(fd);
+
+	return 0;
+}
+
+int pwm_set_enable(int device, int channel, int enable)
 {
 	int fd, len, status;
 	char pwm_buf[PWM_BUF_MAX] = {0};
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	_E("Set enable : %d, device : %d, channel : %d", enable, device, channel);
+	_D("Set enable : %d, device : %d, channel : %d", enable, device, channel);
 	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/enable", device, channel);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
@@ -224,7 +295,7 @@ int pwm_set_enabled(int device, int channel, int enable)
 	return 0;
 }
 
-int pwm_get_enabled(int device, int channel, int *enable)
+int pwm_get_enable(int device, int channel, int *enable)
 {
 	int fd, result, status;
 	char pwm_buf[PWM_BUF_MAX] = {0};

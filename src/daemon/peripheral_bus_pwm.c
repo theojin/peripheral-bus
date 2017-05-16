@@ -45,7 +45,7 @@ int peripheral_bus_pwm_set_period(peripheral_pwm_context_h pwm, int period)
 
 int peripheral_bus_pwm_set_enable(peripheral_pwm_context_h pwm, int enable)
 {
-	return pwm_set_enabled(pwm->device, pwm->channel, enable);
+	return pwm_set_enable(pwm->device, pwm->channel, enable);
 }
 
 int peripheral_bus_pwm_get_duty_cycle(peripheral_pwm_context_h pwm, int *duty_cycle)

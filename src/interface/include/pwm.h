@@ -18,6 +18,14 @@
 #define __PWM_H__
 
 /**
+ * @brief Enumeration for Polarity
+ */
+typedef enum {
+	PWM_POLARITY_NORMAL = 0,
+	PWM_POLARITY_INVERSED,
+} pwm_polarity_e;
+
+/**
 * @brief pwm_open() init pwm channel.
 *
 * @param[in] device pwm chip number
@@ -50,8 +58,8 @@ int pwm_set_period(int device, int channel, int period);
 *
 * @param[in] device pwm chip number
 * @param[in] channel pwm channel number
-* @param[in] period pwm period
-* @return On success, current pwm period is returned. On failure, a negative value is returned.
+* @param[out] period pwm period
+* @return On success, 0 is returned. On failure, a negative value is returned.
 */
 int pwm_get_period(int device, int channel, int *period);
 
@@ -70,29 +78,48 @@ int pwm_set_duty_cycle(int device, int channel, int duty_cycle);
 *
 * @param[in] device pwm chip number
 * @param[in] channel pwm channel number
-* @param[in] duty_cycle pwm duty cycle
-* @return On success, current pwm duty cycle is returned. On failure, a negative value is returned.
+* @param[out] duty_cycle pwm duty cycle
+* @return On success, 0 is returned. On failure, a negative value is returned.
 */
 int pwm_get_duty_cycle(int device, int channel, int *duty_cycle);
 
 /**
-* @brief pwm_set_enabled() sets the pwm state.
+* @brief pwm_set_polarity() sets the pwm polarity.
+*
+* @param[in] device pwm chip number
+* @param[in] channel pwm channel number
+* @param[in] polarity pwm polarity
+* @return On success, 0 is returned. On failure, a negative value is returned.
+*/
+int pwm_set_polarity(int device, int channel, pwm_polarity_e polarity);
+/**
+* @brief pwm_get_polarity() gets the pwm polarity.
+*
+* @param[in] device pwm chip number
+* @param[in] channel pwm channel number
+* @param[out] polarity pwm polarity
+* @return On success, 0 is returned. On failure, a negative value is returned.
+*/
+int pwm_get_polarity(int device, int channel, pwm_polarity_e *polarity);
+
+/**
+* @brief pwm_set_enable() sets the pwm state.
 *
 * @param[in] device pwm chip number
 * @param[in] channel pwm channel number
 * @param[in] enable pwm enable/disabled state value
 * @return On success, 0 is returned. On failure, a negative value is returned.
 */
-int pwm_set_enabled(int device, int channel, int enable);
+int pwm_set_enable(int device, int channel, int enable);
 
 /**
-* @brief pwm_is_enabled() checks if pwm state is enabled.
+* @brief pwm_get_enable() checks if pwm state is enabled.
 *
 * @param[in] device pwm chip number
 * @param[in] channel pwm channel number
-* @param[in] enable pwm enable/disabled state value
-* @return On success, current pwm state value is returned. On failure, a negative value is returned.
+* @param[out] enable pwm enable/disabled state value
+* @return On success, 0 is returned. On failure, a negative value is returned.
 */
-int pwm_get_enabled(int device, int channel, int *enable);
+int pwm_get_enable(int device, int channel, int *enable);
 
 #endif /* __PWM_H__ */
