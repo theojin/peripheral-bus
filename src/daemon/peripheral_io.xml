@@ -86,40 +86,35 @@
 		<method name="Open">
 			<arg type="i" name="device" direction="in"/>
 			<arg type="i" name="channel" direction="in"/>
+			<arg type="u" name="handle" direction="out"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="Close">
-			<arg type="i" name="device" direction="in"/>
-			<arg type="i" name="channel" direction="in"/>
+			<arg type="u" name="handle" direction="in"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="GetDutyCycle">
-			<arg type="i" name="device" direction="in"/>
-			<arg type="i" name="channel" direction="in"/>
+			<arg type="u" name="handle" direction="in"/>
 			<arg type="i" name="duty_cycle" direction="out"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="SetDutyCycle">
-			<arg type="i" name="device" direction="in"/>
-			<arg type="i" name="channel" direction="in"/>
+			<arg type="u" name="handle" direction="in"/>
 			<arg type="i" name="duty_cycle" direction="in"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="GetPeriod">
-			<arg type="i" name="device" direction="in"/>
-			<arg type="i" name="channel" direction="in"/>
+			<arg type="u" name="handle" direction="in"/>
 			<arg type="i" name="period" direction="out"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="SetPeriod">
-			<arg type="i" name="device" direction="in"/>
-			<arg type="i" name="channel" direction="in"/>
+			<arg type="u" name="handle" direction="in"/>
 			<arg type="i" name="period" direction="in"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
 		<method name="SetEnable">
-			<arg type="i" name="device" direction="in"/>
-			<arg type="i" name="channel" direction="in"/>
+			<arg type="u" name="handle" direction="in"/>
 			<arg type="i" name="enable" direction="in"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>

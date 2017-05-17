@@ -26,6 +26,7 @@ typedef struct {
 	/* devices */
 	GList *gpio_list;
 	GList *i2c_list;
+	GList *pwm_list;
 	GList *uart_list;
 	/* gdbus variable */
 	guint reg_id;
@@ -69,6 +70,13 @@ typedef struct {
 } peripheral_bus_i2c_data_s;
 
 typedef struct {
+	int device;
+	int channel;
+	/* client info */
+	pb_client_info_s client_info;
+} peripheral_bus_pwm_data_s;
+
+typedef struct {
 	int port;
 	int fd;
 	uint8_t *buffer;
@@ -79,6 +87,7 @@ typedef struct {
 
 typedef peripheral_bus_gpio_data_s *pb_gpio_data_h;
 typedef peripheral_bus_i2c_data_s *pb_i2c_data_h;
+typedef peripheral_bus_pwm_data_s *pb_pwm_data_h;
 typedef peripheral_bus_uart_data_s *pb_uart_data_h;
 
 void peripheral_bus_emit_gpio_changed(PeripheralIoGdbusGpio *gpio,
