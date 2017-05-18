@@ -275,22 +275,6 @@ gboolean handle_pwm_close(
 	return true;
 }
 
-gboolean handle_pwm_set_duty_cycle(
-		PeripheralIoGdbusPwm *pwm,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gint duty_cycle,
-		gpointer user_data)
-{
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
-
-	ret = peripheral_bus_pwm_set_duty_cycle(pwm_handle, duty_cycle);
-	peripheral_io_gdbus_pwm_complete_set_duty_cycle(pwm, invocation, ret);
-
-	return true;
-}
-
 gboolean handle_pwm_set_period(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
@@ -307,18 +291,34 @@ gboolean handle_pwm_set_period(
 	return true;
 }
 
-gboolean handle_pwm_set_enable(
+gboolean handle_pwm_get_period(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
 		gint handle,
-		gint enable,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
+	int period;
+
+	ret = peripheral_bus_pwm_get_period(pwm_handle, &period);
+	peripheral_io_gdbus_pwm_complete_get_period(pwm, invocation, period, ret);
+
+	return true;
+}
+
+gboolean handle_pwm_set_duty_cycle(
+		PeripheralIoGdbusPwm *pwm,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gint duty_cycle,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
 
-	ret = peripheral_bus_pwm_set_enable(pwm_handle, enable);
-	peripheral_io_gdbus_pwm_complete_set_enable(pwm, invocation, ret);
+	ret = peripheral_bus_pwm_set_duty_cycle(pwm_handle, duty_cycle);
+	peripheral_io_gdbus_pwm_complete_set_duty_cycle(pwm, invocation, ret);
 
 	return true;
 }
@@ -339,18 +339,18 @@ gboolean handle_pwm_get_duty_cycle(
 	return true;
 }
 
-gboolean handle_pwm_get_period(
+gboolean handle_pwm_set_enable(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
 		gint handle,
+		gint enable,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
-	int period;
 
-	ret = peripheral_bus_pwm_get_period(pwm_handle, &period);
-	peripheral_io_gdbus_pwm_complete_get_period(pwm, invocation, period, ret);
+	ret = peripheral_bus_pwm_set_enable(pwm_handle, enable);
+	peripheral_io_gdbus_pwm_complete_set_enable(pwm, invocation, ret);
 
 	return true;
 }
@@ -748,24 +748,24 @@ static gboolean __pwm_init(peripheral_bus_s *pb_data)
 			G_CALLBACK(handle_pwm_close),
 			pb_data);
 	g_signal_connect(pb_data->pwm_skeleton,
-			"handle-set-duty-cycle",
-			G_CALLBACK(handle_pwm_set_duty_cycle),
-			pb_data);
-	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-set-period",
 			G_CALLBACK(handle_pwm_set_period),
 			pb_data);
 	g_signal_connect(pb_data->pwm_skeleton,
-			"handle-set-enable",
-			G_CALLBACK(handle_pwm_set_enable),
+			"handle-get-period",
+			G_CALLBACK(handle_pwm_get_period),
+			pb_data);
+	g_signal_connect(pb_data->pwm_skeleton,
+			"handle-set-duty-cycle",
+			G_CALLBACK(handle_pwm_set_duty_cycle),
 			pb_data);
 	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-get-duty-cycle",
 			G_CALLBACK(handle_pwm_get_duty_cycle),
 			pb_data);
 	g_signal_connect(pb_data->pwm_skeleton,
-			"handle-get-period",
-			G_CALLBACK(handle_pwm_get_period),
+			"handle-set-enable",
+			G_CALLBACK(handle_pwm_set_enable),
 			pb_data);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_PWM_PATH);

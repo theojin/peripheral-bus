@@ -129,19 +129,19 @@ int peripheral_bus_pwm_close(pb_pwm_data_h pwm, gpointer user_data)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_bus_pwm_set_duty_cycle(pb_pwm_data_h pwm, int duty_cycle)
-{
-	return pwm_set_duty_cycle(pwm->device, pwm->channel, duty_cycle);
-}
-
 int peripheral_bus_pwm_set_period(pb_pwm_data_h pwm, int period)
 {
 	return pwm_set_period(pwm->device, pwm->channel, period);
 }
 
-int peripheral_bus_pwm_set_enable(pb_pwm_data_h pwm, int enable)
+int peripheral_bus_pwm_get_period(pb_pwm_data_h pwm, int *period)
 {
-	return pwm_set_enable(pwm->device, pwm->channel, enable);
+	return pwm_get_period(pwm->device, pwm->channel, period);
+}
+
+int peripheral_bus_pwm_set_duty_cycle(pb_pwm_data_h pwm, int duty_cycle)
+{
+	return pwm_set_duty_cycle(pwm->device, pwm->channel, duty_cycle);
 }
 
 int peripheral_bus_pwm_get_duty_cycle(pb_pwm_data_h pwm, int *duty_cycle)
@@ -149,7 +149,8 @@ int peripheral_bus_pwm_get_duty_cycle(pb_pwm_data_h pwm, int *duty_cycle)
 	return pwm_get_duty_cycle(pwm->device, pwm->channel, duty_cycle);
 }
 
-int peripheral_bus_pwm_get_period(pb_pwm_data_h pwm, int *period)
+int peripheral_bus_pwm_set_enable(pb_pwm_data_h pwm, int enable)
 {
-	return pwm_get_period(pwm->device, pwm->channel, period);
+	return pwm_set_enable(pwm->device, pwm->channel, enable);
 }
+

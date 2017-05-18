@@ -19,10 +19,10 @@
 
 int peripheral_bus_pwm_open(int device, int channel, pb_pwm_data_h *pwm, gpointer user_data);
 int peripheral_bus_pwm_close(pb_pwm_data_h pwm, gpointer user_data);
-int peripheral_bus_pwm_set_duty_cycle(pb_pwm_data_h pwm, int duty_cycle);
 int peripheral_bus_pwm_set_period(pb_pwm_data_h pwm, int period);
-int peripheral_bus_pwm_set_enable(pb_pwm_data_h pwm, int enable);
-int peripheral_bus_pwm_get_duty_cycle(pb_pwm_data_h pwm, int *duty_cycle);
 int peripheral_bus_pwm_get_period(pb_pwm_data_h pwm, int *period);
+int peripheral_bus_pwm_set_duty_cycle(pb_pwm_data_h pwm, int duty_cycle);
+int peripheral_bus_pwm_get_duty_cycle(pb_pwm_data_h pwm, int *duty_cycle);
+int peripheral_bus_pwm_set_enable(pb_pwm_data_h pwm, int enable);
 
 #endif /* __PERIPHERAL_BUS_PWM_H__ */
