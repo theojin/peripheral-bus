@@ -20,6 +20,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <stdbool.h>
 
 #include "pwm.h"
 #include "peripheral_common.h"
@@ -267,7 +268,7 @@ int pwm_get_polarity(int device, int channel, pwm_polarity_e *polarity)
 	return 0;
 }
 
-int pwm_set_enable(int device, int channel, int enable)
+int pwm_set_enable(int device, int channel, bool enable)
 {
 	int fd, len, status;
 	char pwm_buf[PWM_BUF_MAX] = {0};
@@ -295,7 +296,7 @@ int pwm_set_enable(int device, int channel, int enable)
 	return 0;
 }
 
-int pwm_get_enable(int device, int channel, int *enable)
+int pwm_get_enable(int device, int channel, bool *enable)
 {
 	int fd, result, status;
 	char pwm_buf[PWM_BUF_MAX] = {0};
@@ -317,7 +318,7 @@ int pwm_get_enable(int device, int channel, int *enable)
 		return -EIO;
 	}
 	result = atoi(pwm_buf);
-	enable = &result;
+	*enable = !!result;
 	close(fd);
 
 	return 0;

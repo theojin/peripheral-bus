@@ -355,6 +355,23 @@ gboolean handle_pwm_set_enable(
 	return true;
 }
 
+gboolean handle_pwm_get_enable(
+		PeripheralIoGdbusPwm *pwm,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
+	bool enable;
+
+	ret = peripheral_bus_pwm_get_enable(pwm_handle, &enable);
+
+	peripheral_io_gdbus_pwm_complete_get_enable(pwm, invocation, enable, ret);
+
+	return true;
+}
+
 gboolean handle_uart_open(
 		PeripheralIoGdbusUart *uart,
 		GDBusMethodInvocation *invocation,
@@ -766,6 +783,10 @@ static gboolean __pwm_init(peripheral_bus_s *pb_data)
 	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-set-enable",
 			G_CALLBACK(handle_pwm_set_enable),
+			pb_data);
+	g_signal_connect(pb_data->pwm_skeleton,
+			"handle-get-enable",
+			G_CALLBACK(handle_pwm_get_enable),
 			pb_data);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_PWM_PATH);

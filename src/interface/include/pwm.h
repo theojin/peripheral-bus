@@ -110,7 +110,7 @@ int pwm_get_polarity(int device, int channel, pwm_polarity_e *polarity);
 * @param[in] enable pwm enable/disabled state value
 * @return On success, 0 is returned. On failure, a negative value is returned.
 */
-int pwm_set_enable(int device, int channel, int enable);
+int pwm_set_enable(int device, int channel, bool enable);
 
 /**
 * @brief pwm_get_enable() checks if pwm state is enabled.
@@ -120,6 +120,6 @@ int pwm_set_enable(int device, int channel, int enable);
 * @param[out] enable pwm enable/disabled state value
 * @return On success, 0 is returned. On failure, a negative value is returned.
 */
-int pwm_get_enable(int device, int channel, int *enable);
+int pwm_get_enable(int device, int channel, bool *enable);
 
 #endif /* __PWM_H__ */
