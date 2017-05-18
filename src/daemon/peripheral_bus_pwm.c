@@ -149,6 +149,16 @@ int peripheral_bus_pwm_get_duty_cycle(pb_pwm_data_h pwm, int *duty_cycle)
 	return pwm_get_duty_cycle(pwm->device, pwm->channel, duty_cycle);
 }
 
+int peripheral_bus_pwm_set_polarity(pb_pwm_data_h pwm, int polarity)
+{
+	return pwm_set_polarity(pwm->device, pwm->channel, (pwm_polarity_e)polarity);
+}
+
+int peripheral_bus_pwm_get_polarity(pb_pwm_data_h pwm, int *polarity)
+{
+	return pwm_get_polarity(pwm->device, pwm->channel, (pwm_polarity_e*)polarity);
+}
+
 int peripheral_bus_pwm_set_enable(pb_pwm_data_h pwm, bool enable)
 {
 	return pwm_set_enable(pwm->device, pwm->channel, enable);

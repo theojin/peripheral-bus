@@ -23,6 +23,8 @@ int peripheral_bus_pwm_set_period(pb_pwm_data_h pwm, int period);
 int peripheral_bus_pwm_get_period(pb_pwm_data_h pwm, int *period);
 int peripheral_bus_pwm_set_duty_cycle(pb_pwm_data_h pwm, int duty_cycle);
 int peripheral_bus_pwm_get_duty_cycle(pb_pwm_data_h pwm, int *duty_cycle);
+int peripheral_bus_pwm_set_polarity(pb_pwm_data_h pwm, int polarity);
+int peripheral_bus_pwm_get_polarity(pb_pwm_data_h pwm, int *polarity);
 int peripheral_bus_pwm_set_enable(pb_pwm_data_h pwm, bool enable);
 int peripheral_bus_pwm_get_enable(pb_pwm_data_h pwm, bool *enable);
 

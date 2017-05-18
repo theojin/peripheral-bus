@@ -113,6 +113,16 @@
 			<arg type="i" name="duty_cycle" direction="out"/>
 			<arg type="i" name="result" direction="out"/>
 		</method>
+		<method name="SetPolarity">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="i" name="polarity" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="GetPolarity">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="i" name="polarity" direction="out"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
 		<method name="SetEnable">
 			<arg type="u" name="handle" direction="in"/>
 			<arg type="b" name="enable" direction="in"/>

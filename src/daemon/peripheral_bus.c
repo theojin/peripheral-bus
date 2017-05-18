@@ -436,6 +436,64 @@ gboolean handle_pwm_get_duty_cycle(
 	return true;
 }
 
+gboolean handle_pwm_set_polarity(
+		PeripheralIoGdbusPwm *pwm,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gint polarity,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+
+	/* Handle validation */
+	if (!pwm_handle || !pwm_handle->client_info.id) {
+		_E("pwm handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(pwm_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", pwm_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_pwm_set_polarity(pwm_handle, polarity);
+	}
+
+	peripheral_io_gdbus_pwm_complete_set_polarity(pwm, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_pwm_get_polarity(
+		PeripheralIoGdbusPwm *pwm,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+	int polarity = 0;
+
+	/* Handle validation */
+	if (!pwm_handle || !pwm_handle->client_info.id) {
+		_E("pwm handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(pwm_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", pwm_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_pwm_get_polarity(pwm_handle, &polarity);
+	}
+
+	peripheral_io_gdbus_pwm_complete_get_polarity(pwm, invocation, polarity, ret);
+
+	return true;
+}
+
 gboolean handle_pwm_set_enable(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
@@ -901,6 +959,14 @@ static gboolean __pwm_init(peripheral_bus_s *pb_data)
 	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-get-duty-cycle",
 			G_CALLBACK(handle_pwm_get_duty_cycle),
+			pb_data);
+	g_signal_connect(pb_data->pwm_skeleton,
+			"handle-set-polarity",
+			G_CALLBACK(handle_pwm_set_polarity),
+			pb_data);
+	g_signal_connect(pb_data->pwm_skeleton,
+			"handle-get-polarity",
+			G_CALLBACK(handle_pwm_get_polarity),
 			pb_data);
 	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-set-enable",
