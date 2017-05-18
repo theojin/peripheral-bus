@@ -250,10 +250,43 @@ gboolean handle_pwm_open(
 		gint channel,
 		gpointer user_data)
 {
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_pwm_data_h pwm_handle;
 
 	ret = peripheral_bus_pwm_open(device, channel, &pwm_handle, user_data);
+	if (ret == PERIPHERAL_ERROR_NONE) {
+		guint pid = 0;
+		GError *error = NULL;
+		GVariant *_ret;
+		const gchar *id;
+
+		id = g_dbus_method_invocation_get_sender(invocation);
+		_ret = g_dbus_connection_call_sync(pb_data->connection,
+			"org.freedesktop.DBus",
+			"/org/freedesktop/DBus",
+			"org.freedesktop.DBus",
+			"GetConnectionUnixProcessID",
+			g_variant_new("(s)", id),
+			NULL,
+			G_DBUS_CALL_FLAGS_NONE,
+			-1,
+			NULL,
+			&error);
+
+		if (_ret != NULL) {
+			g_variant_get(_ret, "(u)", &pid);
+			g_variant_unref(_ret);
+		} else
+			g_error_free(error);
+
+		pwm_handle->client_info.pid = (pid_t)pid;
+		pwm_handle->client_info.pgid = getpgid(pid);
+		pwm_handle->client_info.id = strdup(id);
+
+		_D("device : %d, channel : %d, id = %s", device, channel, pwm_handle->client_info.id);
+	}
+
 	peripheral_io_gdbus_pwm_complete_open(pwm, invocation, GPOINTER_TO_UINT(pwm_handle), ret);
 
 	return true;
@@ -267,9 +300,21 @@ gboolean handle_pwm_close(
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
 
+	/* Handle validation */
+	if (!pwm_handle || !pwm_handle->client_info.id) {
+		_E("pwm handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(pwm_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", pwm_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_pwm_close(pwm_handle, user_data);
+	}
 
-	ret = peripheral_bus_pwm_close(pwm_handle, user_data);
 	peripheral_io_gdbus_pwm_complete_close(pwm, invocation, ret);
 
 	return true;
@@ -284,8 +329,21 @@ gboolean handle_pwm_set_period(
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
 
-	ret = peripheral_bus_pwm_set_period(pwm_handle, period);
+	/* Handle validation */
+	if (!pwm_handle || !pwm_handle->client_info.id) {
+		_E("pwm handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(pwm_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", pwm_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_pwm_set_period(pwm_handle, period);
+	}
+
 	peripheral_io_gdbus_pwm_complete_set_period(pwm, invocation, ret);
 
 	return true;
@@ -299,9 +357,22 @@ gboolean handle_pwm_get_period(
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
-	int period;
+	const gchar *id;
+	int period = 0;
 
-	ret = peripheral_bus_pwm_get_period(pwm_handle, &period);
+	/* Handle validation */
+	if (!pwm_handle || !pwm_handle->client_info.id) {
+		_E("pwm handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(pwm_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", pwm_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_pwm_get_period(pwm_handle, &period);
+	}
+
 	peripheral_io_gdbus_pwm_complete_get_period(pwm, invocation, period, ret);
 
 	return true;
@@ -316,8 +387,21 @@ gboolean handle_pwm_set_duty_cycle(
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
 
-	ret = peripheral_bus_pwm_set_duty_cycle(pwm_handle, duty_cycle);
+	/* Handle validation */
+	if (!pwm_handle || !pwm_handle->client_info.id) {
+		_E("pwm handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(pwm_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", pwm_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_pwm_set_duty_cycle(pwm_handle, duty_cycle);
+	}
+
 	peripheral_io_gdbus_pwm_complete_set_duty_cycle(pwm, invocation, ret);
 
 	return true;
@@ -331,9 +415,22 @@ gboolean handle_pwm_get_duty_cycle(
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
-	int duty_cycle;
+	const gchar *id;
+	int duty_cycle = 0;
 
-	ret = peripheral_bus_pwm_get_duty_cycle(pwm_handle, &duty_cycle);
+	/* Handle validation */
+	if (!pwm_handle || !pwm_handle->client_info.id) {
+		_E("pwm handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(pwm_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", pwm_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_pwm_get_duty_cycle(pwm_handle, &duty_cycle);
+	}
+
 	peripheral_io_gdbus_pwm_complete_get_duty_cycle(pwm, invocation, duty_cycle, ret);
 
 	return true;
@@ -348,8 +445,21 @@ gboolean handle_pwm_set_enable(
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
 
-	ret = peripheral_bus_pwm_set_enable(pwm_handle, enable);
+	/* Handle validation */
+	if (!pwm_handle || !pwm_handle->client_info.id) {
+		_E("pwm handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(pwm_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", pwm_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_pwm_set_enable(pwm_handle, enable);
+	}
+
 	peripheral_io_gdbus_pwm_complete_set_enable(pwm, invocation, ret);
 
 	return true;
@@ -363,9 +473,21 @@ gboolean handle_pwm_get_enable(
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_pwm_data_h pwm_handle = GUINT_TO_POINTER(handle);
-	bool enable;
+	const gchar *id;
+	bool enable = false;
 
-	ret = peripheral_bus_pwm_get_enable(pwm_handle, &enable);
+	/* Handle validation */
+	if (!pwm_handle || !pwm_handle->client_info.id) {
+		_E("pwm handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	} else {
+		id = g_dbus_method_invocation_get_sender(invocation);
+		if (strcmp(pwm_handle->client_info.id, id)) {
+			_E("Invalid access, handle id : %s, current id : %s", pwm_handle->client_info.id, id);
+			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		} else
+			ret = peripheral_bus_pwm_get_enable(pwm_handle, &enable);
+	}
 
 	peripheral_io_gdbus_pwm_complete_get_enable(pwm, invocation, enable, ret);
 
