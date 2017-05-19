@@ -21,6 +21,7 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/interface/include)
 SET(PERIPHERAL-BUS "peripheral-bus")
 SET(SRCS
 	src/daemon/peripheral_bus.c
+	src/daemon/peripheral_bus_util.c
 	src/daemon/peripheral_bus_pwm.c
 	src/daemon/peripheral_bus_i2c.c
 	src/daemon/peripheral_bus_gpio.c

@@ -24,29 +24,10 @@
 #include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
 #include "peripheral_common.h"
+#include "peripheral_bus_util.h"
 
 #define INITIAL_BUFFER_SIZE 128
 #define MAX_BUFFER_SIZE 8192
-
-GVariant *peripheral_bus_build_variant_ay(uint8_t *data, int length)
-{
-	GVariantBuilder *builder;
-	GVariant *variant;
-	int i;
-
-	if (data == NULL)
-		return NULL;
-
-	builder = g_variant_builder_new(G_VARIANT_TYPE("a(y)"));
-
-	for (i = 0; i < length; i++)
-		g_variant_builder_add(builder, "(y)", data[i]);
-
-	variant = g_variant_new("a(y)", builder);
-	g_variant_builder_unref(builder);
-
-	return variant;
-}
 
 static pb_uart_data_h peripheral_bus_uart_data_get(int port, GList **list)
 {

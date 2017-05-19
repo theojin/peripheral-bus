@@ -17,7 +17,6 @@
 #ifndef __PERIPHERAL_BUS_UART_H__
 #define __PERIPHERAL_BUS_UART_H__
 
-GVariant *peripheral_bus_build_variant_ay(uint8_t *data, int length);
 int peripheral_bus_uart_open(int port, pb_uart_data_h *uart, gpointer user_data);
 int peripheral_bus_uart_close(pb_uart_data_h uart, gpointer user_data);
 int peripheral_bus_uart_flush(pb_uart_data_h uart);

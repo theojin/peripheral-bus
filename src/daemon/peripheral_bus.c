@@ -29,43 +29,7 @@
 #include "peripheral_bus_pwm.h"
 #include "peripheral_bus_uart.h"
 #include "peripheral_common.h"
-
-static int peripheral_bus_get_client_info(GDBusMethodInvocation *invocation, peripheral_bus_s *pb_data, pb_client_info_s *client_info)
-{
-	guint pid = 0;
-	GError *error = NULL;
-	GVariant *_ret;
-	const gchar *id;
-
-	id = g_dbus_method_invocation_get_sender(invocation);
-	_ret = g_dbus_connection_call_sync(pb_data->connection,
-		"org.freedesktop.DBus",
-		"/org/freedesktop/DBus",
-		"org.freedesktop.DBus",
-		"GetConnectionUnixProcessID",
-		g_variant_new("(s)", id),
-		NULL,
-		G_DBUS_CALL_FLAGS_NONE,
-		-1,
-		NULL,
-		&error);
-
-	if (_ret == NULL) {
-		_E("Failed to get client pid, %s", error->message);
-		g_error_free(error);
-
-		return -1;
-	}
-
-	g_variant_get(_ret, "(u)", &pid);
-	g_variant_unref(_ret);
-
-	client_info->pid = (pid_t)pid;
-	client_info->pgid = getpgid(pid);
-	client_info->id = strdup(id);
-
-	return 0;
-}
+#include "peripheral_bus_util.h"
 
 gboolean handle_gpio_open(
 		PeripheralIoGdbusGpio *gpio,
@@ -281,17 +245,20 @@ gboolean handle_i2c_read(
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_i2c_data_h i2c_handle = GUINT_TO_POINTER(handle);
 	GVariant *data_array = NULL;
+	uint8_t err_buf[2] = {0, };
 	const gchar *id;
 
 	/* Handle validation */
 	if (!i2c_handle || !i2c_handle->client_info.id) {
 		_E("i2c handle is not valid");
+		data_array = peripheral_bus_build_variant_ay(err_buf, sizeof(err_buf));
 		ret = PERIPHERAL_ERROR_UNKNOWN;
 		goto out;
 	}
 	id = g_dbus_method_invocation_get_sender(invocation);
 	if (strcmp(i2c_handle->client_info.id, id)) {
 		_E("Invalid access, handle id : %s, current id : %s", i2c_handle->client_info.id, id);
+		data_array = peripheral_bus_build_variant_ay(err_buf, sizeof(err_buf));
 		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
 		goto out;
 	}

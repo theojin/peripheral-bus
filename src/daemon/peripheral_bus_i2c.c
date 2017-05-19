@@ -23,6 +23,7 @@
 #include "i2c.h"
 #include "peripheral_bus.h"
 #include "peripheral_common.h"
+#include "peripheral_bus_util.h"
 
 #define INITIAL_BUFFER_SIZE 128
 #define MAX_BUFFER_SIZE 8192
@@ -151,8 +152,8 @@ int peripheral_bus_i2c_close(pb_i2c_data_h i2c, gpointer user_data)
 
 int peripheral_bus_i2c_read(pb_i2c_data_h i2c, int length, GVariant **data_array)
 {
-	GVariantBuilder *builder;
-	int ret, i;
+	uint8_t err_buf[2] = {0, };
+	int ret;
 
 	/* Limit maximum length */
 	if (length > MAX_BUFFER_SIZE) length = MAX_BUFFER_SIZE;
@@ -172,23 +173,12 @@ int peripheral_bus_i2c_read(pb_i2c_data_h i2c, int length, GVariant **data_array
 	}
 
 	ret = i2c_read(i2c->fd, i2c->buffer, length);
-
-	builder = g_variant_builder_new(G_VARIANT_TYPE("a(y)"));
-
-	for (i = 0; i < length; i++)
-		g_variant_builder_add(builder, "(y)", i2c->buffer[i]);
-	*data_array = g_variant_new("a(y)", builder);
-	g_variant_builder_unref(builder);
+	*data_array = peripheral_bus_build_variant_ay(i2c->buffer, length);
 
 	return ret;
 
 out:
-	builder = g_variant_builder_new(G_VARIANT_TYPE("a(y)"));
-
-	for (i = 0; i < i2c->buffer_size; i++)
-		g_variant_builder_add(builder, "(y)", 0x0);
-	*data_array = g_variant_new("a(y)", builder);
-	g_variant_builder_unref(builder);
+	*data_array = peripheral_bus_build_variant_ay(err_buf, sizeof(err_buf));
 
 	return ret;
 }
