@@ -66,7 +66,7 @@ typedef struct {
 	uint8_t *buffer;
 	int buffer_size;
 	/* client info */
-	pb_client_info_s *client_info;
+	pb_client_info_s client_info;
 } peripheral_bus_i2c_data_s;
 
 typedef struct {

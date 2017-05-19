@@ -30,6 +30,43 @@
 #include "peripheral_bus_uart.h"
 #include "peripheral_common.h"
 
+static int peripheral_bus_get_client_info(GDBusMethodInvocation *invocation, peripheral_bus_s *pb_data, pb_client_info_s *client_info)
+{
+	guint pid = 0;
+	GError *error = NULL;
+	GVariant *_ret;
+	const gchar *id;
+
+	id = g_dbus_method_invocation_get_sender(invocation);
+	_ret = g_dbus_connection_call_sync(pb_data->connection,
+		"org.freedesktop.DBus",
+		"/org/freedesktop/DBus",
+		"org.freedesktop.DBus",
+		"GetConnectionUnixProcessID",
+		g_variant_new("(s)", id),
+		NULL,
+		G_DBUS_CALL_FLAGS_NONE,
+		-1,
+		NULL,
+		&error);
+
+	if (_ret == NULL) {
+		_E("Failed to get client pid, %s", error->message);
+		g_error_free(error);
+
+		return -1;
+	}
+
+	g_variant_get(_ret, "(u)", &pid);
+	g_variant_unref(_ret);
+
+	client_info->pid = (pid_t)pid;
+	client_info->pgid = getpgid(pid);
+	client_info->id = strdup(id);
+
+	return 0;
+}
+
 gboolean handle_gpio_open(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
@@ -185,10 +222,19 @@ gboolean handle_i2c_open(
 		gint address,
 		gpointer user_data)
 {
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_i2c_data_h i2c_handle;
 
-	ret = peripheral_bus_i2c_open(invocation, bus, address, &i2c_handle, user_data);
+	ret = peripheral_bus_i2c_open(bus, address, &i2c_handle, user_data);
+
+	if (ret == PERIPHERAL_ERROR_NONE) {
+		if (peripheral_bus_get_client_info(invocation, pb_data, &i2c_handle->client_info) == 0)
+			_D("bus : %d, address : %d, id = %s", bus, address, i2c_handle->client_info.id);
+		else
+			ret = PERIPHERAL_ERROR_UNKNOWN;
+	}
+
 	peripheral_io_gdbus_i2c_complete_open(i2c, invocation, GPOINTER_TO_UINT(i2c_handle), ret);
 
 	return true;
@@ -202,8 +248,24 @@ gboolean handle_i2c_close(
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_i2c_data_h i2c_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
 
-	ret = peripheral_bus_i2c_close(invocation, i2c_handle, user_data);
+	/* Handle validation */
+	if (!i2c_handle || !i2c_handle->client_info.id) {
+		_E("i2c handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(i2c_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", i2c_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_i2c_close(i2c_handle, user_data);
+
+out:
 	peripheral_io_gdbus_i2c_complete_close(i2c, invocation, ret);
 
 	return true;
@@ -219,8 +281,24 @@ gboolean handle_i2c_read(
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_i2c_data_h i2c_handle = GUINT_TO_POINTER(handle);
 	GVariant *data_array = NULL;
+	const gchar *id;
 
-	ret = peripheral_bus_i2c_read(invocation, i2c_handle, length, &data_array, user_data);
+	/* Handle validation */
+	if (!i2c_handle || !i2c_handle->client_info.id) {
+		_E("i2c handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(i2c_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", i2c_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_i2c_read(i2c_handle, length, &data_array);
+
+out:
 	peripheral_io_gdbus_i2c_complete_read(i2c, invocation, data_array, ret);
 
 	return true;
@@ -236,8 +314,24 @@ gboolean handle_i2c_write(
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_i2c_data_h i2c_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
 
-	ret = peripheral_bus_i2c_write(invocation, i2c_handle, length, data_array, user_data);
+	/* Handle validation */
+	if (!i2c_handle || !i2c_handle->client_info.id) {
+		_E("i2c handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(i2c_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", i2c_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_i2c_write(i2c_handle, length, data_array);
+
+out:
 	peripheral_io_gdbus_i2c_complete_write(i2c, invocation, ret);
 
 	return true;
@@ -255,36 +349,12 @@ gboolean handle_pwm_open(
 	pb_pwm_data_h pwm_handle;
 
 	ret = peripheral_bus_pwm_open(device, channel, &pwm_handle, user_data);
+
 	if (ret == PERIPHERAL_ERROR_NONE) {
-		guint pid = 0;
-		GError *error = NULL;
-		GVariant *_ret;
-		const gchar *id;
-
-		id = g_dbus_method_invocation_get_sender(invocation);
-		_ret = g_dbus_connection_call_sync(pb_data->connection,
-			"org.freedesktop.DBus",
-			"/org/freedesktop/DBus",
-			"org.freedesktop.DBus",
-			"GetConnectionUnixProcessID",
-			g_variant_new("(s)", id),
-			NULL,
-			G_DBUS_CALL_FLAGS_NONE,
-			-1,
-			NULL,
-			&error);
-
-		if (_ret != NULL) {
-			g_variant_get(_ret, "(u)", &pid);
-			g_variant_unref(_ret);
-		} else
-			g_error_free(error);
-
-		pwm_handle->client_info.pid = (pid_t)pid;
-		pwm_handle->client_info.pgid = getpgid(pid);
-		pwm_handle->client_info.id = strdup(id);
-
-		_D("device : %d, channel : %d, id = %s", device, channel, pwm_handle->client_info.id);
+		if (peripheral_bus_get_client_info(invocation, pb_data, &pwm_handle->client_info) == 0)
+			_D("device : %d, channel : %d, id = %s", device, channel, pwm_handle->client_info.id);
+		else
+			ret = PERIPHERAL_ERROR_UNKNOWN;
 	}
 
 	peripheral_io_gdbus_pwm_complete_open(pwm, invocation, GPOINTER_TO_UINT(pwm_handle), ret);
