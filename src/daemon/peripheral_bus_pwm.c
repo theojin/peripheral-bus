@@ -29,13 +29,13 @@ static pb_pwm_data_h peripheral_bus_pwm_data_get(int device, int channel, GList 
 {
 	GList *pwm_list = *list;
 	GList *link;
-	pb_pwm_data_h pwm_data;
+	pb_pwm_data_h pwm_handle;
 
 	link = pwm_list;
 	while (link) {
-		pwm_data = (pb_pwm_data_h)link->data;
-		if (pwm_data->device == device && pwm_data->channel == channel)
-			return pwm_data;
+		pwm_handle = (pb_pwm_data_h)link->data;
+		if (pwm_handle->device == device && pwm_handle->channel == channel)
+			return pwm_handle;
 		link = g_list_next(link);
 	}
 
@@ -45,39 +45,36 @@ static pb_pwm_data_h peripheral_bus_pwm_data_get(int device, int channel, GList 
 static pb_pwm_data_h peripheral_bus_pwm_data_new(GList **list)
 {
 	GList *pwm_list = *list;
-	pb_pwm_data_h pwm_data;
+	pb_pwm_data_h pwm_handle;
 
-	pwm_data = (pb_pwm_data_h)calloc(1, sizeof(peripheral_bus_pwm_data_s));
-	if (pwm_data == NULL) {
+	pwm_handle = (pb_pwm_data_h)calloc(1, sizeof(peripheral_bus_pwm_data_s));
+	if (pwm_handle == NULL) {
 		_E("failed to allocate peripheral_bus_pwm_data_s");
 		return NULL;
 	}
 
-	*list = g_list_append(pwm_list, pwm_data);
+	*list = g_list_append(pwm_list, pwm_handle);
 
-	return pwm_data;
+	return pwm_handle;
 }
 
-static int peripheral_bus_pwm_data_free(pb_pwm_data_h pwm_handle, GList **list)
+static int peripheral_bus_pwm_data_free(pb_pwm_data_h pwm_handle, GList **pwm_list)
 {
-	GList *pwm_list = *list;
 	GList *link;
-	pb_pwm_data_h pwm_data;
 
-	link = pwm_list;
-	while (link) {
-		pwm_data = (pb_pwm_data_h)link->data;
+	RETVM_IF(pwm_handle == NULL, -1, "handle is null");
 
-		if (pwm_data == pwm_handle) {
-			*list = g_list_remove_link(pwm_list, link);
-			free(pwm_data);
-			g_list_free(link);
-			return 0;
-		}
-		link = g_list_next(link);
+	link = g_list_find(*pwm_list, pwm_handle);
+	if (!link) {
+		_E("handle does not exist in list");
+		return -1;
 	}
 
-	return -1;
+	*pwm_list = g_list_remove_link(*pwm_list, link);
+	free(pwm_handle);
+	g_list_free(link);
+
+	return 0;
 }
 
 int peripheral_bus_pwm_open(int device, int channel, pb_pwm_data_h *pwm, gpointer user_data)

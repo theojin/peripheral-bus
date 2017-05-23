@@ -32,16 +32,16 @@ static pb_i2c_data_h peripheral_bus_i2c_data_get(int bus, int address, GList **l
 {
 	GList *i2c_list = *list;
 	GList *link;
-	pb_i2c_data_h i2c_data;
+	pb_i2c_data_h i2c_handle;
 
 	if (i2c_list == NULL)
 		return NULL;
 
 	link = i2c_list;
 	while (link) {
-		i2c_data = (pb_i2c_data_h)link->data;
-		if (i2c_data->bus == bus && i2c_data->address == address)
-			return i2c_data;
+		i2c_handle = (pb_i2c_data_h)link->data;
+		if (i2c_handle->bus == bus && i2c_handle->address == address)
+			return i2c_handle;
 		link = g_list_next(link);
 	}
 
@@ -51,44 +51,38 @@ static pb_i2c_data_h peripheral_bus_i2c_data_get(int bus, int address, GList **l
 static pb_i2c_data_h peripheral_bus_i2c_data_new(GList **list)
 {
 	GList *i2c_list = *list;
-	pb_i2c_data_h i2c_data;
+	pb_i2c_data_h i2c_handle;
 
-	i2c_data = (pb_i2c_data_h)calloc(1, sizeof(peripheral_bus_i2c_data_s));
-	if (i2c_data == NULL) {
+	i2c_handle = (pb_i2c_data_h)calloc(1, sizeof(peripheral_bus_i2c_data_s));
+	if (i2c_handle == NULL) {
 		_E("failed to allocate peripheral_bus_i2c_data_s");
 		return NULL;
 	}
 
-	*list = g_list_append(i2c_list, i2c_data);
+	*list = g_list_append(i2c_list, i2c_handle);
 
-	return i2c_data;
+	return i2c_handle;
 }
 
-static int peripheral_bus_i2c_data_free(pb_i2c_data_h i2c_handle, GList **list)
+static int peripheral_bus_i2c_data_free(pb_i2c_data_h i2c_handle, GList **i2c_list)
 {
-	GList *i2c_list = *list;
 	GList *link;
-	pb_i2c_data_h i2c;
 
-	if (i2c_handle == NULL)
+	RETVM_IF(i2c_handle == NULL, -1, "handle is null");
+
+	link = g_list_find(*i2c_list, i2c_handle);
+	if (!link) {
+		_E("handle does not exist in list");
 		return -1;
-
-	link = i2c_list;
-	while (link) {
-		i2c = (pb_i2c_data_h)link->data;
-
-		if (i2c == i2c_handle) {
-			*list = g_list_remove_link(i2c_list, link);
-			if (i2c->buffer)
-				free(i2c->buffer);
-			free(i2c);
-			g_list_free(link);
-			return 0;
-		}
-		link = g_list_next(link);
 	}
 
-	return -1;
+	*i2c_list = g_list_remove_link(*i2c_list, link);
+	if (i2c_handle->buffer)
+		free(i2c_handle->buffer);
+	free(i2c_handle);
+	g_list_free(link);
+
+	return 0;
 }
 
 int peripheral_bus_i2c_open(int bus, int address, pb_i2c_data_h *i2c, gpointer user_data)

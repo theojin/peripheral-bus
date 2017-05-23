@@ -33,13 +33,13 @@ static pb_uart_data_h peripheral_bus_uart_data_get(int port, GList **list)
 {
 	GList *uart_list = *list;
 	GList *link;
-	pb_uart_data_h uart_data;
+	pb_uart_data_h uart_handle;
 
 	link = uart_list;
 	while (link) {
-		uart_data = (pb_uart_data_h)link->data;
-		if (uart_data->port == port)
-			return uart_data;
+		uart_handle = (pb_uart_data_h)link->data;
+		if (uart_handle->port == port)
+			return uart_handle;
 		link = g_list_next(link);
 	}
 
@@ -49,41 +49,38 @@ static pb_uart_data_h peripheral_bus_uart_data_get(int port, GList **list)
 static pb_uart_data_h peripheral_bus_uart_data_new(GList **list)
 {
 	GList *uart_list = *list;
-	pb_uart_data_h uart_data;
+	pb_uart_data_h uart_handle;
 
-	uart_data = (pb_uart_data_h)calloc(1, sizeof(peripheral_bus_uart_data_s));
-	if (uart_data == NULL) {
+	uart_handle = (pb_uart_data_h)calloc(1, sizeof(peripheral_bus_uart_data_s));
+	if (uart_handle == NULL) {
 		_E("failed to allocate peripheral_bus_uart_data_s");
 		return NULL;
 	}
 
-	*list = g_list_append(uart_list, uart_data);
+	*list = g_list_append(uart_list, uart_handle);
 
-	return uart_data;
+	return uart_handle;
 }
 
-static int peripheral_bus_uart_data_free(pb_uart_data_h uart_handle, GList **list)
+static int peripheral_bus_uart_data_free(pb_uart_data_h uart_handle, GList **uart_list)
 {
-	GList *uart_list = *list;
 	GList *link;
-	pb_uart_data_h uart_data;
 
-	link = uart_list;
-	while (link) {
-		uart_data = (pb_uart_data_h)link->data;
+	RETVM_IF(uart_handle == NULL, -1, "handle is null");
 
-		if (uart_data == uart_handle) {
-			*list = g_list_remove_link(uart_list, link);
-			if (uart_data->buffer)
-				free(uart_data->buffer);
-			free(uart_data);
-			g_list_free(link);
-			return 0;
-		}
-		link = g_list_next(link);
+	link = g_list_find(*uart_list, uart_handle);
+	if (!link) {
+		_E("handle does not exist in list");
+		return -1;
 	}
 
-	return -1;
+	*uart_list = g_list_remove_link(*uart_list, link);
+	if (uart_handle->buffer)
+		free(uart_handle->buffer);
+	free(uart_handle);
+	g_list_free(link);
+
+	return 0;
 }
 
 int peripheral_bus_uart_open(int port, pb_uart_data_h *uart, gpointer user_data)
