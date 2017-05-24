@@ -18,7 +18,7 @@
 #define __PERIPHERAL_BUS_I2C_H__
 
 int peripheral_bus_i2c_open(int bus, int address, pb_i2c_data_h *i2c, gpointer user_data);
-int peripheral_bus_i2c_close(pb_i2c_data_h i2c, gpointer user_data);
+int peripheral_bus_i2c_close(pb_i2c_data_h i2c);
 int peripheral_bus_i2c_read(pb_i2c_data_h i2c, int length, GVariant **data_array);
 int peripheral_bus_i2c_write(pb_i2c_data_h i2c, int length, GVariant *data_array);
 

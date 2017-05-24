@@ -31,63 +31,38 @@
 #include "peripheral_common.h"
 #include "peripheral_bus_util.h"
 
-static void __on_name_appeared(GDBusConnection *connection,
+static void __i2c_on_name_vanished(GDBusConnection *connection,
 		const gchar     *name,
-		const gchar     *name_owner,
 		gpointer         user_data)
 {
-	_D("appid [%s] appears ", name);
+	pb_i2c_data_h i2c_handle = (pb_i2c_data_h)user_data;
+	_D("appid [%s] vanished ", name);
+
+	g_bus_unwatch_name(i2c_handle->watch_id);
+	peripheral_bus_i2c_close(i2c_handle);
 }
 
-static void __on_name_vanished(GDBusConnection *connection,
+static void __pwm_on_name_vanished(GDBusConnection *connection,
 		const gchar     *name,
 		gpointer         user_data)
 {
-	GList *link;
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-
+	pb_pwm_data_h pwm_handle = (pb_pwm_data_h)user_data;
 	_D("appid [%s] vanished ", name);
-	link = pb_data->i2c_list;
 
-	if (link != NULL) {
-		pb_i2c_data_h i2c_data;
-		while (link) {
-			i2c_data = (pb_i2c_data_h) link->data;
-			if (strcmp(i2c_data->client_info.id, name) == 0) {
-				g_bus_unwatch_name(i2c_data->watch_id);
-				peripheral_bus_i2c_close(i2c_data, user_data);
-			}
-			link = g_list_next(link);
-		}
-	}
+	g_bus_unwatch_name(pwm_handle->watch_id);
+	peripheral_bus_pwm_close(pwm_handle);
+}
 
-	link = pb_data->pwm_list;
 
-	if (link != NULL) {
-		pb_pwm_data_h pwm_data;
-		while (link) {
-			pwm_data = (pb_pwm_data_h) link->data;
-			if (strcmp(pwm_data->client_info.id, name) == 0) {
-				g_bus_unwatch_name(pwm_data->watch_id);
-				peripheral_bus_pwm_close(pwm_data, user_data);
-			}
-			link = g_list_next(link);
-		}
-	}
+static void __uart_on_name_vanished(GDBusConnection *connection,
+		const gchar     *name,
+		gpointer         user_data)
+{
+	pb_uart_data_h uart_handle = (pb_uart_data_h)user_data;
+	_D("appid [%s] vanished ", name);
 
-	link = pb_data->uart_list;
-
-	if (link != NULL) {
-		pb_uart_data_h uart_data;
-		while (link) {
-			uart_data = (pb_uart_data_h) link->data;
-			if (strcmp(uart_data->client_info.id, name) == 0) {
-				g_bus_unwatch_name(uart_data->watch_id);
-				peripheral_bus_uart_close(uart_data, user_data);
-			}
-			link = g_list_next(link);
-		}
-	}
+	g_bus_unwatch_name(uart_handle->watch_id);
+	peripheral_bus_uart_close(uart_handle);
 }
 
 gboolean handle_gpio_open(
@@ -261,9 +236,9 @@ gboolean handle_i2c_open(
 	i2c_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
 			i2c_handle->client_info.id,
 			G_BUS_NAME_WATCHER_FLAGS_NONE ,
-			__on_name_appeared,
-			__on_name_vanished,
-			user_data,
+			NULL,
+			__i2c_on_name_vanished,
+			i2c_handle,
 			NULL);
 
 	peripheral_io_gdbus_i2c_complete_open(i2c, invocation, GPOINTER_TO_UINT(i2c_handle), ret);
@@ -295,7 +270,7 @@ gboolean handle_i2c_close(
 	}
 
 	g_bus_unwatch_name(i2c_handle->watch_id);
-	ret = peripheral_bus_i2c_close(i2c_handle, user_data);
+	ret = peripheral_bus_i2c_close(i2c_handle);
 
 out:
 	peripheral_io_gdbus_i2c_complete_close(i2c, invocation, ret);
@@ -395,9 +370,9 @@ gboolean handle_pwm_open(
 	pwm_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
 			pwm_handle->client_info.id,
 			G_BUS_NAME_WATCHER_FLAGS_NONE ,
-			__on_name_appeared,
-			__on_name_vanished,
-			user_data,
+			NULL,
+			__pwm_on_name_vanished,
+			pwm_handle,
 			NULL);
 
 	peripheral_io_gdbus_pwm_complete_open(pwm, invocation, GPOINTER_TO_UINT(pwm_handle), ret);
@@ -426,7 +401,7 @@ gboolean handle_pwm_close(
 			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
 		} else {
 			g_bus_unwatch_name(pwm_handle->watch_id);
-			ret = peripheral_bus_pwm_close(pwm_handle, user_data);
+			ret = peripheral_bus_pwm_close(pwm_handle);
 		}
 	}
 
@@ -678,45 +653,21 @@ gboolean handle_uart_open(
 	pb_uart_data_h uart_handle;
 
 	ret = peripheral_bus_uart_open(port, &uart_handle, user_data);
+
 	if (ret == PERIPHERAL_ERROR_NONE) {
-		guint pid = 0;
-		GError *error = NULL;
-		GVariant *_ret;
-		const gchar *id;
-
-		id = g_dbus_method_invocation_get_sender(invocation);
-		_ret = g_dbus_connection_call_sync(pb_data->connection,
-			"org.freedesktop.DBus",
-			"/org/freedesktop/DBus",
-			"org.freedesktop.DBus",
-			"GetConnectionUnixProcessID",
-			g_variant_new("(s)", id),
-			NULL,
-			G_DBUS_CALL_FLAGS_NONE,
-			-1,
-			NULL,
-			&error);
-
-		if (_ret != NULL) {
-			g_variant_get(_ret, "(u)", &pid);
-			g_variant_unref(_ret);
-		} else
-			g_error_free(error);
-
-		uart_handle->client_info.pid = (pid_t)pid;
-		uart_handle->client_info.pgid = getpgid(pid);
-		uart_handle->client_info.id = strdup(id);
-
-		uart_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
-				uart_handle->client_info.id,
-				G_BUS_NAME_WATCHER_FLAGS_NONE ,
-				__on_name_appeared,
-				__on_name_vanished,
-				user_data,
-				NULL);
-
-		_D("port : %d, id = %s", port, uart_handle->client_info.id);
+		if (peripheral_bus_get_client_info(invocation, pb_data, &uart_handle->client_info) == 0)
+			_D("port : %d, id = %s", port, uart_handle->client_info.id);
+		else
+			ret = PERIPHERAL_ERROR_UNKNOWN;
 	}
+
+	uart_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
+			uart_handle->client_info.id,
+			G_BUS_NAME_WATCHER_FLAGS_NONE ,
+			NULL,
+			__uart_on_name_vanished,
+			uart_handle,
+			NULL);
 
 	peripheral_io_gdbus_uart_complete_open(uart, invocation, GPOINTER_TO_UINT(uart_handle), ret);
 
@@ -744,7 +695,7 @@ gboolean handle_uart_close(
 			ret = PERIPHERAL_ERROR_INVALID_OPERATION;
 		} else {
 			g_bus_unwatch_name(uart_handle->watch_id);
-			ret = peripheral_bus_uart_close(uart_handle, user_data);
+			ret = peripheral_bus_uart_close(uart_handle);
 		}
 	}
 

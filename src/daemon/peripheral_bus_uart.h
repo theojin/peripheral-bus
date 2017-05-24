@@ -18,7 +18,7 @@
 #define __PERIPHERAL_BUS_UART_H__
 
 int peripheral_bus_uart_open(int port, pb_uart_data_h *uart, gpointer user_data);
-int peripheral_bus_uart_close(pb_uart_data_h uart, gpointer user_data);
+int peripheral_bus_uart_close(pb_uart_data_h uart);
 int peripheral_bus_uart_flush(pb_uart_data_h uart);
 int peripheral_bus_uart_set_baudrate(pb_uart_data_h uart, int baudrate);
 int peripheral_bus_uart_set_mode(pb_uart_data_h uart, int byte_size, int parity, int stop_bits);

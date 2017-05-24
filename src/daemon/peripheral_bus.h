@@ -66,6 +66,7 @@ typedef struct {
 	uint8_t *buffer;
 	int buffer_size;
 	uint watch_id;
+	GList **list;
 	/* client info */
 	pb_client_info_s client_info;
 } peripheral_bus_i2c_data_s;
@@ -74,6 +75,7 @@ typedef struct {
 	int device;
 	int channel;
 	uint watch_id;
+	GList **list;
 	/* client info */
 	pb_client_info_s client_info;
 } peripheral_bus_pwm_data_s;
@@ -84,6 +86,7 @@ typedef struct {
 	uint8_t *buffer;
 	int buffer_size;
 	uint watch_id;
+	GList **list;
 	/* client info */
 	pb_client_info_s client_info;
 } peripheral_bus_uart_data_s;

@@ -101,6 +101,7 @@ int peripheral_bus_pwm_open(int device, int channel, pb_pwm_data_h *pwm, gpointe
 		goto err;
 	}
 
+	pwm_handle->list = &pb_data->pwm_list;
 	pwm_handle->device = device;
 	pwm_handle->channel = channel;
 	*pwm = pwm_handle;
@@ -114,9 +115,8 @@ open_err:
 	return ret;
 }
 
-int peripheral_bus_pwm_close(pb_pwm_data_h pwm, gpointer user_data)
+int peripheral_bus_pwm_close(pb_pwm_data_h pwm)
 {
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	int ret;
 
 	if ((ret = pwm_close(pwm->device, pwm->channel)) < 0) {
@@ -124,7 +124,7 @@ int peripheral_bus_pwm_close(pb_pwm_data_h pwm, gpointer user_data)
 		return ret;
 	}
 
-	peripheral_bus_pwm_data_free(pwm, &pb_data->pwm_list);
+	peripheral_bus_pwm_data_free(pwm, pwm->list);
 
 	return PERIPHERAL_ERROR_NONE;
 }

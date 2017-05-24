@@ -110,7 +110,7 @@ int i2c_write(int fd, const unsigned char *data, int length)
 	if (status != length) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("i2c write failed : %s\n", fd, errmsg);
+		_E("i2c write failed : %s\n", errmsg);
 		return -EIO;
 	}
 

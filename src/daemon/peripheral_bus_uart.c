@@ -109,6 +109,7 @@ int peripheral_bus_uart_open(int port, pb_uart_data_h *uart, gpointer user_data)
 
 	uart_handle->fd = fd;
 	uart_handle->port = port;
+	uart_handle->list = &pb_data->uart_list;
 
 	uart_handle->buffer = (uint8_t*)calloc(1, INITIAL_BUFFER_SIZE);
 	if (!uart_handle->buffer) {
@@ -124,9 +125,8 @@ int peripheral_bus_uart_open(int port, pb_uart_data_h *uart, gpointer user_data)
 	return ret;
 }
 
-int peripheral_bus_uart_close(pb_uart_data_h uart, gpointer user_data)
+int peripheral_bus_uart_close(pb_uart_data_h uart)
 {
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	int ret;
 
 	_D("uart_close, port : %d, id = %s", uart->port, uart->client_info.id);
@@ -134,7 +134,7 @@ int peripheral_bus_uart_close(pb_uart_data_h uart, gpointer user_data)
 	if ((ret = uart_close(uart->fd)) < 0)
 		return ret;
 
-	if (peripheral_bus_uart_data_free(uart, &pb_data->uart_list) < 0)
+	if (peripheral_bus_uart_data_free(uart, uart->list) < 0)
 		_E("Failed to free uart data");
 
 	return ret;
