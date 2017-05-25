@@ -31,6 +31,17 @@
 #include "peripheral_common.h"
 #include "peripheral_bus_util.h"
 
+static void __gpio_on_name_vanished(GDBusConnection *connection,
+		const gchar     *name,
+		gpointer         user_data)
+{
+	pb_gpio_data_h gpio_handle = (pb_gpio_data_h)user_data;
+	_D("appid [%s] vanished ", name);
+
+	g_bus_unwatch_name(gpio_handle->watch_id);
+	peripheral_bus_gpio_close(gpio_handle);
+}
+
 static void __i2c_on_name_vanished(GDBusConnection *connection,
 		const gchar     *name,
 		gpointer         user_data)
@@ -72,11 +83,27 @@ gboolean handle_gpio_open(
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	gint edge;
-	gint direction;
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	pb_gpio_data_h gpio_handle;
 
-	ret = peripheral_bus_gpio_open(pin, &edge, &direction, user_data);
-	peripheral_io_gdbus_gpio_complete_open(gpio, invocation, edge, direction, ret);
+	ret = peripheral_bus_gpio_open(pin, &gpio_handle, user_data);
+
+	if (ret == PERIPHERAL_ERROR_NONE) {
+		if (peripheral_bus_get_client_info(invocation, pb_data, &gpio_handle->client_info) == 0)
+			_D("gpio : %d, id = %s", gpio_handle->pin, gpio_handle->client_info.id);
+		else
+			ret = PERIPHERAL_ERROR_UNKNOWN;
+	}
+
+	gpio_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
+			gpio_handle->client_info.id,
+			G_BUS_NAME_WATCHER_FLAGS_NONE ,
+			NULL,
+			__gpio_on_name_vanished,
+			gpio_handle,
+			NULL);
+
+	peripheral_io_gdbus_gpio_complete_open(gpio, invocation, GPOINTER_TO_UINT(gpio_handle), ret);
 
 	return true;
 }
@@ -84,12 +111,30 @@ gboolean handle_gpio_open(
 gboolean handle_gpio_close(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
-		gint pin,
+		gint handle,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_gpio_data_h gpio_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
 
-	ret = peripheral_bus_gpio_close(pin, user_data);
+	/* Handle validation */
+	if (!gpio_handle || !gpio_handle->client_info.id) {
+		_E("gpio handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(gpio_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", gpio_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	g_bus_unwatch_name(gpio_handle->watch_id);
+	ret = peripheral_bus_gpio_close(gpio_handle);
+out:
 	peripheral_io_gdbus_gpio_complete_close(gpio, invocation, ret);
 
 	return true;
@@ -98,13 +143,14 @@ gboolean handle_gpio_close(
 gboolean handle_gpio_get_direction(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
-		gint pin,
+		gint handle,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_gpio_data_h gpio_handle = GUINT_TO_POINTER(handle);
 	gint direction;
 
-	ret = peripheral_bus_gpio_get_direction(pin, &direction, user_data);
+	ret = peripheral_bus_gpio_get_direction(gpio_handle, &direction);
 	peripheral_io_gdbus_gpio_complete_get_direction(gpio, invocation, direction, ret);
 
 	return true;
@@ -113,13 +159,14 @@ gboolean handle_gpio_get_direction(
 gboolean handle_gpio_set_direction(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
-		gint pin,
+		gint handle,
 		gint direction,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_gpio_data_h gpio_handle = GUINT_TO_POINTER(handle);
 
-	ret = peripheral_bus_gpio_set_direction(pin, direction, user_data);
+	ret = peripheral_bus_gpio_set_direction(gpio_handle, direction);
 	peripheral_io_gdbus_gpio_complete_set_direction(gpio, invocation, ret);
 
 	return true;
@@ -128,13 +175,14 @@ gboolean handle_gpio_set_direction(
 gboolean handle_gpio_read(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
-		gint pin,
+		gint handle,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_gpio_data_h gpio_handle = GUINT_TO_POINTER(handle);
 	gint read_value = 0;
 
-	ret = peripheral_bus_gpio_read(pin, &read_value, user_data);
+	ret = peripheral_bus_gpio_read(gpio_handle, &read_value);
 	peripheral_io_gdbus_gpio_complete_read(gpio, invocation, read_value, ret);
 
 	return true;
@@ -143,13 +191,14 @@ gboolean handle_gpio_read(
 gboolean handle_gpio_write(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
-		gint pin,
+		gint handle,
 		gint value,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_gpio_data_h gpio_handle = GUINT_TO_POINTER(handle);
 
-	ret = peripheral_bus_gpio_write(pin, value, user_data);
+	ret = peripheral_bus_gpio_write(gpio_handle, value);
 	peripheral_io_gdbus_gpio_complete_write(gpio, invocation, ret);
 
 	return true;
@@ -158,13 +207,14 @@ gboolean handle_gpio_write(
 gboolean handle_gpio_get_edge_mode(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
-		gint pin,
+		gint handle,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_gpio_data_h gpio_handle = GUINT_TO_POINTER(handle);
 	gint edge;
 
-	ret = peripheral_bus_gpio_get_edge(pin, &edge, user_data);
+	ret = peripheral_bus_gpio_get_edge(gpio_handle, &edge);
 	peripheral_io_gdbus_gpio_complete_get_edge_mode(gpio, invocation, edge, ret);
 
 	return true;
@@ -173,13 +223,14 @@ gboolean handle_gpio_get_edge_mode(
 gboolean handle_gpio_set_edge_mode(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
-		gint pin,
+		gint handle,
 		gint edge,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_gpio_data_h gpio_handle = GUINT_TO_POINTER(handle);
 
-	ret = peripheral_bus_gpio_set_edge(pin, edge, user_data);
+	ret = peripheral_bus_gpio_set_edge(gpio_handle, edge);
 	peripheral_io_gdbus_gpio_complete_set_edge_mode(gpio, invocation, ret);
 
 	return true;
@@ -188,12 +239,13 @@ gboolean handle_gpio_set_edge_mode(
 gboolean handle_gpio_register_irq(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
-		gint pin,
+		gint handle,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_gpio_data_h gpio_handle = GUINT_TO_POINTER(handle);
 
-	ret = peripheral_bus_gpio_register_irq(pin, user_data);
+	ret = peripheral_bus_gpio_register_irq(gpio_handle);
 	peripheral_io_gdbus_gpio_complete_register_irq(gpio, invocation, ret);
 
 	return true;
@@ -202,12 +254,13 @@ gboolean handle_gpio_register_irq(
 gboolean handle_gpio_unregister_irq(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
-		gint pin,
+		gint handle,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_gpio_data_h gpio_handle = GUINT_TO_POINTER(handle);
 
-	ret = peripheral_bus_gpio_unregister_irq(pin, user_data);
+	ret = peripheral_bus_gpio_unregister_irq(gpio_handle);
 	peripheral_io_gdbus_gpio_complete_unregister_irq(gpio, invocation, ret);
 
 	return true;

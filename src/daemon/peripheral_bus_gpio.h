@@ -17,15 +17,15 @@
 #ifndef __PERIPHERAL_BUS_GPIO_H__
 #define __PERIPHERAL_BUS_GPIO_H__
 
-int peripheral_bus_gpio_open(gint pin, gint *edge, gint *direction, gpointer user_data);
-int peripheral_bus_gpio_set_direction(gint pin, gint direction, gpointer user_data);
-int peripheral_bus_gpio_get_direction(gint pin, gint *direction, gpointer user_data);
-int peripheral_bus_gpio_set_edge(gint pin, gint edge, gpointer user_data);
-int peripheral_bus_gpio_get_edge(gint pin, gint *edge, gpointer user_data);
-int peripheral_bus_gpio_write(gint pin, gint value, gpointer user_data);
-int peripheral_bus_gpio_read(gint pin, gint *value, gpointer user_data);
-int peripheral_bus_gpio_register_irq(gint pin, gpointer user_data);
-int peripheral_bus_gpio_unregister_irq(gint pin, gpointer user_data);
-int peripheral_bus_gpio_close(gint pin, gpointer user_data);
+int peripheral_bus_gpio_open(gint pin, pb_gpio_data_h *gpio, gpointer user_data);
+int peripheral_bus_gpio_set_direction(pb_gpio_data_h gpio, gint direction);
+int peripheral_bus_gpio_get_direction(pb_gpio_data_h gpio, gint *direction);
+int peripheral_bus_gpio_set_edge(pb_gpio_data_h gpio, gint edge);
+int peripheral_bus_gpio_get_edge(pb_gpio_data_h gpio, gint *edge);
+int peripheral_bus_gpio_write(pb_gpio_data_h gpio, gint value);
+int peripheral_bus_gpio_read(pb_gpio_data_h gpio, gint *value);
+int peripheral_bus_gpio_register_irq(pb_gpio_data_h gpio);
+int peripheral_bus_gpio_unregister_irq(pb_gpio_data_h gpio);
+int peripheral_bus_gpio_close(pb_gpio_data_h gpio);
 
 #endif /* __PERIPHERAL_BUS_GPIO_H__ */

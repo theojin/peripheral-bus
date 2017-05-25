@@ -53,6 +53,10 @@ typedef struct {
 	int value_fd;
 	GIOChannel *io;
 	guint io_id;
+	uint watch_id;
+	GList **list;
+	/* client info */
+	pb_client_info_s client_info;
 	/* gdbus variable */
 	PeripheralIoGdbusGpio *gpio_skeleton;
 } peripheral_bus_gpio_data_s;
