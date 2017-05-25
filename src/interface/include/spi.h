@@ -17,30 +17,19 @@
 #ifndef __SPI_H__
 #define __SPI_H__
 
-#define SYSFS_SPI_DIR "/dev/spidev"
-#define SPI_BUFFER_MAX 64
-#define SPI_CR1_LSBFIRST          (1 << 7)  /* Bit 7: Frame Format */
-
-typedef enum {
-	SPI_MODE0 = 0,
-	SPI_MODE1,
-	SPI_MODE2,
-	SPI_MODE3
-} spi_mode_e;
-
-int spi_open(unsigned int bus, int *file_hndl);
-int spi_close(int file_hndl);
-int spi_set_mode(int file_hndl, spi_mode_e mode);
-int spi_set_bits(int file_hndl, int bits);
-int spi_set_frequency(int file_hndl, int freq);
-int spi_set_chip_select(int file_hndl, int cs);
-int spi_get_mode(int file_hndl, spi_mode_e *mode);
-int spi_get_bits(int file_hndl, int *bits);
-int spi_get_frequency(int file_hndl, int *freq);
-int spi_get_lsb(int file_hndl, int *lsb);
-
-int spi_write_data(int file_hndl, char *txbuf, int length);
-int spi_read_data(int file_hndl, char *rxbuf, int length);
-int spi_exchange_data(int file_hndl, char *txbuf, char *rxbuf, int length);
+int spi_open(int bus, int cs, int *fd);
+int spi_close(int fd);
+int spi_set_mode(int fd, unsigned char mode);
+int spi_get_mode(int fd, unsigned char *mode);
+int spi_set_lsb_first(int fd, unsigned char lsb);
+int spi_get_lsb_first(int fd, unsigned char *lsb);
+int spi_set_bits(int fd, unsigned char bits);
+int spi_get_bits(int fd, unsigned char *bits);
+int spi_set_frequency(int fd, unsigned int freq);
+int spi_get_frequency(int fd, unsigned int *freq);
+int spi_get_buffer_size(int *bufsiz);
+int spi_read(int fd, unsigned char *rxbuf, int length);
+int spi_write(int fd, unsigned char *txbuf, int length);
+int spi_read_write(int fd, unsigned char *txbuf, unsigned char *rxbuf, int length);
 
 #endif /* __SPI_H__ */

@@ -28,6 +28,7 @@ typedef struct {
 	GList *i2c_list;
 	GList *pwm_list;
 	GList *uart_list;
+	GList *spi_list;
 	/* gdbus variable */
 	guint reg_id;
 	GDBusConnection *connection;
@@ -35,6 +36,7 @@ typedef struct {
 	PeripheralIoGdbusI2c *i2c_skeleton;
 	PeripheralIoGdbusPwm *pwm_skeleton;
 	PeripheralIoGdbusUart *uart_skeleton;
+	PeripheralIoGdbusSpi *spi_skeleton;
 } peripheral_bus_s;
 
 typedef struct {
@@ -95,10 +97,26 @@ typedef struct {
 	pb_client_info_s client_info;
 } peripheral_bus_uart_data_s;
 
+typedef struct {
+	int bus;
+	int cs;
+	int fd;
+	/* data buffer */
+	uint8_t *rx_buf;
+	uint8_t *tx_buf;
+	int rx_buf_size;
+	int tx_buf_size;
+	uint watch_id;
+	GList **list;
+	/* client info */
+	pb_client_info_s client_info;
+} peripheral_bus_spi_data_s;
+
 typedef peripheral_bus_gpio_data_s *pb_gpio_data_h;
 typedef peripheral_bus_i2c_data_s *pb_i2c_data_h;
 typedef peripheral_bus_pwm_data_s *pb_pwm_data_h;
 typedef peripheral_bus_uart_data_s *pb_uart_data_h;
+typedef peripheral_bus_spi_data_s *pb_spi_data_h;
 
 void peripheral_bus_emit_gpio_changed(PeripheralIoGdbusGpio *gpio,
 									gint pin,

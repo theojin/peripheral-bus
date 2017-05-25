@@ -28,6 +28,7 @@
 #include "peripheral_bus_i2c.h"
 #include "peripheral_bus_pwm.h"
 #include "peripheral_bus_uart.h"
+#include "peripheral_bus_spi.h"
 #include "peripheral_common.h"
 #include "peripheral_bus_util.h"
 
@@ -74,6 +75,17 @@ static void __uart_on_name_vanished(GDBusConnection *connection,
 
 	g_bus_unwatch_name(uart_handle->watch_id);
 	peripheral_bus_uart_close(uart_handle);
+}
+
+static void __spi_on_name_vanished(GDBusConnection *connection,
+		const gchar     *name,
+		gpointer         user_data)
+{
+	pb_spi_data_h spi_handle = (pb_spi_data_h)user_data;
+	_D("appid [%s] vanished ", name);
+
+	g_bus_unwatch_name(spi_handle->watch_id);
+	peripheral_bus_spi_close(spi_handle);
 }
 
 gboolean handle_gpio_open(
@@ -945,6 +957,432 @@ gboolean handle_uart_write(
 	return true;
 }
 
+gboolean handle_spi_open(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint bus,
+		gint cs,
+		gpointer user_data)
+{
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_spi_data_h spi_handle;
+
+	ret = peripheral_bus_spi_open(bus, cs, &spi_handle, user_data);
+	if (ret == PERIPHERAL_ERROR_NONE) {
+		if (peripheral_bus_get_client_info(invocation, pb_data, &spi_handle->client_info) == 0)
+			_D("bus : %d, cs : %d, id = %s", bus, cs, spi_handle->client_info.id);
+		else
+			ret = PERIPHERAL_ERROR_UNKNOWN;
+	}
+
+	spi_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
+			spi_handle->client_info.id,
+			G_BUS_NAME_WATCHER_FLAGS_NONE ,
+			NULL,
+			__spi_on_name_vanished,
+			spi_handle,
+			NULL);
+
+	peripheral_io_gdbus_spi_complete_open(spi, invocation, GPOINTER_TO_UINT(spi_handle), ret);
+
+	return true;
+}
+
+gboolean handle_spi_close(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_spi_data_h spi_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+
+	/* Handle validation */
+	if (!spi_handle || !spi_handle->client_info.id) {
+		_E("spi handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(spi_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", spi_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	g_bus_unwatch_name(spi_handle->watch_id);
+	ret = peripheral_bus_spi_close(spi_handle);
+
+out:
+	peripheral_io_gdbus_spi_complete_close(spi, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_spi_set_mode(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		guchar mode,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_spi_data_h spi_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+
+	/* Handle validation */
+	if (!spi_handle || !spi_handle->client_info.id) {
+		_E("spi handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(spi_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", spi_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_spi_set_mode(spi_handle, mode);
+
+out:
+	peripheral_io_gdbus_spi_complete_set_mode(spi, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_spi_get_mode(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_spi_data_h spi_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+	uint8_t mode = 0;
+
+	/* Handle validation */
+	if (!spi_handle || !spi_handle->client_info.id) {
+		_E("spi handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(spi_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", spi_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_spi_get_mode(spi_handle, &mode);
+
+out:
+	peripheral_io_gdbus_spi_complete_get_mode(spi, invocation, mode, ret);
+
+	return true;
+}
+
+gboolean handle_spi_set_lsb_first(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gboolean lsb,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_spi_data_h spi_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+
+	/* Handle validation */
+	if (!spi_handle || !spi_handle->client_info.id) {
+		_E("spi handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(spi_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", spi_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_spi_set_lsb_first(spi_handle, lsb);
+
+out:
+	peripheral_io_gdbus_spi_complete_set_lsb_first(spi, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_spi_get_lsb_first(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_spi_data_h spi_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+	gboolean lsb = 0;
+
+	/* Handle validation */
+	if (!spi_handle || !spi_handle->client_info.id) {
+		_E("spi handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(spi_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", spi_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_spi_get_lsb_first(spi_handle, &lsb);
+
+out:
+	peripheral_io_gdbus_spi_complete_get_lsb_first(spi, invocation, lsb, ret);
+
+	return true;
+}
+
+gboolean handle_spi_set_bits(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		guchar bits,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_spi_data_h spi_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+
+	/* Handle validation */
+	if (!spi_handle || !spi_handle->client_info.id) {
+		_E("spi handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(spi_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", spi_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_spi_set_bits(spi_handle, bits);
+
+out:
+	peripheral_io_gdbus_spi_complete_set_bits(spi, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_spi_get_bits(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_spi_data_h spi_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+	uint8_t bits = 0;
+
+	/* Handle validation */
+	if (!spi_handle || !spi_handle->client_info.id) {
+		_E("spi handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(spi_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", spi_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_spi_get_bits(spi_handle, &bits);
+
+out:
+	peripheral_io_gdbus_spi_complete_get_bits(spi, invocation, bits, ret);
+
+	return true;
+}
+
+gboolean handle_spi_set_frequency(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		guint freq,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_spi_data_h spi_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+
+	/* Handle validation */
+	if (!spi_handle || !spi_handle->client_info.id) {
+		_E("spi handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(spi_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", spi_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_spi_set_frequency(spi_handle, freq);
+
+out:
+	peripheral_io_gdbus_spi_complete_set_frequency(spi, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_spi_get_frequency(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_spi_data_h spi_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+	unsigned int freq = 0;
+
+	/* Handle validation */
+	if (!spi_handle || !spi_handle->client_info.id) {
+		_E("spi handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(spi_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", spi_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_spi_get_frequency(spi_handle, &freq);
+
+out:
+	peripheral_io_gdbus_spi_complete_get_frequency(spi, invocation, freq, ret);
+
+	return true;
+}
+
+gboolean handle_spi_read(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gint length,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_spi_data_h spi_handle = GUINT_TO_POINTER(handle);
+	GVariant *data_array = NULL;
+	uint8_t err_buf[2] = {0, };
+	const gchar *id;
+
+	/* Handle validation */
+	if (!spi_handle || !spi_handle->client_info.id) {
+		_E("spi handle is not valid");
+		data_array = peripheral_bus_build_variant_ay(err_buf, sizeof(err_buf));
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(spi_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", spi_handle->client_info.id, id);
+		data_array = peripheral_bus_build_variant_ay(err_buf, sizeof(err_buf));
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_spi_read(spi_handle, &data_array, length);
+
+out:
+	peripheral_io_gdbus_spi_complete_read(spi, invocation, data_array, ret);
+
+	return true;
+}
+
+gboolean handle_spi_write(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gint length,
+		GVariant *data_array,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_spi_data_h spi_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+
+	/* Handle validation */
+	if (!spi_handle || !spi_handle->client_info.id) {
+		_E("spi handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(spi_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", spi_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_spi_write(spi_handle, data_array, length);
+
+out:
+	peripheral_io_gdbus_spi_complete_write(spi, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_spi_read_write(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gint length,
+		GVariant *tx_data_array,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_spi_data_h spi_handle = GUINT_TO_POINTER(handle);
+	GVariant *rx_data_array = NULL;
+	uint8_t err_buf[2] = {0, };
+	const gchar *id;
+
+	/* Handle validation */
+	if (!spi_handle || !spi_handle->client_info.id) {
+		_E("spi handle is not valid");
+		rx_data_array = peripheral_bus_build_variant_ay(err_buf, sizeof(err_buf));
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(spi_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", spi_handle->client_info.id, id);
+		rx_data_array = peripheral_bus_build_variant_ay(err_buf, sizeof(err_buf));
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_spi_read_write(spi_handle, tx_data_array, &rx_data_array, length);
+
+out:
+	peripheral_io_gdbus_spi_complete_read_write(spi, invocation, rx_data_array, ret);
+
+	return true;
+}
+
 void peripheral_bus_emit_gpio_changed(PeripheralIoGdbusGpio *gpio,
 									gint pin,
 									gint state)
@@ -1191,6 +1629,85 @@ static gboolean __uart_init(peripheral_bus_s *pb_data)
 	return true;
 }
 
+static gboolean __spi_init(peripheral_bus_s *pb_data)
+{
+	GDBusObjectManagerServer *manager;
+	gboolean ret = FALSE;
+	GError *error = NULL;
+
+	/* Add interface to default object path */
+	pb_data->spi_skeleton = peripheral_io_gdbus_spi_skeleton_new();
+	g_signal_connect(pb_data->spi_skeleton,
+			"handle-open",
+			G_CALLBACK(handle_spi_open),
+			pb_data);
+	g_signal_connect(pb_data->spi_skeleton,
+			"handle-close",
+			G_CALLBACK(handle_spi_close),
+			pb_data);
+	g_signal_connect(pb_data->spi_skeleton,
+			"handle-set-mode",
+			G_CALLBACK(handle_spi_set_mode),
+			pb_data);
+	g_signal_connect(pb_data->spi_skeleton,
+			"handle-get-mode",
+			G_CALLBACK(handle_spi_get_mode),
+			pb_data);
+	g_signal_connect(pb_data->spi_skeleton,
+			"handle-set-lsb-first",
+			G_CALLBACK(handle_spi_set_lsb_first),
+			pb_data);
+	g_signal_connect(pb_data->spi_skeleton,
+			"handle-get-lsb-first",
+			G_CALLBACK(handle_spi_get_lsb_first),
+			pb_data);
+	g_signal_connect(pb_data->spi_skeleton,
+			"handle-set-bits",
+			G_CALLBACK(handle_spi_set_bits),
+			pb_data);
+	g_signal_connect(pb_data->spi_skeleton,
+			"handle-get-bits",
+			G_CALLBACK(handle_spi_get_bits),
+			pb_data);
+	g_signal_connect(pb_data->spi_skeleton,
+			"handle-set-frequency",
+			G_CALLBACK(handle_spi_set_frequency),
+			pb_data);
+	g_signal_connect(pb_data->spi_skeleton,
+			"handle-get-frequency",
+			G_CALLBACK(handle_spi_get_frequency),
+			pb_data);
+	g_signal_connect(pb_data->spi_skeleton,
+			"handle-write",
+			G_CALLBACK(handle_spi_write),
+			pb_data);
+	g_signal_connect(pb_data->spi_skeleton,
+			"handle-read",
+			G_CALLBACK(handle_spi_read),
+			pb_data);
+	g_signal_connect(pb_data->spi_skeleton,
+			"handle-read-write",
+			G_CALLBACK(handle_spi_read_write),
+			pb_data);
+
+	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_SPI_PATH);
+
+	/* Set connection to 'manager' */
+	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
+
+	/* Export 'manager' interface on peripheral-io DBUS */
+	ret = g_dbus_interface_skeleton_export(
+		G_DBUS_INTERFACE_SKELETON(pb_data->spi_skeleton),
+		pb_data->connection, PERIPHERAL_GDBUS_SPI_PATH, &error);
+
+	if (ret == FALSE) {
+		_E("Can not skeleton_export %s", error->message);
+		g_error_free(error);
+	}
+
+	return true;
+}
+
 static void on_bus_acquired(GDBusConnection *connection,
 							const gchar *name,
 							gpointer user_data)
@@ -1208,6 +1725,9 @@ static void on_bus_acquired(GDBusConnection *connection,
 		_E("Can not signal connect");
 
 	if (__uart_init(pb_data) == FALSE)
+		_E("Can not signal connect");
+
+	if (__spi_init(pb_data) == FALSE)
 		_E("Can not signal connect");
 }
 

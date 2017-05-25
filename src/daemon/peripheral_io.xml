@@ -182,4 +182,83 @@
 			<arg type="i" name="result" direction="out"/>
 		</method>
 	</interface>
+	<interface name="org.tizen.peripheral_io.spi">
+		<method name="Open">
+			<arg type="i" name="bus" direction="in"/>
+			<arg type="i" name="cs" direction="in"/>
+			<arg type="u" name="handle" direction="out"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="Close">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="SetMode">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="y" name="mode" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="GetMode">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="y" name="mode" direction="out"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="SetLsbFirst">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="b" name="lsb" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="GetLsbFirst">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="b" name="lsb" direction="out"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="SetBits">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="y" name="bits" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="GetBits">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="y" name="bits" direction="out"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="SetFrequency">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="u" name="freq" direction="in"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="GetFrequency">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="u" name="freq" direction="out"/>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="Read">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="i" name="length" direction="in"/>
+			<arg type="a(y)" name="data" direction="out">
+				<annotation name="org.gtk.GDBus.C.ForceGVariant" value="true"/>
+			</arg>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="Write">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="i" name="length" direction="in"/>
+			<arg type="a(y)" name="data" direction="in">
+				<annotation name="org.gtk.GDBus.C.ForceGVariant" value="true"/>
+			</arg>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+		<method name="ReadWrite">
+			<arg type="u" name="handle" direction="in"/>
+			<arg type="i" name="length" direction="in"/>
+			<arg type="a(y)" name="tx_data" direction="in">
+				<annotation name="org.gtk.GDBus.C.ForceGVariant" value="true"/>
+			</arg>
+			<arg type="a(y)" name="rx_data" direction="out">
+				<annotation name="org.gtk.GDBus.C.ForceGVariant" value="true"/>
+			</arg>
+			<arg type="i" name="result" direction="out"/>
+		</method>
+	</interface>
 </node>
