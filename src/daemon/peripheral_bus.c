@@ -86,13 +86,13 @@ gboolean handle_gpio_open(
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	pb_gpio_data_h gpio_handle;
 
-	ret = peripheral_bus_gpio_open(pin, &gpio_handle, user_data);
+	if ((ret = peripheral_bus_gpio_open(pin, &gpio_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+		goto out;
 
-	if (ret == PERIPHERAL_ERROR_NONE) {
-		if (peripheral_bus_get_client_info(invocation, pb_data, &gpio_handle->client_info) == 0)
-			_D("gpio : %d, id = %s", gpio_handle->pin, gpio_handle->client_info.id);
-		else
-			ret = PERIPHERAL_ERROR_UNKNOWN;
+	if (peripheral_bus_get_client_info(invocation, pb_data, &gpio_handle->client_info) < 0) {
+		peripheral_bus_gpio_close(gpio_handle);
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
 	}
 
 	gpio_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
@@ -102,7 +102,9 @@ gboolean handle_gpio_open(
 			__gpio_on_name_vanished,
 			gpio_handle,
 			NULL);
+	_D("gpio : %d, id = %s", gpio_handle->pin, gpio_handle->client_info.id);
 
+out:
 	peripheral_io_gdbus_gpio_complete_open(gpio, invocation, GPOINTER_TO_UINT(gpio_handle), ret);
 
 	return true;
@@ -277,13 +279,13 @@ gboolean handle_i2c_open(
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_i2c_data_h i2c_handle;
 
-	ret = peripheral_bus_i2c_open(bus, address, &i2c_handle, user_data);
+	if ((ret = peripheral_bus_i2c_open(bus, address, &i2c_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+		goto out;
 
-	if (ret == PERIPHERAL_ERROR_NONE) {
-		if (peripheral_bus_get_client_info(invocation, pb_data, &i2c_handle->client_info) == 0)
-			_D("bus : %d, address : %d, id = %s", bus, address, i2c_handle->client_info.id);
-		else
-			ret = PERIPHERAL_ERROR_UNKNOWN;
+	if (peripheral_bus_get_client_info(invocation, pb_data, &i2c_handle->client_info) < 0) {
+		peripheral_bus_i2c_close(i2c_handle);
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
 	}
 
 	i2c_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
@@ -293,7 +295,9 @@ gboolean handle_i2c_open(
 			__i2c_on_name_vanished,
 			i2c_handle,
 			NULL);
+	_D("bus : %d, address : %d, id = %s", bus, address, i2c_handle->client_info.id);
 
+out:
 	peripheral_io_gdbus_i2c_complete_open(i2c, invocation, GPOINTER_TO_UINT(i2c_handle), ret);
 
 	return true;
@@ -411,13 +415,13 @@ gboolean handle_pwm_open(
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_pwm_data_h pwm_handle;
 
-	ret = peripheral_bus_pwm_open(device, channel, &pwm_handle, user_data);
+	if ((ret = peripheral_bus_pwm_open(device, channel, &pwm_handle, user_data)) <  PERIPHERAL_ERROR_NONE)
+		goto out;
 
-	if (ret == PERIPHERAL_ERROR_NONE) {
-		if (peripheral_bus_get_client_info(invocation, pb_data, &pwm_handle->client_info) == 0)
-			_D("device : %d, channel : %d, id = %s", device, channel, pwm_handle->client_info.id);
-		else
-			ret = PERIPHERAL_ERROR_UNKNOWN;
+	if (peripheral_bus_get_client_info(invocation, pb_data, &pwm_handle->client_info) < 0) {
+		peripheral_bus_pwm_close(pwm_handle);
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
 	}
 
 	pwm_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
@@ -427,7 +431,9 @@ gboolean handle_pwm_open(
 			__pwm_on_name_vanished,
 			pwm_handle,
 			NULL);
+	_D("device : %d, channel : %d, id = %s", device, channel, pwm_handle->client_info.id);
 
+out:
 	peripheral_io_gdbus_pwm_complete_open(pwm, invocation, GPOINTER_TO_UINT(pwm_handle), ret);
 
 	return true;
@@ -705,13 +711,13 @@ gboolean handle_uart_open(
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_uart_data_h uart_handle;
 
-	ret = peripheral_bus_uart_open(port, &uart_handle, user_data);
+	if ((ret = peripheral_bus_uart_open(port, &uart_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+		goto out;
 
-	if (ret == PERIPHERAL_ERROR_NONE) {
-		if (peripheral_bus_get_client_info(invocation, pb_data, &uart_handle->client_info) == 0)
-			_D("port : %d, id = %s", port, uart_handle->client_info.id);
-		else
-			ret = PERIPHERAL_ERROR_UNKNOWN;
+	if (peripheral_bus_get_client_info(invocation, pb_data, &uart_handle->client_info) < 0) {
+		peripheral_bus_uart_close(uart_handle);
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
 	}
 
 	uart_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
@@ -721,7 +727,9 @@ gboolean handle_uart_open(
 			__uart_on_name_vanished,
 			uart_handle,
 			NULL);
+	_D("port : %d, id = %s", port, uart_handle->client_info.id);
 
+out:
 	peripheral_io_gdbus_uart_complete_open(uart, invocation, GPOINTER_TO_UINT(uart_handle), ret);
 
 	return true;
