@@ -23,6 +23,7 @@
 
 typedef struct {
 	/* daemon variable */
+	char *adc_path;
 	/* devices */
 	GList *gpio_list;
 	GList *i2c_list;
@@ -35,6 +36,7 @@ typedef struct {
 	PeripheralIoGdbusGpio *gpio_skeleton;
 	PeripheralIoGdbusI2c *i2c_skeleton;
 	PeripheralIoGdbusPwm *pwm_skeleton;
+	PeripheralIoGdbusAdc *adc_skeleton;
 	PeripheralIoGdbusUart *uart_skeleton;
 	PeripheralIoGdbusSpi *spi_skeleton;
 } peripheral_bus_s;

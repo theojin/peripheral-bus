@@ -27,6 +27,7 @@
 #include "peripheral_bus_gpio.h"
 #include "peripheral_bus_i2c.h"
 #include "peripheral_bus_pwm.h"
+#include "peripheral_bus_adc.h"
 #include "peripheral_bus_uart.h"
 #include "peripheral_bus_spi.h"
 #include "peripheral_common.h"
@@ -64,7 +65,6 @@ static void __pwm_on_name_vanished(GDBusConnection *connection,
 	g_bus_unwatch_name(pwm_handle->watch_id);
 	peripheral_bus_pwm_close(pwm_handle);
 }
-
 
 static void __uart_on_name_vanished(GDBusConnection *connection,
 		const gchar     *name,
@@ -744,6 +744,33 @@ gboolean handle_pwm_get_enable(
 	}
 
 	peripheral_io_gdbus_pwm_complete_get_enable(pwm, invocation, enable, ret);
+
+	return true;
+}
+
+gboolean handle_adc_read(
+		PeripheralIoGdbusAdc *adc,
+		GDBusMethodInvocation *invocation,
+		guint device,
+		guint channel,
+		gpointer user_data)
+{
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	int data = 0;
+
+	if (pb_data->adc_path == NULL) {
+		pb_data->adc_path = peripheral_bus_adc_get_path(device);
+		if (pb_data->adc_path == NULL) {
+			ret = PERIPHERAL_ERROR_UNKNOWN;
+			goto out;
+		}
+	}
+
+	ret = peripheral_bus_adc_read(device, channel, pb_data->adc_path, &data);
+
+out:
+	peripheral_io_gdbus_adc_complete_read(adc, invocation, data, ret);
 
 	return true;
 }
@@ -1609,6 +1636,37 @@ static gboolean __pwm_init(peripheral_bus_s *pb_data)
 	return true;
 }
 
+static gboolean __adc_init(peripheral_bus_s *pb_data)
+{
+	GDBusObjectManagerServer *manager;
+	gboolean ret = FALSE;
+	GError *error = NULL;
+
+	/* Add interface to default object path */
+	pb_data->adc_skeleton = peripheral_io_gdbus_adc_skeleton_new();
+	g_signal_connect(pb_data->adc_skeleton,
+			"handle-read",
+			G_CALLBACK(handle_adc_read),
+			pb_data);
+
+	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_ADC_PATH);
+
+	/* Set connection to 'manager' */
+	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
+
+	/* Export 'manager' interface on peripheral-io DBUS */
+	ret = g_dbus_interface_skeleton_export(
+		G_DBUS_INTERFACE_SKELETON(pb_data->adc_skeleton),
+		pb_data->connection, PERIPHERAL_GDBUS_ADC_PATH, &error);
+
+	if (ret == FALSE) {
+		_E("Can not skeleton_export %s", error->message);
+		g_error_free(error);
+	}
+
+	return true;
+}
+
 static gboolean __uart_init(peripheral_bus_s *pb_data)
 {
 	GDBusObjectManagerServer *manager;
@@ -1763,6 +1821,9 @@ static void on_bus_acquired(GDBusConnection *connection,
 	if (__pwm_init(pb_data) == FALSE)
 		_E("Can not signal connect");
 
+	if (__adc_init(pb_data) == FALSE)
+		_E("Can not signal connect");
+
 	if (__uart_init(pb_data) == FALSE)
 		_E("Can not signal connect");
 
@@ -1793,6 +1854,8 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
+	pb_data->adc_path = NULL;
+
 	owner_id = g_bus_own_name(G_BUS_TYPE_SYSTEM,
 							  PERIPHERAL_GDBUS_NAME,
 							  (GBusNameOwnerFlags) (G_BUS_NAME_OWNER_FLAGS_ALLOW_REPLACEMENT
@@ -1813,8 +1876,11 @@ int main(int argc, char *argv[])
 	_D("Enter main loop!");
 	g_main_loop_run(loop);
 
-	if (pb_data)
+	if (pb_data) {
+		if (pb_data->adc_path)
+			free(pb_data->adc_path);
 		free(pb_data);
+	}
 
 	if (loop != NULL)
 		g_main_loop_unref(loop);

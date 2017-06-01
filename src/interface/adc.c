@@ -25,55 +25,62 @@
 #include "peripheral_common.h"
 
 #define SYSFS_ADC_PATH		"/sys/bus/iio/devices/iio:device"
+#define SYSFS_ADC_PATH_OLD	"/sys/bus/iio/devices/device"
 
 #define PATH_BUF_MAX		64
-#define ADC_BUF_MAX			16
+#define ADC_BUF_MAX		16
+#define MAX_ERR_LEN		255
 
-int adc_get_device_name(char **dev_name)
+int adc_get_path(unsigned int device, char *path, int length)
 {
-	int fd;
-	int device = 0;
-	int bytes;
-	char buf[PATH_BUF_MAX];
+	char adc_dev[PATH_BUF_MAX] = {0};
 
-	snprintf(buf, PATH_BUF_MAX, "%s%d%s", SYSFS_ADC_PATH, device, "/name");
-	if ((fd = open(buf, O_RDONLY)) < 0) {
-		_E("Cannot open %s, errno : %d", buf, errno);
-		return -ENXIO;
+	snprintf(adc_dev, PATH_BUF_MAX, "%s%d", SYSFS_ADC_PATH, device);
+	if (access(adc_dev, F_OK) == 0) {
+		strncpy(path, SYSFS_ADC_PATH, length);
+		return 0;
+	} else {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Can't Open %s, errmsg : %s", adc_dev, errmsg);
 	}
 
-	if ((bytes = read(fd, buf, PATH_BUF_MAX)) == -1) {
-		_E("Cannot read %s, errno : %d", buf, errno);
-		close(fd);
-		return -EIO;
+	snprintf(adc_dev, PATH_BUF_MAX, "%s%d", SYSFS_ADC_PATH_OLD, device);
+	if (access(adc_dev, F_OK) == 0) {
+		strncpy(path, SYSFS_ADC_PATH_OLD, length);
+		return 0;
+	} else {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Can't Open %s, errmsg : %s", adc_dev, errmsg);
 	}
 
-	*dev_name = strndup(buf, PATH_BUF_MAX);
-	close(fd);
-
-	return 0;
+	return -ENXIO;
 }
 
-int adc_get_data(int channel, char *devName, int *data)
+int adc_read(unsigned int device, unsigned int channel, char *path, int *data)
 {
-	int fd;
-	int device = 0;	/* for get adc device name, /sys/devices/[devName]/iio:device"0" */
-	char fName[PATH_BUF_MAX] = {0};
-	char voltage[ADC_BUF_MAX] = {0};
-	int bytes;
+	int fd, result, status;
+	char adc_buf[ADC_BUF_MAX] = {0};
+	char adc_dev[PATH_BUF_MAX] = {0};
 
-	snprintf(fName, PATH_BUF_MAX, "%s%s%s%d%s%d%s", "/sys/devices/", devName, "/iio:device", device, "/in_voltage", channel, "_raw");
-	if ((fd = open(fName, O_RDONLY)) < 0) {
-		_E("Error[%d]: can't open adc%d channel, %s--[%d]\n", errno, channel, __FUNCTION__, __LINE__);
+	snprintf(adc_dev, PATH_BUF_MAX, "%s%d%s%d%s", path, device, "/in_voltage", channel, "_raw");
+	fd = open(adc_dev, O_RDONLY);
+	if (fd < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Can't Open %s, errmsg : %s", adc_dev, errmsg);
 		return -ENXIO;
 	}
-	bytes = read(fd, voltage, ADC_BUF_MAX);
-	if (bytes == -1) {
+
+	status = read(fd, adc_buf, ADC_BUF_MAX);
+	if (status < 0) {
 		close(fd);
+		_E("Failed to get adc, path : %s", adc_dev);
 		return -EIO;
 	}
-
-	*data = atoi(voltage);
+	result = atoi(adc_buf);
+	*data = result;
 	close(fd);
 
 	return 0;

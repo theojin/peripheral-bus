@@ -18,21 +18,25 @@
 #define __ADC_H__
 
 /**
-* @brief adc_init() find adc device name.
+* @brief adc_get_path() get adc device path.
 *
-* @param[out] dev_name The name of adc device node which must be freed.
-* @return On success, 0 is returned. On failure, a negative value is returned.
+* @param[in] device The adc device number
+* @param[in] channel The adc channel number
+* @param[out] *path The buffer for the adc device path
+* @param[in] length The max length of the path buffer
+* @return 0 on success, otherwise a negative error value
 */
-int adc_get_device_name(char **dev_name);
+int adc_get_path(unsigned int device, char *path, int length);
 
 /**
-* @brief adc_get_data() get adc data.
+* @brief adc_read() get adc data.
 *
-* @param[in] channel adc channel number
-* @param[in] *devName adc device name
-* @param[in] *data adc value
-* @return On success, voltage is returned. On failure, a negative value is returned.
+* @param[in] device The adc device number
+* @param[in] channel The adc channel number
+* @param[in] *path The adc device path
+* @param[in] *data The adc value
+* @return 0 on success, otherwise a negative error value
 */
-int adc_get_data(int channel, char *devName, int *data);
+int adc_read(unsigned int device, unsigned int channel, char *path, int *data);
 
 #endif /* __ADC_H__ */
