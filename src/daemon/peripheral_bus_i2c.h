@@ -21,5 +21,6 @@ int peripheral_bus_i2c_open(int bus, int address, pb_i2c_data_h *i2c, gpointer u
 int peripheral_bus_i2c_close(pb_i2c_data_h i2c);
 int peripheral_bus_i2c_read(pb_i2c_data_h i2c, int length, GVariant **data_array);
 int peripheral_bus_i2c_write(pb_i2c_data_h i2c, int length, GVariant *data_array);
+int peripheral_bus_i2c_smbus_ioctl(pb_i2c_data_h i2c, uint8_t read_write, uint8_t command, uint32_t size, uint16_t data_in, uint16_t *data_out);
 
 #endif /* __PERIPHERAL_BUS_I2C_H__ */

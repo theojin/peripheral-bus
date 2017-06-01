@@ -21,7 +21,6 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
-#include <linux/i2c.h>
 
 #include "i2c.h"
 #include "peripheral_common.h"
@@ -94,8 +93,7 @@ int i2c_read(int fd, unsigned char *data, int length)
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("i2c_read failed : %s", errmsg);
 		return -EIO;
-	} else
-		_D("[SUCCESS] data : [%02x][%02x]", data[0], data[1]);
+	}
 
 	return 0;
 }
@@ -108,6 +106,22 @@ int i2c_write(int fd, const unsigned char *data, int length)
 	status = write(fd, data, length);
 
 	if (status != length) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("i2c write failed : %s\n", errmsg);
+		return -EIO;
+	}
+
+	return 0;
+}
+
+int i2c_smbus_ioctl(int fd, struct i2c_smbus_ioctl_data *data)
+{
+	int status;
+
+	_D("fd : %d", fd);
+	status = ioctl(fd, I2C_SMBUS, data);
+	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("i2c write failed : %s\n", errmsg);

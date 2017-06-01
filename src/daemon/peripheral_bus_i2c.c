@@ -203,3 +203,43 @@ int peripheral_bus_i2c_write(pb_i2c_data_h i2c, int length, GVariant *data_array
 
 	return i2c_write(i2c->fd, i2c->buffer, length);
 }
+
+int peripheral_bus_i2c_smbus_ioctl(pb_i2c_data_h i2c, uint8_t read_write, uint8_t command, uint32_t size, uint16_t data_in, uint16_t *data_out)
+{
+	struct i2c_smbus_ioctl_data data_arg;
+	union i2c_smbus_data data;
+	int ret;
+
+	memset(&data_arg, 0x0, sizeof(struct i2c_smbus_ioctl_data));
+	memset(&data, 0x0, sizeof(data.block));
+
+	data_arg.read_write = read_write;
+	data_arg.size = size;
+	data_arg.data = &data;
+
+	RETV_IF(size < I2C_SMBUS_BYTE || size > I2C_SMBUS_WORD_DATA, PERIPHERAL_ERROR_INVALID_PARAMETER);
+	RETV_IF(read_write > I2C_SMBUS_READ, PERIPHERAL_ERROR_INVALID_PARAMETER);
+
+	if (read_write == I2C_SMBUS_WRITE) {
+		data_arg.command = command;
+		if (size == I2C_SMBUS_BYTE_DATA)
+			data.byte = (uint8_t)data_in;
+		else if (size == I2C_SMBUS_WORD_DATA)
+			data.word = data_in;
+		else if (size == I2C_SMBUS_BYTE)
+			data_arg.command = (uint8_t)data_in; // Data should be set to command.
+	} else if (read_write == I2C_SMBUS_READ && size != I2C_SMBUS_BYTE)  {
+		data_arg.command = command;
+	}
+
+	ret = i2c_smbus_ioctl(i2c->fd, &data_arg);
+
+	if (ret == 0 && read_write == I2C_SMBUS_READ) {
+		if (size == I2C_SMBUS_BYTE_DATA || size == I2C_SMBUS_BYTE)
+			*data_out = (uint8_t)data.byte;
+		else if (size == I2C_SMBUS_WORD_DATA)
+			*data_out = data.word;
+	}
+
+	return ret;
+}

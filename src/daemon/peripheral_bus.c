@@ -416,6 +416,41 @@ out:
 	return true;
 }
 
+gboolean handle_i2c_smbus_ioctl(
+		PeripheralIoGdbusI2c *i2c,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		guchar read_write,
+		guchar command,
+		guint size,
+		guint16 data_in,
+		gpointer user_data)
+{
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_i2c_data_h i2c_handle = GUINT_TO_POINTER(handle);
+	const gchar *id;
+	uint16_t data;
+
+	/* Handle validation */
+	if (!i2c_handle || !i2c_handle->client_info.id) {
+		_E("i2c handle is not valid");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+		goto out;
+	}
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (strcmp(i2c_handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", i2c_handle->client_info.id, id);
+		ret = PERIPHERAL_ERROR_INVALID_OPERATION;
+		goto out;
+	}
+
+	ret = peripheral_bus_i2c_smbus_ioctl(i2c_handle, read_write, command, size, data_in, &data);
+out:
+	peripheral_io_gdbus_i2c_complete_smbus_ioctl(i2c, invocation, data, ret);
+
+	return true;
+}
+
 gboolean handle_pwm_open(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
@@ -1483,6 +1518,10 @@ static gboolean __i2c_init(peripheral_bus_s *pb_data)
 	g_signal_connect(pb_data->i2c_skeleton,
 			"handle-write",
 			G_CALLBACK(handle_i2c_write),
+			pb_data);
+	g_signal_connect(pb_data->i2c_skeleton,
+			"handle-smbus-ioctl",
+			G_CALLBACK(handle_i2c_smbus_ioctl),
 			pb_data);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_I2C_PATH);
