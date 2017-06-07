@@ -429,7 +429,7 @@ gboolean handle_i2c_smbus_ioctl(
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_i2c_data_h i2c_handle = GUINT_TO_POINTER(handle);
 	const gchar *id;
-	uint16_t data;
+	uint16_t data = 0xFFFF;
 
 	/* Handle validation */
 	if (!i2c_handle || !i2c_handle->client_info.id) {
