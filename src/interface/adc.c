@@ -39,7 +39,7 @@ int adc_get_device_name(char **dev_name)
 	snprintf(buf, PATH_BUF_MAX, "%s%d%s", SYSFS_ADC_PATH, device, "/name");
 	if ((fd = open(buf, O_RDONLY)) < 0) {
 		_E("Cannot open %s, errno : %d", buf, errno);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	if ((bytes = read(fd, buf, PATH_BUF_MAX)) == -1) {
@@ -65,7 +65,7 @@ int adc_get_data(int channel, char *devName, int *data)
 	snprintf(fName, PATH_BUF_MAX, "%s%s%s%d%s%d%s", "/sys/devices/", devName, "/iio:device", device, "/in_voltage", channel, "_raw");
 	if ((fd = open(fName, O_RDONLY)) < 0) {
 		_E("Error[%d]: can't open adc%d channel, %s--[%d]\n", errno, channel, __FUNCTION__, __LINE__);
-		return -ENODEV;
+		return -ENXIO;
 	}
 	bytes = read(fd, voltage, ADC_BUF_MAX);
 	if (bytes == -1) {

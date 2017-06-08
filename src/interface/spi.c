@@ -43,7 +43,7 @@ int spi_open(int bus, int cs, int *fd)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s, errmsg : %s", spi_dev, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 	*fd = new_fd;
 
@@ -225,7 +225,7 @@ int spi_get_buffer_size(int *bufsiz)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s, errmsg : %s", SYSFS_SPI_BUFSIZ, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	status = read(fd, spi_buf, SPI_BUFFER_MAX);

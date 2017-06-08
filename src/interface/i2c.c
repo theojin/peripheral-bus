@@ -39,7 +39,7 @@ int i2c_open(int bus, int *fd)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s : %s", i2c_dev, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 	*fd = new_fd;
 

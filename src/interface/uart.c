@@ -51,7 +51,7 @@ int uart_open(int port, int *file_hndl)
 	snprintf(fName, PATH_BUF_MAX, SYSFS_UART_PATH "%d", port);
 	if ((fd = open(fName, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0) {
 		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
-		return -ENOENT;
+		return -ENXIO;
 	}
 	*file_hndl = fd;
 	return 0;

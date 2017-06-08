@@ -37,7 +37,7 @@ int gpio_open(int gpiopin)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open /sys/class/gpio/export :%s\n", errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	len = snprintf(gpio_export, GPIO_BUFFER_MAX, "%d", gpiopin);
@@ -65,7 +65,7 @@ int gpio_set_direction(int gpiopin, gpio_direction_e dir)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open /sys/class/gpio/gpio%d/direction: %s\n", gpiopin, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	if (dir == GPIO_DIRECTION_OUT)
@@ -104,7 +104,7 @@ int gpio_get_direction(int gpiopin, gpio_direction_e *dir)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open /sys/class/gpio/gpio%d/direction: %s\n", gpiopin, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	len = read(fd, &gpio_buf, GPIO_BUFFER_MAX);
@@ -140,7 +140,7 @@ int gpio_set_edge_mode(int gpiopin, gpio_edge_e edge)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open /sys/class/gpio/gpio%d/edge: %s\n", gpiopin, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	if (edge == GPIO_EDGE_NONE)
@@ -181,7 +181,7 @@ int gpio_get_edge_mode(int gpiopin, gpio_edge_e *edge)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open /sys/class/gpio/gpio%d/edge: %s\n", gpiopin, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	len = read(fd, &gpio_buf, GPIO_BUFFER_MAX);
@@ -222,7 +222,7 @@ int gpio_write(int gpiopin, int value)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open /sys/class/gpio/gpio%d/value: %s\n", gpiopin, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	if (value == 1)
@@ -258,7 +258,7 @@ int gpio_read(int gpiopin, int *value)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open /sys/class/gpio/gpio%d pin value: %s\n", gpiopin, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	len = read(fd, &gpio_buf, 1);
@@ -291,7 +291,7 @@ int gpio_close(int gpiopin)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open /sys/class/gpio/unexport %s\n", errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	len = snprintf(gpio_unexport, GPIO_BUFFER_MAX, "%d", gpiopin);
@@ -322,7 +322,7 @@ int gpio_open_isr(int gpiopin)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open /sys/class/gpio/gpio%d pin value: %s\n", gpiopin, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	return fd;

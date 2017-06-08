@@ -43,7 +43,7 @@ int pwm_open(int device, int channel)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", channel);
@@ -70,7 +70,7 @@ int pwm_close(int device, int channel)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", channel);
@@ -98,7 +98,7 @@ int pwm_set_period(int device, int channel, int period)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", period);
@@ -125,7 +125,7 @@ int pwm_get_period(int device, int channel, int *period)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	status = read(fd, pwm_buf, PWM_BUF_MAX);
@@ -154,7 +154,7 @@ int pwm_set_duty_cycle(int device, int channel, int duty_cycle)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", duty_cycle);
@@ -181,7 +181,7 @@ int pwm_get_duty_cycle(int device, int channel, int *duty_cycle)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	status = read(fd, pwm_buf, PWM_BUF_MAX);
@@ -209,7 +209,7 @@ int pwm_set_polarity(int device, int channel, pwm_polarity_e polarity)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	if (polarity == PWM_POLARITY_NORMAL)
@@ -244,7 +244,7 @@ int pwm_get_polarity(int device, int channel, pwm_polarity_e *polarity)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	status = read(fd, pwm_buf, PWM_BUF_MAX);
@@ -281,7 +281,7 @@ int pwm_set_enable(int device, int channel, bool enable)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", enable);
@@ -308,7 +308,7 @@ int pwm_get_enable(int device, int channel, bool *enable)
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
-		return -ENODEV;
+		return -ENXIO;
 	}
 
 	status = read(fd, pwm_buf, PWM_BUF_MAX);
