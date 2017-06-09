@@ -36,6 +36,8 @@ int spi_open(int bus, int cs, int *fd)
 	int new_fd = 0;
 	char spi_dev[SPI_BUFFER_MAX] = {0,};
 
+	_D("bus : %d, cs : %d", bus, cs);
+
 	snprintf(spi_dev, sizeof(spi_dev)-1, SYSFS_SPI_DIR"%d.%d", bus, cs);
 
 	new_fd = open(spi_dev, O_RDWR);
@@ -54,6 +56,8 @@ int spi_close(int fd)
 {
 	int status;
 
+	_D("fd : %d", fd);
+
 	if (fd < 0) return -EINVAL;
 
 	status = close(fd);
@@ -70,6 +74,8 @@ int spi_close(int fd)
 int spi_set_mode(int fd, unsigned char mode)
 {
 	int status;
+
+	_D("fd : %d, mode : %d", fd, mode);
 
 	if (fd < 0) return -EINVAL;
 
@@ -108,6 +114,8 @@ int spi_set_lsb_first(int fd, unsigned char lsb)
 {
 	int status;
 
+	_D("fd : %d, lsb : %d", fd, lsb);
+
 	if (fd < 0) return -EINVAL;
 
 	_D("Set lsb first : %d", lsb);
@@ -145,6 +153,8 @@ int spi_set_bits(int fd, unsigned char bits)
 {
 	int status;
 
+	_D("fd : %d, bits : %d", fd, bits);
+
 	if (fd < 0) return -EINVAL;
 
 	_D("Set bit per word : %d", bits);
@@ -181,6 +191,8 @@ int spi_get_bits(int fd, unsigned char *bits)
 int spi_set_frequency(int fd, unsigned int freq)
 {
 	int status;
+
+	_D("fd : %d, freq : %d", fd, freq);
 
 	if (fd < 0) return -EINVAL;
 

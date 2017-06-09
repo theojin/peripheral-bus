@@ -32,6 +32,8 @@ int i2c_open(int bus, int *fd)
 	int new_fd;
 	char i2c_dev[I2C_BUFFER_MAX] = {0,};
 
+	_D("bus : %d", bus);
+
 	snprintf(i2c_dev, sizeof(i2c_dev)-1, SYSFS_I2C_DIR"-%d", bus);
 	new_fd = open(i2c_dev, O_RDWR);
 
@@ -50,8 +52,9 @@ int i2c_close(int fd)
 {
 	int status;
 
-	if (fd < 0) return -EINVAL;
+	_D("fd : %d", fd);
 
+	if (fd < 0) return -EINVAL;
 	status = close(fd);
 
 	if (status < 0) {
@@ -68,7 +71,8 @@ int i2c_set_address(int fd, int address)
 {
 	int status;
 
-	_D("slave address : %x", address);
+	_D("slave address : 0x%x", address);
+
 	status = ioctl(fd, I2C_SLAVE, address);
 
 	if (status < 0) {
@@ -85,7 +89,6 @@ int i2c_read(int fd, unsigned char *data, int length)
 {
 	int status;
 
-	_D("fd : %d, length : %d", fd, length);
 	status = read(fd, data, length);
 
 	if (status != length) {
@@ -102,7 +105,6 @@ int i2c_write(int fd, const unsigned char *data, int length)
 {
 	int status;
 
-	_D("fd : %d, length : %d", fd, length);
 	status = write(fd, data, length);
 
 	if (status != length) {
@@ -119,7 +121,6 @@ int i2c_smbus_ioctl(int fd, struct i2c_smbus_ioctl_data *data)
 {
 	int status;
 
-	_D("fd : %d", fd);
 	status = ioctl(fd, I2C_SMBUS, data);
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];

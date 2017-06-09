@@ -48,6 +48,8 @@ int uart_open(int port, int *file_hndl)
 	int fd;
 	char fName[PATH_BUF_MAX] = {0};
 
+	_D("port : %d", port);
+
 	snprintf(fName, PATH_BUF_MAX, SYSFS_UART_PATH "%d", port);
 	if ((fd = open(fName, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0) {
 		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
@@ -59,6 +61,8 @@ int uart_open(int port, int *file_hndl)
 
 int uart_close(int file_hndl)
 {
+	_D("file_hndl : %d", file_hndl);
+
 	if (!file_hndl) {
 		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
 		return -EINVAL;
@@ -70,6 +74,7 @@ int uart_close(int file_hndl)
 int uart_flush(int file_hndl)
 {
 	int ret;
+
 	if (!file_hndl) {
 		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
 		return -EINVAL;
@@ -88,6 +93,8 @@ int uart_set_baudrate(int file_hndl, uart_baudrate_e baud)
 {
 	int ret;
 	struct termios tio;
+
+	_D("file_hndl : %d, baud : %d", file_hndl, baud);
 
 	memset(&tio, 0, sizeof(tio));
 	if (!file_hndl) {
@@ -126,6 +133,8 @@ int uart_set_mode(int file_hndl, uart_bytesize_e bytesize, uart_parity_e parity,
 {
 	int ret;
 	struct termios tio;
+
+	_D("file_hndl : %d, bytesize : %d, parity : %d, stopbits : %d", file_hndl, bytesize, parity, stopbits);
 
 	if (!file_hndl) {
 		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
@@ -191,6 +200,8 @@ int uart_set_flowcontrol(int file_hndl, bool xonxoff, bool rtscts)
 {
 	int ret;
 	struct termios tio;
+
+	_D("file_hndl : %d, xonxoff : %d, rtscts : %d", file_hndl, xonxoff, rtscts);
 
 	if (!file_hndl) {
 		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);

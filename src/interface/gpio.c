@@ -32,6 +32,8 @@ int gpio_open(int gpiopin)
 	int fd, len, status;
 	char gpio_export[GPIO_BUFFER_MAX] = {0, };
 
+	_D("gpiopin : %d", gpiopin);
+
 	fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
@@ -58,6 +60,8 @@ int gpio_set_direction(int gpiopin, gpio_direction_e dir)
 {
 	int fd, status;
 	char gpio_dev[GPIO_BUFFER_MAX] = {0, };
+
+	_D("gpiopin : %d, dir : %d", gpiopin, dir);
 
 	snprintf(gpio_dev, GPIO_BUFFER_MAX, SYSFS_GPIO_DIR"/gpio%d/direction", gpiopin);
 	fd = open(gpio_dev, O_WRONLY);
@@ -133,6 +137,8 @@ int gpio_set_edge_mode(int gpiopin, gpio_edge_e edge)
 {
 	int fd, status;
 	char gpio_dev[GPIO_BUFFER_MAX] = {0, };
+
+	_D("gpiopin : %d, edge : %d", gpiopin, edge);
 
 	snprintf(gpio_dev, GPIO_BUFFER_MAX, SYSFS_GPIO_DIR"/gpio%d/edge", gpiopin);
 	fd = open(gpio_dev, O_WRONLY);
@@ -285,6 +291,8 @@ int gpio_close(int gpiopin)
 {
 	int fd, len, status;
 	char gpio_unexport[GPIO_BUFFER_MAX] = {0, };
+
+	_D("gpiopin : %d", gpiopin);
 
 	fd = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
 	if (fd < 0) {

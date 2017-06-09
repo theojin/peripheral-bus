@@ -37,6 +37,8 @@ int pwm_open(int device, int channel)
 	char pwm_dev[PATH_BUF_MAX] = {0};
 	char pwm_buf[PWM_BUF_MAX] = {0};
 
+	_D("device : %d, channel : %d", device, channel);
+
 	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/export", device);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
@@ -63,6 +65,8 @@ int pwm_close(int device, int channel)
 	int fd, len, status;
 	char pwm_dev[PATH_BUF_MAX] = {0};
 	char pwm_buf[PWM_BUF_MAX] = {0};
+
+	_D("device : %d, channel : %d", device, channel);
 
 	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/unexport", device);
 	fd = open(pwm_dev, O_WRONLY);
@@ -91,7 +95,8 @@ int pwm_set_period(int device, int channel, int period)
 	char pwm_buf[PWM_BUF_MAX] = {0};
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	_D("Set period : %d, device : %d, channel : %d", period, device, channel);
+	_D("device : %d, channel : %d, period : %d", device, channel, period);
+
 	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/period", device, channel);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
@@ -147,7 +152,8 @@ int pwm_set_duty_cycle(int device, int channel, int duty_cycle)
 	char pwm_buf[PWM_BUF_MAX] = {0};
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	_D("Set duty_cycle : %d, device : %d, channel : %d", duty_cycle, device, channel);
+	_D("device : %d, channel : %d, duty_cycle : %d", device, channel, duty_cycle);
+
 	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/duty_cycle", device, channel);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
@@ -202,7 +208,8 @@ int pwm_set_polarity(int device, int channel, pwm_polarity_e polarity)
 	int fd, status;
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	_D("Set polarity : %d, device : %d, channel : %d", polarity, device, channel);
+	_D("device : %d, channel : %d, polarity : %d", device, channel, polarity);
+
 	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/polarity", device, channel);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
@@ -274,7 +281,8 @@ int pwm_set_enable(int device, int channel, bool enable)
 	char pwm_buf[PWM_BUF_MAX] = {0};
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	_D("Set enable : %d, device : %d, channel : %d", enable, device, channel);
+	_D("device : %d, channel : %d, enable : %d", device, channel, enable);
+
 	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/enable", device, channel);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
