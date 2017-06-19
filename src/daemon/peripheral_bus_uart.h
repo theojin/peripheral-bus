@@ -17,13 +17,13 @@
 #ifndef __PERIPHERAL_BUS_UART_H__
 #define __PERIPHERAL_BUS_UART_H__
 
-int peripheral_bus_uart_open(int port, pb_uart_data_h *uart, gpointer user_data);
-int peripheral_bus_uart_close(pb_uart_data_h uart);
-int peripheral_bus_uart_flush(pb_uart_data_h uart);
-int peripheral_bus_uart_set_baudrate(pb_uart_data_h uart, int baudrate);
-int peripheral_bus_uart_set_mode(pb_uart_data_h uart, int byte_size, int parity, int stop_bits);
-int peripheral_bus_uart_set_flowcontrol(pb_uart_data_h uart, int xonxoff, int rtscts);
-int peripheral_bus_uart_read(pb_uart_data_h uart, GVariant **data_array, int length);
-int peripheral_bus_uart_write(pb_uart_data_h uart, GVariant *data_array, int length);
+int peripheral_bus_uart_open(int port, pb_data_h *handle, gpointer user_data);
+int peripheral_bus_uart_close(pb_data_h handle);
+int peripheral_bus_uart_flush(pb_data_h handle);
+int peripheral_bus_uart_set_baudrate(pb_data_h handle, int baudrate);
+int peripheral_bus_uart_set_mode(pb_data_h handle, int byte_size, int parity, int stop_bits);
+int peripheral_bus_uart_set_flowcontrol(pb_data_h handle, int xonxoff, int rtscts);
+int peripheral_bus_uart_read(pb_data_h handle, GVariant **data_array, int length);
+int peripheral_bus_uart_write(pb_data_h handle, GVariant *data_array, int length);
 
 #endif /* __PERIPHERAL_BUS_UART_H__ */

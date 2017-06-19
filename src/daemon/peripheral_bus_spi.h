@@ -17,18 +17,18 @@
 #ifndef __PERIPHERAL_BUS_SPI_H__
 #define __PERIPHERAL_BUS_SPI_H__
 
-int peripheral_bus_spi_open(int bus, int cs, pb_spi_data_h *spi, gpointer user_data);
-int peripheral_bus_spi_close(pb_spi_data_h spi);
-int peripheral_bus_spi_set_mode(pb_spi_data_h spi, unsigned char mode);
-int peripheral_bus_spi_get_mode(pb_spi_data_h spi, unsigned char *mode);
-int peripheral_bus_spi_set_lsb_first(pb_spi_data_h spi, gboolean lsb);
-int peripheral_bus_spi_get_lsb_first(pb_spi_data_h spi, gboolean *lsb);
-int peripheral_bus_spi_set_bits(pb_spi_data_h spi, unsigned char bits);
-int peripheral_bus_spi_get_bits(pb_spi_data_h spi, unsigned char *bits);
-int peripheral_bus_spi_set_frequency(pb_spi_data_h spi, unsigned int freq);
-int peripheral_bus_spi_get_frequency(pb_spi_data_h spi, unsigned int *freq);
-int peripheral_bus_spi_read(pb_spi_data_h spi, GVariant **data_array, int length);
-int peripheral_bus_spi_write(pb_spi_data_h spi, GVariant *data_array, int length);
-int peripheral_bus_spi_read_write(pb_spi_data_h spi, GVariant *tx_data_array, GVariant **rx_data_array, int length);
+int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_data);
+int peripheral_bus_spi_close(pb_data_h handle);
+int peripheral_bus_spi_set_mode(pb_data_h handle, unsigned char mode);
+int peripheral_bus_spi_get_mode(pb_data_h handle, unsigned char *mode);
+int peripheral_bus_spi_set_lsb_first(pb_data_h handle, gboolean lsb);
+int peripheral_bus_spi_get_lsb_first(pb_data_h handle, gboolean *lsb);
+int peripheral_bus_spi_set_bits(pb_data_h handle, unsigned char bits);
+int peripheral_bus_spi_get_bits(pb_data_h handle, unsigned char *bits);
+int peripheral_bus_spi_set_frequency(pb_data_h handle, unsigned int freq);
+int peripheral_bus_spi_get_frequency(pb_data_h handle, unsigned int *freq);
+int peripheral_bus_spi_read(pb_data_h handle, GVariant **data_array, int length);
+int peripheral_bus_spi_write(pb_data_h handle, GVariant *data_array, int length);
+int peripheral_bus_spi_read_write(pb_data_h handle, GVariant *tx_data_array, GVariant **rx_data_array, int length);
 
 #endif /* __PERIPHERAL_BUS_SPI_H__ */

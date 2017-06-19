@@ -23,72 +23,32 @@
 #include "gpio.h"
 #include "peripheral_bus.h"
 #include "peripheral_common.h"
+#include "peripheral_bus_util.h"
 
-static pb_gpio_data_h peripheral_bus_gpio_data_get(int pin, GList **list)
+static bool peripheral_bus_gpio_is_available(int pin, GList *list)
 {
-	GList *gpio_list = *list;
 	GList *link;
-	pb_gpio_data_h gpio_data = NULL;
+	pb_data_h handle = NULL;
 
-	if (!gpio_list)
-		return NULL;
-
-	link = gpio_list;
+	link = list;
 	while (link) {
-		gpio_data = (pb_gpio_data_h)link->data;
-		if (gpio_data->pin == pin)
-			return gpio_data;
-
+		handle = (pb_data_h)link->data;
+		if (handle->dev.gpio.pin == pin)
+			return false;
 		link = g_list_next(link);
 	}
 
-	return NULL;
+	return true;
 }
 
-static pb_gpio_data_h peripheral_bus_gpio_data_new(GList **list)
-{
-	GList *gpio_list = *list;
-	pb_gpio_data_h gpio_data;
-
-	gpio_data = (pb_gpio_data_h)calloc(1, sizeof(peripheral_bus_gpio_data_s));
-	if (gpio_data == NULL) {
-		_E("failed to allocate peripheral_bus_gpio_data_s");
-		return NULL;
-	}
-
-	*list = g_list_append(gpio_list, gpio_data);
-
-	return gpio_data;
-}
-
-static int peripheral_bus_gpio_data_free(pb_gpio_data_h gpio_handle, GList **gpio_list)
-{
-	GList *link;
-
-	RETVM_IF(gpio_handle == NULL, -1, "handle is null");
-
-	link = g_list_find(*gpio_list, gpio_handle);
-	if (!link) {
-		_E("handle does not exist in list");
-		return -1;
-	}
-
-	*gpio_list = g_list_remove_link(*gpio_list, link);
-	free(gpio_handle);
-	g_list_free(link);
-
-	return 0;
-}
-
-int peripheral_bus_gpio_open(gint pin, pb_gpio_data_h *gpio, gpointer user_data)
+int peripheral_bus_gpio_open(gint pin, pb_data_h *handle, gpointer user_data)
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	pb_gpio_data_h gpio_handle;
+	pb_data_h gpio_handle;
 	int edge, direction;
 	int ret;
 
-	gpio_handle = peripheral_bus_gpio_data_get(pin, &pb_data->gpio_list);
-	if (gpio_handle) {
+	if (!peripheral_bus_gpio_is_available(pin, pb_data->gpio_list)) {
 		_E("gpio %d is busy", pin);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
@@ -108,20 +68,21 @@ int peripheral_bus_gpio_open(gint pin, pb_gpio_data_h *gpio, gpointer user_data)
 		goto err;
 	}
 
-	gpio_handle = peripheral_bus_gpio_data_new(&pb_data->gpio_list);
+	gpio_handle = peripheral_bus_data_new(&pb_data->gpio_list);
 	if (!gpio_handle) {
-		_E("peripheral_bus_gpio_data_new error");
+		_E("peripheral_bus_data_new error");
 		ret = PERIPHERAL_ERROR_UNKNOWN;
 		goto err;
 	}
 
-	gpio_handle->pin = pin;
-	gpio_handle->edge = edge;
-	gpio_handle->direction = direction;
+	gpio_handle->type = PERIPHERAL_BUS_TYPE_GPIO;
 	gpio_handle->list = &pb_data->gpio_list;
-	gpio_handle->gpio_skeleton = pb_data->gpio_skeleton;
+	gpio_handle->dev.gpio.pin = pin;
+	gpio_handle->dev.gpio.edge = edge;
+	gpio_handle->dev.gpio.direction = direction;
+	gpio_handle->dev.gpio.gpio_skeleton = pb_data->gpio_skeleton;
 
-	*gpio = gpio_handle;
+	*handle = gpio_handle;
 
 	return PERIPHERAL_ERROR_NONE;
 
@@ -132,8 +93,9 @@ open_err:
 	return ret;
 }
 
-int peripheral_bus_gpio_set_direction(pb_gpio_data_h gpio, gint direction)
+int peripheral_bus_gpio_set_direction(pb_data_h handle, gint direction)
 {
+	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
 	int ret;
 
 	gpio->direction = direction;
@@ -146,10 +108,11 @@ int peripheral_bus_gpio_set_direction(pb_gpio_data_h gpio, gint direction)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_bus_gpio_get_direction(pb_gpio_data_h gpio, gint *direction)
+int peripheral_bus_gpio_get_direction(pb_data_h handle, gint *direction)
 {
-	gint value;
+	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
 	int ret;
+	gint value;
 
 	if ((ret = gpio_get_direction(gpio->pin, (gpio_direction_e*)direction)) < 0) {
 		_E("gpio_get_direction error (%d)", ret);
@@ -168,8 +131,9 @@ int peripheral_bus_gpio_get_direction(pb_gpio_data_h gpio, gint *direction)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_bus_gpio_set_edge(pb_gpio_data_h gpio, gint edge)
+int peripheral_bus_gpio_set_edge(pb_data_h handle, gint edge)
 {
+	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
 	int ret;
 
 	if ((ret = gpio_set_edge_mode(gpio->pin, (gpio_edge_e)edge)) < 0) {
@@ -182,8 +146,9 @@ int peripheral_bus_gpio_set_edge(pb_gpio_data_h gpio, gint edge)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_bus_gpio_get_edge(pb_gpio_data_h gpio, gint *edge)
+int peripheral_bus_gpio_get_edge(pb_data_h handle, gint *edge)
 {
+	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
 	int ret;
 
 	if ((ret = gpio_get_edge_mode(gpio->pin, (gpio_edge_e*)edge)) < 0) {
@@ -196,8 +161,9 @@ int peripheral_bus_gpio_get_edge(pb_gpio_data_h gpio, gint *edge)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_bus_gpio_write(pb_gpio_data_h gpio, gint value)
+int peripheral_bus_gpio_write(pb_data_h handle, gint value)
 {
+	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
 	int ret;
 
 	/* Return error if direction is input mode */
@@ -214,8 +180,9 @@ int peripheral_bus_gpio_write(pb_gpio_data_h gpio, gint value)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_bus_gpio_read(pb_gpio_data_h gpio, gint *value)
+int peripheral_bus_gpio_read(pb_data_h handle, gint *value)
 {
+	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
 	int ret;
 
 	if ((ret = gpio_read(gpio->pin, value)) < 0) {
@@ -228,7 +195,7 @@ int peripheral_bus_gpio_read(pb_gpio_data_h gpio, gint *value)
 
 static gboolean  peripheral_bus_gpio_cb(GIOChannel *io, GIOCondition condition, gpointer data)
 {
-	pb_gpio_data_h gpio_data = (pb_gpio_data_h)data;
+	peripheral_bus_gpio_s *gpio_data = (peripheral_bus_gpio_s *)data;
 	GIOStatus status;
 	gchar* strval;
 	int value;
@@ -271,8 +238,9 @@ static gboolean  peripheral_bus_gpio_cb(GIOChannel *io, GIOCondition condition, 
 	return TRUE;
 }
 
-int peripheral_bus_gpio_register_irq(pb_gpio_data_h gpio)
+int peripheral_bus_gpio_register_irq(pb_data_h handle)
 {
+	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
 	GIOStatus status;
 	gchar* strval;
 
@@ -316,8 +284,10 @@ err_open_isr:
 	return PERIPHERAL_ERROR_UNKNOWN;
 }
 
-int peripheral_bus_gpio_unregister_irq(pb_gpio_data_h gpio)
+int peripheral_bus_gpio_unregister_irq(pb_data_h handle)
 {
+	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
+
 	if (gpio->io) {
 		gpio->irq_en = 0;
 		g_source_remove(gpio->io_id);
@@ -331,18 +301,18 @@ int peripheral_bus_gpio_unregister_irq(pb_gpio_data_h gpio)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_bus_gpio_close(pb_gpio_data_h gpio)
+int peripheral_bus_gpio_close(pb_data_h handle)
 {
-	int ret;
-	int pin = gpio->pin;
+	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
+	int ret = PERIPHERAL_ERROR_NONE;
 
-	if (peripheral_bus_gpio_data_free(gpio, gpio->list) < 0)
-		_E("Failed to free gpio data");
-
-	if ((ret = gpio_close(pin)) < 0) {
-		_E("gpio_close error (%d)", ret);
+	if ((ret = gpio_close(gpio->pin)) < 0)
 		return ret;
+
+	if (peripheral_bus_data_free(handle) < 0) {
+		_E("Failed to free gpio data");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
 	}
 
-	return PERIPHERAL_ERROR_NONE;
+	return ret;;
 }

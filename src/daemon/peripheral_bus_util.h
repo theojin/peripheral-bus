@@ -17,7 +17,8 @@
 #ifndef __PERIPHERAL_UTIL_H__
 #define __PERIPHERAL_UTIL_H__
 
-int peripheral_bus_get_client_info(GDBusMethodInvocation *invocation, peripheral_bus_s *pb_data, pb_client_info_s *client_info);
 GVariant *peripheral_bus_build_variant_ay(uint8_t *data, int length);
+pb_data_h peripheral_bus_data_new(GList **plist);
+int peripheral_bus_data_free(pb_data_h handle);
 
 #endif /* __PERIPHERAL_UTIL_H__ */

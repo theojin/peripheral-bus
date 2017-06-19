@@ -29,68 +29,30 @@
 #define INITIAL_BUFFER_SIZE 128
 #define MAX_BUFFER_SIZE 8192
 
-static pb_uart_data_h peripheral_bus_uart_data_get(int port, GList **list)
+static bool peripheral_bus_uart_is_available(int port, GList *list)
 {
-	GList *uart_list = *list;
 	GList *link;
-	pb_uart_data_h uart_handle;
+	pb_data_h handle;
 
-	link = uart_list;
+	link = list;
 	while (link) {
-		uart_handle = (pb_uart_data_h)link->data;
-		if (uart_handle->port == port)
-			return uart_handle;
+		handle = (pb_data_h)link->data;
+		if (handle->dev.uart.port == port)
+			return false;
 		link = g_list_next(link);
 	}
 
-	return NULL;
+	return true;
 }
 
-static pb_uart_data_h peripheral_bus_uart_data_new(GList **list)
-{
-	GList *uart_list = *list;
-	pb_uart_data_h uart_handle;
-
-	uart_handle = (pb_uart_data_h)calloc(1, sizeof(peripheral_bus_uart_data_s));
-	if (uart_handle == NULL) {
-		_E("failed to allocate peripheral_bus_uart_data_s");
-		return NULL;
-	}
-
-	*list = g_list_append(uart_list, uart_handle);
-
-	return uart_handle;
-}
-
-static int peripheral_bus_uart_data_free(pb_uart_data_h uart_handle, GList **uart_list)
-{
-	GList *link;
-
-	RETVM_IF(uart_handle == NULL, -1, "handle is null");
-
-	link = g_list_find(*uart_list, uart_handle);
-	if (!link) {
-		_E("handle does not exist in list");
-		return -1;
-	}
-
-	*uart_list = g_list_remove_link(*uart_list, link);
-	if (uart_handle->buffer)
-		free(uart_handle->buffer);
-	free(uart_handle);
-	g_list_free(link);
-
-	return 0;
-}
-
-int peripheral_bus_uart_open(int port, pb_uart_data_h *uart, gpointer user_data)
+int peripheral_bus_uart_open(int port, pb_data_h *handle, gpointer user_data)
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	pb_uart_data_h uart_handle;
+	pb_data_h uart_handle;
 	int ret = PERIPHERAL_ERROR_NONE;
 	int fd;
 
-	if (peripheral_bus_uart_data_get(port, &pb_data->uart_list)) {
+	if (!peripheral_bus_uart_is_available(port, pb_data->uart_list)) {
 		_E("Resource is in use, port : %d", port);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
@@ -98,67 +60,81 @@ int peripheral_bus_uart_open(int port, pb_uart_data_h *uart, gpointer user_data)
 	if ((ret = uart_open(port, &fd)) < 0)
 		return ret;
 
-	uart_handle = peripheral_bus_uart_data_new(&pb_data->uart_list);
+	uart_handle = peripheral_bus_data_new(&pb_data->uart_list);
 	if (!uart_handle) {
+		_E("peripheral_bus_data_new error");
 		uart_close(fd);
 		return PERIPHERAL_ERROR_OUT_OF_MEMORY;
 	}
 
-	uart_handle->fd = fd;
-	uart_handle->port = port;
+	uart_handle->type = PERIPHERAL_BUS_TYPE_UART;
 	uart_handle->list = &pb_data->uart_list;
+	uart_handle->dev.uart.fd = fd;
+	uart_handle->dev.uart.port = port;
 
-	uart_handle->buffer = (uint8_t*)calloc(1, INITIAL_BUFFER_SIZE);
-	if (!uart_handle->buffer) {
+	uart_handle->dev.uart.buffer = (uint8_t*)calloc(1, INITIAL_BUFFER_SIZE);
+	if (!uart_handle->dev.uart.buffer) {
 		_E("Failed to allocate buffer");
-		peripheral_bus_uart_data_free(uart_handle, &pb_data->uart_list);
+		peripheral_bus_data_free(uart_handle);
 		uart_close(fd);
 		return  PERIPHERAL_ERROR_OUT_OF_MEMORY;
 	}
 
-	uart_handle->buffer_size = INITIAL_BUFFER_SIZE;
-	*uart = uart_handle;
+	uart_handle->dev.uart.buffer_size = INITIAL_BUFFER_SIZE;
+	*handle = uart_handle;
 
 	return ret;
 }
 
-int peripheral_bus_uart_close(pb_uart_data_h uart)
+int peripheral_bus_uart_close(pb_data_h handle)
 {
-	int ret;
+	peripheral_bus_uart_s *uart = &handle->dev.uart;
+	int ret = PERIPHERAL_ERROR_NONE;
 
-	_D("uart_close, port : %d, id = %s", uart->port, uart->client_info.id);
+	_D("uart_close, port : %d, id = %s", uart->port, handle->client_info.id);
 
 	if ((ret = uart_close(uart->fd)) < 0)
 		return ret;
 
-	if (peripheral_bus_uart_data_free(uart, uart->list) < 0)
+	if (peripheral_bus_data_free(handle) < 0) {
 		_E("Failed to free uart data");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	}
 
 	return ret;
 }
 
-int peripheral_bus_uart_flush(pb_uart_data_h uart)
+int peripheral_bus_uart_flush(pb_data_h handle)
 {
+	peripheral_bus_uart_s *uart = &handle->dev.uart;
+
 	return  uart_flush(uart->fd);
 }
 
-int peripheral_bus_uart_set_baudrate(pb_uart_data_h uart, int baudrate)
+int peripheral_bus_uart_set_baudrate(pb_data_h handle, int baudrate)
 {
+	peripheral_bus_uart_s *uart = &handle->dev.uart;
+
 	return  uart_set_baudrate(uart->fd, baudrate);
 }
 
-int peripheral_bus_uart_set_mode(pb_uart_data_h uart, int byte_size, int parity, int stop_bits)
+int peripheral_bus_uart_set_mode(pb_data_h handle, int byte_size, int parity, int stop_bits)
 {
+	peripheral_bus_uart_s *uart = &handle->dev.uart;
+
 	return  uart_set_mode(uart->fd, byte_size, parity, stop_bits);
 }
 
-int peripheral_bus_uart_set_flowcontrol(pb_uart_data_h uart, bool xonxoff, bool rtscts)
+int peripheral_bus_uart_set_flowcontrol(pb_data_h handle, bool xonxoff, bool rtscts)
 {
+	peripheral_bus_uart_s *uart = &handle->dev.uart;
+
 	return  uart_set_flowcontrol(uart->fd, xonxoff, rtscts);
 }
 
-int peripheral_bus_uart_read(pb_uart_data_h uart, GVariant **data_array, int length)
+int peripheral_bus_uart_read(pb_data_h handle, GVariant **data_array, int length)
 {
+	peripheral_bus_uart_s *uart = &handle->dev.uart;
 	int ret;
 
 	/* Limit maximum length */
@@ -182,8 +158,9 @@ int peripheral_bus_uart_read(pb_uart_data_h uart, GVariant **data_array, int len
 	return ret;
 }
 
-int peripheral_bus_uart_write(pb_uart_data_h uart, GVariant *data_array, int length)
+int peripheral_bus_uart_write(pb_data_h handle, GVariant *data_array, int length)
 {
+	peripheral_bus_uart_s *uart = &handle->dev.uart;
 	GVariantIter *iter;
 	guchar str;
 	int i = 0;

@@ -17,10 +17,10 @@
 #ifndef __PERIPHERAL_BUS_I2C_H__
 #define __PERIPHERAL_BUS_I2C_H__
 
-int peripheral_bus_i2c_open(int bus, int address, pb_i2c_data_h *i2c, gpointer user_data);
-int peripheral_bus_i2c_close(pb_i2c_data_h i2c);
-int peripheral_bus_i2c_read(pb_i2c_data_h i2c, int length, GVariant **data_array);
-int peripheral_bus_i2c_write(pb_i2c_data_h i2c, int length, GVariant *data_array);
-int peripheral_bus_i2c_smbus_ioctl(pb_i2c_data_h i2c, uint8_t read_write, uint8_t command, uint32_t size, uint16_t data_in, uint16_t *data_out);
+int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer user_data);
+int peripheral_bus_i2c_close(pb_data_h handle);
+int peripheral_bus_i2c_read(pb_data_h handle, int length, GVariant **data_array);
+int peripheral_bus_i2c_write(pb_data_h handle, int length, GVariant *data_array);
+int peripheral_bus_i2c_smbus_ioctl(pb_data_h handle, uint8_t read_write, uint8_t command, uint32_t size, uint16_t data_in, uint16_t *data_out);
 
 #endif /* __PERIPHERAL_BUS_I2C_H__ */

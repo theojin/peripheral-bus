@@ -28,71 +28,30 @@
 #define INITIAL_BUFFER_SIZE 128
 #define MAX_BUFFER_SIZE 8192
 
-static pb_i2c_data_h peripheral_bus_i2c_data_get(int bus, int address, GList **list)
+static bool peripheral_bus_i2c_is_available(int bus, int address, GList *list)
 {
-	GList *i2c_list = *list;
 	GList *link;
-	pb_i2c_data_h i2c_handle;
+	pb_data_h handle;
 
-	if (i2c_list == NULL)
-		return NULL;
-
-	link = i2c_list;
+	link = list;
 	while (link) {
-		i2c_handle = (pb_i2c_data_h)link->data;
-		if (i2c_handle->bus == bus && i2c_handle->address == address)
-			return i2c_handle;
+		handle = (pb_data_h)link->data;
+		if (handle->dev.i2c.bus == bus && handle->dev.i2c.address == address)
+			return false;
 		link = g_list_next(link);
 	}
 
-	return NULL;
+	return true;
 }
 
-static pb_i2c_data_h peripheral_bus_i2c_data_new(GList **list)
-{
-	GList *i2c_list = *list;
-	pb_i2c_data_h i2c_handle;
-
-	i2c_handle = (pb_i2c_data_h)calloc(1, sizeof(peripheral_bus_i2c_data_s));
-	if (i2c_handle == NULL) {
-		_E("failed to allocate peripheral_bus_i2c_data_s");
-		return NULL;
-	}
-
-	*list = g_list_append(i2c_list, i2c_handle);
-
-	return i2c_handle;
-}
-
-static int peripheral_bus_i2c_data_free(pb_i2c_data_h i2c_handle, GList **i2c_list)
-{
-	GList *link;
-
-	RETVM_IF(i2c_handle == NULL, -1, "handle is null");
-
-	link = g_list_find(*i2c_list, i2c_handle);
-	if (!link) {
-		_E("handle does not exist in list");
-		return -1;
-	}
-
-	*i2c_list = g_list_remove_link(*i2c_list, link);
-	if (i2c_handle->buffer)
-		free(i2c_handle->buffer);
-	free(i2c_handle);
-	g_list_free(link);
-
-	return 0;
-}
-
-int peripheral_bus_i2c_open(int bus, int address, pb_i2c_data_h *i2c, gpointer user_data)
+int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer user_data)
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	pb_i2c_data_h i2c_handle;
+	pb_data_h i2c_handle;
 	int ret;
 	int fd;
 
-	if (peripheral_bus_i2c_data_get(bus, address, &pb_data->i2c_list)) {
+	if (!peripheral_bus_i2c_is_available(bus, address, pb_data->i2c_list)) {
 		_E("Resource is in use, bus : %d, address : %d", bus, address);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
@@ -105,22 +64,23 @@ int peripheral_bus_i2c_open(int bus, int address, pb_i2c_data_h *i2c, gpointer u
 		return ret;
 	}
 
-	i2c_handle = peripheral_bus_i2c_data_new(&pb_data->i2c_list);
+	i2c_handle = peripheral_bus_data_new(&pb_data->i2c_list);
 
-	i2c_handle->fd = fd;
-	i2c_handle->bus = bus;
-	i2c_handle->address = address;
+	i2c_handle->type = PERIPHERAL_BUS_TYPE_I2C;
 	i2c_handle->list = &pb_data->i2c_list;
-	i2c_handle->buffer = malloc(INITIAL_BUFFER_SIZE);
+	i2c_handle->dev.i2c.fd = fd;
+	i2c_handle->dev.i2c.bus = bus;
+	i2c_handle->dev.i2c.address = address;
+	i2c_handle->dev.i2c.buffer = malloc(INITIAL_BUFFER_SIZE);
 
-	if (!(i2c_handle->buffer)) {
+	if (!(i2c_handle->dev.i2c.buffer)) {
 		i2c_close(fd);
 		_E("Failed to allocate data buffer");
 		return PERIPHERAL_ERROR_OUT_OF_MEMORY;
 	}
-	i2c_handle->buffer_size = INITIAL_BUFFER_SIZE;
+	i2c_handle->dev.i2c.buffer_size = INITIAL_BUFFER_SIZE;
 
-	*i2c = i2c_handle;
+	*handle = i2c_handle;
 
 	_D("bus : %d, address : %d, pgid = %d, id = %s", bus, address,
 		i2c_handle->client_info.pgid,
@@ -129,23 +89,27 @@ int peripheral_bus_i2c_open(int bus, int address, pb_i2c_data_h *i2c, gpointer u
 	return ret;
 }
 
-int peripheral_bus_i2c_close(pb_i2c_data_h i2c)
+int peripheral_bus_i2c_close(pb_data_h handle)
 {
-	int ret;
+	peripheral_bus_i2c_s *i2c = &handle->dev.i2c;
+	int ret = PERIPHERAL_ERROR_NONE;
 
-	_D("bus : %d, address : %d, pgid = %d", i2c->bus, i2c->address, i2c->client_info.pgid);
+	_D("bus : %d, address : %d, pgid = %d", i2c->bus, i2c->address, handle->client_info.pgid);
 
 	if ((ret = i2c_close(i2c->fd)) < 0)
 		return ret;
 
-	if (peripheral_bus_i2c_data_free(i2c, i2c->list) < 0)
+	if (peripheral_bus_data_free(handle) < 0) {
 		_E("Failed to free i2c data");
+		ret = PERIPHERAL_ERROR_UNKNOWN;
+	}
 
 	return ret;
 }
 
-int peripheral_bus_i2c_read(pb_i2c_data_h i2c, int length, GVariant **data_array)
+int peripheral_bus_i2c_read(pb_data_h handle, int length, GVariant **data_array)
 {
+	peripheral_bus_i2c_s *i2c = &handle->dev.i2c;
 	uint8_t err_buf[2] = {0, };
 	int ret;
 
@@ -177,8 +141,9 @@ out:
 	return ret;
 }
 
-int peripheral_bus_i2c_write(pb_i2c_data_h i2c, int length, GVariant *data_array)
+int peripheral_bus_i2c_write(pb_data_h handle, int length, GVariant *data_array)
 {
+	peripheral_bus_i2c_s *i2c = &handle->dev.i2c;
 	GVariantIter *iter;
 	guchar str;
 	int i = 0;
@@ -204,8 +169,9 @@ int peripheral_bus_i2c_write(pb_i2c_data_h i2c, int length, GVariant *data_array
 	return i2c_write(i2c->fd, i2c->buffer, length);
 }
 
-int peripheral_bus_i2c_smbus_ioctl(pb_i2c_data_h i2c, uint8_t read_write, uint8_t command, uint32_t size, uint16_t data_in, uint16_t *data_out)
+int peripheral_bus_i2c_smbus_ioctl(pb_data_h handle, uint8_t read_write, uint8_t command, uint32_t size, uint16_t data_in, uint16_t *data_out)
 {
+	peripheral_bus_i2c_s *i2c = &handle->dev.i2c;
 	struct i2c_smbus_ioctl_data data_arg;
 	union i2c_smbus_data data;
 	int ret;

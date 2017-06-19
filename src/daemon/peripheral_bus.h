@@ -21,6 +21,15 @@
 
 #include "peripheral_io_gdbus.h"
 
+typedef enum {
+	PERIPHERAL_BUS_TYPE_GPIO = 0,
+	PERIPHERAL_BUS_TYPE_I2C,
+	PERIPHERAL_BUS_TYPE_PWM,
+	PERIPHERAL_BUS_TYPE_ADC,
+	PERIPHERAL_BUS_TYPE_UART,
+	PERIPHERAL_BUS_TYPE_SPI,
+} peripheral_bus_type_e;
+
 typedef struct {
 	/* daemon variable */
 	char *adc_path;
@@ -57,13 +66,9 @@ typedef struct {
 	int value_fd;
 	GIOChannel *io;
 	guint io_id;
-	uint watch_id;
-	GList **list;
-	/* client info */
-	pb_client_info_s client_info;
 	/* gdbus variable */
 	PeripheralIoGdbusGpio *gpio_skeleton;
-} peripheral_bus_gpio_data_s;
+} peripheral_bus_gpio_s;
 
 typedef struct {
 	/* i2c device information */
@@ -73,31 +78,19 @@ typedef struct {
 	/* data buffer */
 	uint8_t *buffer;
 	int buffer_size;
-	uint watch_id;
-	GList **list;
-	/* client info */
-	pb_client_info_s client_info;
-} peripheral_bus_i2c_data_s;
+} peripheral_bus_i2c_s;
 
 typedef struct {
 	int device;
 	int channel;
-	uint watch_id;
-	GList **list;
-	/* client info */
-	pb_client_info_s client_info;
-} peripheral_bus_pwm_data_s;
+} peripheral_bus_pwm_s;
 
 typedef struct {
 	int port;
 	int fd;
 	uint8_t *buffer;
 	int buffer_size;
-	uint watch_id;
-	GList **list;
-	/* client info */
-	pb_client_info_s client_info;
-} peripheral_bus_uart_data_s;
+} peripheral_bus_uart_s;
 
 typedef struct {
 	int bus;
@@ -108,17 +101,24 @@ typedef struct {
 	uint8_t *tx_buf;
 	int rx_buf_size;
 	int tx_buf_size;
+} peripheral_bus_spi_s;
+
+typedef struct {
+	peripheral_bus_type_e type;
 	uint watch_id;
 	GList **list;
 	/* client info */
 	pb_client_info_s client_info;
-} peripheral_bus_spi_data_s;
+	union {
+		peripheral_bus_gpio_s gpio;
+		peripheral_bus_i2c_s i2c;
+		peripheral_bus_pwm_s pwm;
+		peripheral_bus_uart_s uart;
+		peripheral_bus_spi_s spi;
+	} dev;
+} peripheral_bus_data_s;
 
-typedef peripheral_bus_gpio_data_s *pb_gpio_data_h;
-typedef peripheral_bus_i2c_data_s *pb_i2c_data_h;
-typedef peripheral_bus_pwm_data_s *pb_pwm_data_h;
-typedef peripheral_bus_uart_data_s *pb_uart_data_h;
-typedef peripheral_bus_spi_data_s *pb_spi_data_h;
+typedef peripheral_bus_data_s *pb_data_h;
 
 void peripheral_bus_emit_gpio_changed(PeripheralIoGdbusGpio *gpio,
 									gint pin,
