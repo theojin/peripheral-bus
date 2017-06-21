@@ -35,9 +35,24 @@ mkdir -p %{buildroot}%{_unitdir}/multi-user.target.wants
 install -m 0644 %SOURCE2 %{buildroot}%{_unitdir}/peripheral-bus.service
 %install_service multi-user.target.wants peripheral-bus.service
 
-%post -p /sbin/ldconfig
+%post
+systemctl daemon-reload
+if [ $1 == 1 ]; then
+	# install
+	systemctl start %{name}.service
+elif [ $1 == 2 ]; then
+	# upgrade
+	systemctl restart %{name}.service
+fi
 
-%postun -p /sbin/ldconfig
+%preun
+if [ $1 == 0 ]; then
+	# uninstall
+	systemctl stop %{name}.service
+fi
+
+%postun
+systemctl daemon-reload
 
 %files
 %manifest %{name}.manifest
