@@ -20,6 +20,7 @@
 #include <gio/gio.h>
 
 #include "peripheral_io_gdbus.h"
+#include "peripheral_bus_board.h"
 
 typedef enum {
 	PERIPHERAL_BUS_TYPE_GPIO = 0,
@@ -31,6 +32,7 @@ typedef enum {
 } peripheral_bus_type_e;
 
 typedef struct {
+	pb_board_s *board;
 	/* daemon variable */
 	char *adc_path;
 	/* devices */

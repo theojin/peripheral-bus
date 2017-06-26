@@ -1686,6 +1686,11 @@ int main(int argc, char *argv[])
 	}
 
 	pb_data->adc_path = NULL;
+	pb_data->board = peripheral_bus_board_init();
+	if (pb_data->board == NULL) {
+		_E("failed to init board");
+		return -1;
+	}
 
 	owner_id = g_bus_own_name(G_BUS_TYPE_SYSTEM,
 							  PERIPHERAL_GDBUS_NAME,
@@ -1708,6 +1713,7 @@ int main(int argc, char *argv[])
 	g_main_loop_run(loop);
 
 	if (pb_data) {
+		peripheral_bus_board_deinit(pb_data->board);
 		if (pb_data->adc_path)
 			free(pb_data->adc_path);
 		free(pb_data);

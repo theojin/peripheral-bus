@@ -12,6 +12,7 @@ BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(gio-2.0)
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(capi-system-peripheral-io)
+BuildRequires:  pkgconfig(iniparser)
 
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
@@ -25,6 +26,7 @@ cp %{SOURCE1} ./
 cp %{SOURCE2} ./
 
 %build
+export CFLAGS="$CFLAGS -DSYSCONFDIR=\\\"%{_sysconfdir}\\\""
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 %cmake . -DMAJORVER=${MAJORVER} -DFULLVER=%{version}
 
@@ -34,6 +36,9 @@ MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 mkdir -p %{buildroot}%{_unitdir}/multi-user.target.wants
 install -m 0644 %SOURCE2 %{buildroot}%{_unitdir}/peripheral-bus.service
 %install_service multi-user.target.wants peripheral-bus.service
+
+mkdir -p %{buildroot}/etc/peripheral-bus
+cp %{_builddir}/%{name}-%{version}/data/*.ini %{buildroot}/etc/%{name}
 
 %post
 systemctl daemon-reload
@@ -61,3 +66,4 @@ systemctl daemon-reload
 %{_bindir}/peripheral-bus
 %{_unitdir}/peripheral-bus.service
 %{_unitdir}/multi-user.target.wants/peripheral-bus.service
+/etc/peripheral-bus/*.ini

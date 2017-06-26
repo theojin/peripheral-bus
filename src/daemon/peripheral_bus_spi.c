@@ -28,16 +28,28 @@
 static int initial_buffer_size = 128;
 static int max_buffer_size = 4096;
 
-static bool peripheral_bus_spi_is_available(int bus, int cs, GList *list)
+static bool peripheral_bus_spi_is_available(int bus, int cs, peripheral_bus_s *pb_data)
 {
-	GList *link;
+	pb_board_dev_s *spi = NULL;
 	pb_data_h handle;
+	GList *link;
 
-	link = list;
+	RETV_IF(pb_data == NULL, false);
+	RETV_IF(pb_data->board == NULL, false);
+
+	spi = peripheral_bus_board_find_device(PB_BOARD_DEV_SPI, pb_data->board, bus, cs);
+	if (spi == NULL) {
+		_E("Not supported SPI bus : %d, cs : %d", bus, cs);
+		return false;
+	}
+
+	link = pb_data->spi_list;
 	while (link) {
 		handle = (pb_data_h)link->data;
-		if (handle->dev.spi.bus == bus && handle->dev.spi.cs == cs)
+		if (handle->dev.spi.bus == bus && handle->dev.spi.cs == cs) {
+			_E("Resource is in use, bus : %d, cs : %d", bus, cs);
 			return false;
+		}
 		link = g_list_next(link);
 	}
 
@@ -51,8 +63,8 @@ int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_da
 	int ret = PERIPHERAL_ERROR_NONE;
 	int fd, bufsiz;
 
-	if (!peripheral_bus_spi_is_available(bus, cs, pb_data->spi_list)) {
-		_E("Resource is in use, bus : %d, cs : %d", bus, cs);
+	if (!peripheral_bus_spi_is_available(bus, cs, pb_data)) {
+		_E("spi %d.%d is not available", bus, cs);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 

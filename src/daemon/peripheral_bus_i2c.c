@@ -28,16 +28,28 @@
 #define INITIAL_BUFFER_SIZE 128
 #define MAX_BUFFER_SIZE 8192
 
-static bool peripheral_bus_i2c_is_available(int bus, int address, GList *list)
+static bool peripheral_bus_i2c_is_available(int bus, int address, peripheral_bus_s *pb_data)
 {
-	GList *link;
+	pb_board_dev_s *i2c = NULL;
 	pb_data_h handle;
+	GList *link;
 
-	link = list;
+	RETV_IF(pb_data == NULL, false);
+	RETV_IF(pb_data->board == NULL, false);
+
+	i2c = peripheral_bus_board_find_device(PB_BOARD_DEV_I2C, pb_data->board, bus);
+	if (i2c == NULL) {
+		_E("Not supported I2C bus : %d", bus);
+		return false;
+	}
+
+	link = pb_data->i2c_list;
 	while (link) {
 		handle = (pb_data_h)link->data;
-		if (handle->dev.i2c.bus == bus && handle->dev.i2c.address == address)
+		if (handle->dev.i2c.bus == bus && handle->dev.i2c.address == address) {
+			_E("Resource is in use, bus : %d, address : %d", bus, address);
 			return false;
+		}
 		link = g_list_next(link);
 	}
 
@@ -51,8 +63,8 @@ int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer us
 	int ret;
 	int fd;
 
-	if (!peripheral_bus_i2c_is_available(bus, address, pb_data->i2c_list)) {
-		_E("Resource is in use, bus : %d, address : %d", bus, address);
+	if (!peripheral_bus_i2c_is_available(bus, address, pb_data)) {
+		_E("i2c %d (address : %X) is not available", bus, address);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 

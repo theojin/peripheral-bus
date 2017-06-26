@@ -29,16 +29,28 @@
 #define INITIAL_BUFFER_SIZE 128
 #define MAX_BUFFER_SIZE 8192
 
-static bool peripheral_bus_uart_is_available(int port, GList *list)
+static bool peripheral_bus_uart_is_available(int port, peripheral_bus_s *pb_data)
 {
-	GList *link;
+	pb_board_dev_s *uart = NULL;
 	pb_data_h handle;
+	GList *link;
 
-	link = list;
+	RETV_IF(pb_data == NULL, false);
+	RETV_IF(pb_data->board == NULL, false);
+
+	uart = peripheral_bus_board_find_device(PB_BOARD_DEV_UART, pb_data->board, port);
+	if (uart == NULL) {
+		_E("Not supported UART port : %d", port);
+		return false;
+	}
+
+	link = pb_data->uart_list;
 	while (link) {
 		handle = (pb_data_h)link->data;
-		if (handle->dev.uart.port == port)
+		if (handle->dev.uart.port == port) {
+			_E("Resource is in use, port : %d", port);
 			return false;
+		}
 		link = g_list_next(link);
 	}
 
@@ -52,8 +64,8 @@ int peripheral_bus_uart_open(int port, pb_data_h *handle, gpointer user_data)
 	int ret = PERIPHERAL_ERROR_NONE;
 	int fd;
 
-	if (!peripheral_bus_uart_is_available(port, pb_data->uart_list)) {
-		_E("Resource is in use, port : %d", port);
+	if (!peripheral_bus_uart_is_available(port, pb_data)) {
+		_E("uart %d is not available", port);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 

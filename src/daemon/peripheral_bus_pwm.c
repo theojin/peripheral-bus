@@ -25,16 +25,28 @@
 #include "peripheral_common.h"
 #include "peripheral_bus_util.h"
 
-static bool peripheral_bus_pwm_is_available(int device, int channel, GList *list)
+static bool peripheral_bus_pwm_is_available(int device, int channel, peripheral_bus_s *pb_data)
 {
-	GList *link;
+	pb_board_dev_s *pwm = NULL;
 	pb_data_h handle;
+	GList *link;
 
-	link = list;
+	RETV_IF(pb_data == NULL, false);
+	RETV_IF(pb_data->board == NULL, false);
+
+	pwm = peripheral_bus_board_find_device(PB_BOARD_DEV_PWM, pb_data->board, device, channel);
+	if (pwm == NULL) {
+		_E("Not supported PWM device : %d, channel : %d", device, channel);
+		return false;
+	}
+
+	link = pb_data->pwm_list;
 	while (link) {
 		handle = (pb_data_h)link->data;
-		if (handle->dev.pwm.device == device && handle->dev.pwm.channel == channel)
+		if (handle->dev.pwm.device == device && handle->dev.pwm.channel == channel) {
+			_E("Resource is in use, device : %d, channel : %d", device, channel);
 			return false;
+		}
 		link = g_list_next(link);
 	}
 
@@ -47,8 +59,8 @@ int peripheral_bus_pwm_open(int device, int channel, pb_data_h *handle, gpointer
 	pb_data_h pwm_handle;
 	int ret;
 
-	if (!peripheral_bus_pwm_is_available(device, channel, pb_data->pwm_list)) {
-		_E("Resource is in use, device : %d, channel : %d", device, channel);
+	if (!peripheral_bus_pwm_is_available(device, channel, pb_data)) {
+		_E("pwm %d.%d is not available", device, channel);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 

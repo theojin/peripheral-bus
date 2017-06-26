@@ -25,16 +25,28 @@
 #include "peripheral_common.h"
 #include "peripheral_bus_util.h"
 
-static bool peripheral_bus_gpio_is_available(int pin, GList *list)
+static bool peripheral_bus_gpio_is_available(int pin, peripheral_bus_s *pb_data)
 {
+	pb_board_dev_s *gpio = NULL;
+	pb_data_h handle;
 	GList *link;
-	pb_data_h handle = NULL;
 
-	link = list;
+	RETV_IF(pb_data == NULL, false);
+	RETV_IF(pb_data->board == NULL, false);
+
+	gpio = peripheral_bus_board_find_device(PB_BOARD_DEV_GPIO, pb_data->board, pin);
+	if (gpio == NULL) {
+		_E("Not supported GPIO pin : %d", pin);
+		return false;
+	}
+
+	link = pb_data->gpio_list;
 	while (link) {
 		handle = (pb_data_h)link->data;
-		if (handle->dev.gpio.pin == pin)
+		if (handle->dev.gpio.pin == pin) {
+			_E("gpio %d is busy", pin);
 			return false;
+		}
 		link = g_list_next(link);
 	}
 
@@ -48,8 +60,8 @@ int peripheral_bus_gpio_open(gint pin, pb_data_h *handle, gpointer user_data)
 	int edge, direction;
 	int ret;
 
-	if (!peripheral_bus_gpio_is_available(pin, pb_data->gpio_list)) {
-		_E("gpio %d is busy", pin);
+	if (!peripheral_bus_gpio_is_available(pin, pb_data)) {
+		_E("gpio %d is not available", pin);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
