@@ -1,6 +1,7 @@
 [Unit]
 Description=Peripheral Service Daemon
 Requires=dbus.service
+After=systemd-tmpfiles-setup.service
 
 [Service]
 SmackProcessLabel=System

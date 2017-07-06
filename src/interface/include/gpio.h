@@ -33,17 +33,16 @@ typedef enum {
 	GPIO_EDGE_BOTH = 3,
 } gpio_edge_e;
 
-int gpio_get_edge_mode(int gpiopin, gpio_edge_e *edge);
-int gpio_get_direction(int gpiopin, gpio_direction_e *dir);
-int gpio_read(int gpiopin, int *value);
 int gpio_open(int gpiopin);
 int gpio_close(int gpiopin);
 int gpio_set_edge_mode(int gpiopin, gpio_edge_e edge);
+int gpio_get_edge_mode(int gpiopin, gpio_edge_e *edge);
 int gpio_set_direction(int gpiopin, gpio_direction_e dir);
+int gpio_get_direction(int gpiopin, gpio_direction_e *dir);
 int gpio_write(int gpiopin, int value);
+int gpio_read(int gpiopin, int *value);
 
 int gpio_open_isr(int gpiopin);
 int gpio_close_isr(int file_hndl);
 int gpio_read_isr(void *fdset, char *rev_buf, int length);
-//int gpio_read_isr(void *fdset, char *rev_buf, int length);
 #endif/*__GPIO_H__*/
