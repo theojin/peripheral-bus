@@ -27,12 +27,20 @@
 #include "uart.h"
 #include "peripheral_common.h"
 
-#define SYSFS_UART_PATH		"/dev/ttySAC"
-
 #define PATH_BUF_MAX		64
 #define UART_BUF_MAX		16
 
 #define UART_BAUDRATE_SIZE	19
+
+#ifndef ARRAY_SIZE
+#define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
+#endif
+
+char *sysfs_uart_path[] = {
+	"/dev/ttyS",
+	"/dev/ttyAMA",
+	"/dev/ttySAC",
+};
 
 static const int peripheral_uart_br[UART_BAUDRATE_SIZE] = {
 	B0,			B50,		B75,		B110,		B134,
@@ -45,14 +53,19 @@ static const int byteinfo[4] = {CS5, CS6, CS7, CS8};
 
 int uart_open(int port, int *file_hndl)
 {
-	int fd;
-	char fName[PATH_BUF_MAX] = {0};
+	int i, fd;
+	char uart_dev[PATH_BUF_MAX] = {0};
 
 	_D("port : %d", port);
 
-	snprintf(fName, PATH_BUF_MAX, SYSFS_UART_PATH "%d", port);
-	if ((fd = open(fName, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, fName, __FUNCTION__, __LINE__);
+	for (i = 0; i < ARRAY_SIZE(sysfs_uart_path); i++) {
+		snprintf(uart_dev, PATH_BUF_MAX, "%s%d", sysfs_uart_path[i], port);
+		if (access(uart_dev, F_OK) == 0)
+			break;
+	}
+
+	if ((fd = open(uart_dev, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0) {
+		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, uart_dev, __FUNCTION__, __LINE__);
 		return -ENXIO;
 	}
 	*file_hndl = fd;
