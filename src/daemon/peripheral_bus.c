@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <gio/gio.h>
+#include <systemd/sd-daemon.h>
 
 #include <peripheral_io.h>
 #include <peripheral_gdbus.h>
@@ -1673,6 +1674,14 @@ static void on_name_lost(GDBusConnection *conn,
 	_E("Dbus name is lost!");
 }
 
+static gboolean peripheral_bus_notify(gpointer data)
+{
+	_D("sd_notify(READY=1)");
+	sd_notify(0, "READY=1");
+
+	return G_SOURCE_REMOVE;
+}
+
 int main(int argc, char *argv[])
 {
 	GMainLoop *loop;
@@ -1708,6 +1717,8 @@ int main(int argc, char *argv[])
 	}
 
 	loop = g_main_loop_new(NULL, FALSE);
+
+	g_idle_add(peripheral_bus_notify, NULL);
 
 	_D("Enter main loop!");
 	g_main_loop_run(loop);

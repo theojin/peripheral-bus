@@ -4,7 +4,7 @@ PROJECT(peripheral-bus C)
 SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(VERSION 0.0.1)
 
-SET(dependents "dlog glib-2.0 gio-2.0 gio-unix-2.0 iniparser libudev")
+SET(dependents "dlog glib-2.0 gio-2.0 gio-unix-2.0 libsystemd-daemon iniparser libudev")
 
 FIND_PROGRAM(GDBUS_CODEGEN NAMES gdbus-codegen)
 EXEC_PROGRAM(${GDBUS_CODEGEN} ARGS

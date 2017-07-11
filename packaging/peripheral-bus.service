@@ -5,10 +5,11 @@ After=systemd-tmpfiles-setup.service
 
 [Service]
 SmackProcessLabel=System
-Type=simple
+Type=notify
 ExecStart=/usr/bin/peripheral-bus
 Restart=always
 RestartSec=0
 
 [Install]
 WantedBy=tizen-system.target
+
