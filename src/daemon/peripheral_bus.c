@@ -1277,13 +1277,15 @@ gboolean handle_spi_read_write(
 	return true;
 }
 
-void peripheral_bus_emit_gpio_changed(PeripheralIoGdbusGpio *gpio,
-									gint pin,
-									gint state)
+void peripheral_bus_emit_gpio_changed(
+		PeripheralIoGdbusGpio *gpio,
+		gint pin,
+		gint value,
+		guint64 timestamp)
 {
 	g_assert(gpio != NULL);
 
-	peripheral_io_gdbus_gpio_emit_gpio_changed(gpio, pin, state);
+	peripheral_io_gdbus_gpio_emit_gpio_changed(gpio, pin, value, timestamp);
 }
 
 static gboolean __gpio_init(peripheral_bus_s *pb_data)

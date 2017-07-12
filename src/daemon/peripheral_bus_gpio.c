@@ -282,6 +282,8 @@ int peripheral_bus_gpio_read(pb_data_h handle, gint *value)
 static gboolean  peripheral_bus_gpio_cb(GIOChannel *io, GIOCondition condition, gpointer data)
 {
 	peripheral_bus_gpio_s *gpio_data = (peripheral_bus_gpio_s *)data;
+	struct timeval time;
+	unsigned long long timestamp;
 	GIOStatus status;
 	gchar* strval;
 	int value;
@@ -292,6 +294,8 @@ static gboolean  peripheral_bus_gpio_cb(GIOChannel *io, GIOCondition condition, 
 	if (gpio_data->direction != PERIPHERAL_GPIO_DIRECTION_IN
 		|| gpio_data->edge == PERIPHERAL_GPIO_EDGE_NONE)
 		return TRUE;
+
+	gettimeofday(&time, NULL);
 
 	g_io_channel_seek_position(io, 0, G_SEEK_SET, NULL);
 	status = g_io_channel_read_line(io, &strval, NULL, NULL, NULL);
@@ -319,7 +323,8 @@ static gboolean  peripheral_bus_gpio_cb(GIOChannel *io, GIOCondition condition, 
 	else if (gpio_data->edge == PERIPHERAL_GPIO_EDGE_FALLING && value == 1)
 		return TRUE;
 
-	peripheral_bus_emit_gpio_changed(gpio_data->gpio_skeleton, gpio_data->pin, value);
+	timestamp = (unsigned long long)(time.tv_sec * 1000000 + time.tv_usec);
+	peripheral_bus_emit_gpio_changed(gpio_data->gpio_skeleton, gpio_data->pin, value, timestamp);
 
 	return TRUE;
 }

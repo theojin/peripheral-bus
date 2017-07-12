@@ -50,7 +50,8 @@
 		</method>
 		<signal name='GpioChanged'>
 			<arg type='i' name='pin'/>
-			<arg type='i' name='state'/>
+			<arg type='i' name='value'/>
+			<arg type='t' name='timestamp'/>
 		</signal>
 	</interface>
 	<interface name="org.tizen.peripheral_io.i2c">
