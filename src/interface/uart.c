@@ -35,6 +35,7 @@
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
 #endif
+#define MAX_ERR_LEN 128
 
 char *sysfs_uart_path[] = {
 	"/dev/ttyS",
@@ -63,9 +64,11 @@ int uart_open(int port, int *file_hndl)
 		if (access(uart_dev, F_OK) == 0)
 			break;
 	}
-
+	_D("uart_dev : %s", uart_dev);
 	if ((fd = open(uart_dev, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0) {
-		_E("Error[%d]: can't open %s, %s--[%d]\n", errno, uart_dev, __FUNCTION__, __LINE__);
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("can't open %s, errmsg : %s", uart_dev, errmsg);
 		return -ENXIO;
 	}
 	*file_hndl = fd;
@@ -77,7 +80,7 @@ int uart_close(int file_hndl)
 	_D("file_hndl : %d", file_hndl);
 
 	if (!file_hndl) {
-		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		_E("Invalid NULL parameter");
 		return -EINVAL;
 	}
 	close(file_hndl);
@@ -89,13 +92,15 @@ int uart_flush(int file_hndl)
 	int ret;
 
 	if (!file_hndl) {
-		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		_E("Invalid NULL parameter");
 		return -EINVAL;
 	}
 
 	ret = tcflush(file_hndl, TCIOFLUSH);
 	if (ret < 0) {
-		_E("FAILED[%d]: tcflush, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("tcflush failed, errmsg : %s", errmsg);
 		return -1;
 	}
 
@@ -111,18 +116,20 @@ int uart_set_baudrate(int file_hndl, uart_baudrate_e baud)
 
 	memset(&tio, 0, sizeof(tio));
 	if (!file_hndl) {
-		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		_E("Invalid NULL parameter");
 		return -EINVAL;
 	}
 
 	if (baud > UART_BAUDRATE_230400) {
-		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		_E("Invalid parameter");
 		return -EINVAL;
 	}
 
 	ret = tcgetattr(file_hndl, &tio);
 	if (ret) {
-		_E("Error[%d]: tcgetattr, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("tcgetattr failed, errmsg : %s", errmsg);
 		return -1;
 	}
 	tio.c_cflag = peripheral_uart_br[baud];
@@ -135,7 +142,9 @@ int uart_set_baudrate(int file_hndl, uart_baudrate_e baud)
 	uart_flush(file_hndl);
 	ret = tcsetattr(file_hndl, TCSANOW, &tio);
 	if (ret) {
-		_E("Error[%d]: tcsetattr, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("tcsetattr failed, errmsg: %s", errmsg);
 		return -1;
 	}
 
@@ -150,19 +159,21 @@ int uart_set_mode(int file_hndl, uart_bytesize_e bytesize, uart_parity_e parity,
 	_D("file_hndl : %d, bytesize : %d, parity : %d, stopbits : %d", file_hndl, bytesize, parity, stopbits);
 
 	if (!file_hndl) {
-		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		_E("Invalid NULL parameter");
 		return -EINVAL;
 	}
 
 	ret = tcgetattr(file_hndl, &tio);
 	if (ret) {
-		_E("Error[%d]: tcgetattr, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("tcgetattr failed, errmsg: %s", errmsg);
 		return -1;
 	}
 
 	/* set byte size */
 	if (bytesize < UART_BYTESIZE_5BIT || bytesize > UART_BYTESIZE_8BIT) {
-		_E("Error[%d]: Invalid parameter bytesize, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		_E("Invalid parameter bytesize");
 		return -EINVAL;
 	}
 	tio.c_cflag &= ~CSIZE;
@@ -195,14 +206,16 @@ int uart_set_mode(int file_hndl, uart_bytesize_e bytesize, uart_parity_e parity,
 		tio.c_cflag |= CSTOPB;
 		break;
 	default:
-		_E("Error[%d]: Invalid parameter stopbits, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		_E("Invalid parameter stopbits");
 		return -EINVAL;
 	}
 
 	uart_flush(file_hndl);
 	ret = tcsetattr(file_hndl, TCSANOW, &tio);
 	if (ret) {
-		_E("Error[%d]: tcsetattr, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("tcsetattr failed, errmsg : %s", errmsg);
 		return -1;
 	}
 
@@ -217,13 +230,15 @@ int uart_set_flowcontrol(int file_hndl, bool xonxoff, bool rtscts)
 	_D("file_hndl : %d, xonxoff : %d, rtscts : %d", file_hndl, xonxoff, rtscts);
 
 	if (!file_hndl) {
-		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		_E("Invalid NULL parameter");
 		return -EINVAL;
 	}
 
 	ret = tcgetattr(file_hndl, &tio);
 	if (ret) {
-		_E("Error[%d]: tcgetattr, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("tcgetattr failed, errmsg : %s", errmsg);
 		return -1;
 	}
 
@@ -241,7 +256,9 @@ int uart_set_flowcontrol(int file_hndl, bool xonxoff, bool rtscts)
 
 	ret = tcsetattr(file_hndl, TCSANOW, &tio);
 	if (ret) {
-		_E("Error[%d]: tcsetattr, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("tcsetattr failed, errmsg : %s", errmsg);
 		return -1;
 	}
 
@@ -251,14 +268,17 @@ int uart_set_flowcontrol(int file_hndl, bool xonxoff, bool rtscts)
 int uart_read(int file_hndl, uint8_t *buf, unsigned int length)
 {
 	int ret;
+
 	if (!file_hndl) {
-		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		_E("Invalid NULL parameter");
 		return -EINVAL;
 	}
 
 	ret = read(file_hndl, (void *)buf, length);
 	if ((errno != EAGAIN && errno != EINTR) && ret < 0) {
-		_E("Error[%d]: read, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("read failed, errmsg : %s", errmsg);
 		return -EIO;
 	}
 
@@ -268,14 +288,17 @@ int uart_read(int file_hndl, uint8_t *buf, unsigned int length)
 int uart_write(int file_hndl, uint8_t *buf, unsigned int length)
 {
 	int ret;
+
 	if (!file_hndl) {
-		_E("Error[%d]: Invalid parameter, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		_E("Invalid NULL parameter");
 		return -EINVAL;
 	}
 
 	ret = write(file_hndl, buf, length);
 	if (ret < 0) {
-		_E("Error[%d]: write, %s--[%d]\n", errno, __FUNCTION__, __LINE__);
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("write failed, errmsg : %s", errmsg);
 		return -EIO;
 	}
 
