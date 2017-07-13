@@ -323,7 +323,7 @@ static gboolean  peripheral_bus_gpio_cb(GIOChannel *io, GIOCondition condition, 
 	else if (gpio_data->edge == PERIPHERAL_GPIO_EDGE_FALLING && value == 1)
 		return TRUE;
 
-	timestamp = (unsigned long long)(time.tv_sec * 1000000 + time.tv_usec);
+	timestamp = (unsigned long long)time.tv_sec * 1000000 + time.tv_usec;
 	peripheral_bus_emit_gpio_changed(gpio_data->gpio_skeleton, gpio_data->pin, value, timestamp);
 
 	return TRUE;
