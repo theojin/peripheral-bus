@@ -16,6 +16,7 @@ EXEC_PROGRAM(${GDBUS_CODEGEN} ARGS
                 ")
 
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/daemon)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/daemon/include)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/interface/include)
 
 SET(PERIPHERAL-BUS "peripheral-bus")
