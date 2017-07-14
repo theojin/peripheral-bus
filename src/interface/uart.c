@@ -163,6 +163,11 @@ int uart_set_mode(int file_hndl, uart_bytesize_e bytesize, uart_parity_e parity,
 		return -EINVAL;
 	}
 
+	if (bytesize > UART_BYTESIZE_8BIT) {
+		_E("Invalid bytesize parameter");
+		return -EINVAL;
+	}
+
 	ret = tcgetattr(file_hndl, &tio);
 	if (ret) {
 		char errmsg[MAX_ERR_LEN];
@@ -172,10 +177,6 @@ int uart_set_mode(int file_hndl, uart_bytesize_e bytesize, uart_parity_e parity,
 	}
 
 	/* set byte size */
-	if (bytesize < UART_BYTESIZE_5BIT || bytesize > UART_BYTESIZE_8BIT) {
-		_E("Invalid parameter bytesize");
-		return -EINVAL;
-	}
 	tio.c_cflag &= ~CSIZE;
 	tio.c_cflag |= byteinfo[bytesize];
 	tio.c_cflag |= (CLOCAL | CREAD);
