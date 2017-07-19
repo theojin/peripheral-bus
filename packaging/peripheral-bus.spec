@@ -1,6 +1,6 @@
 Name:       peripheral-bus
 Summary:    Tizen Peripheral Input & Output Service Daemon
-Version:    0.0.5
+Version:    0.0.6
 Release:    0
 Group:      System & System Tools
 License:    Apache-2.0
