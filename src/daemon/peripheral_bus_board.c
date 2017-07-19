@@ -29,13 +29,13 @@
 #define STR_BUF_MAX			255
 
 #define BOARD_INI_ARTIK710_PATH	SYSCONFDIR"/peripheral-bus/pio_board_artik710.ini"
-#define BOARD_INI_RP3_B_12_PATH	SYSCONFDIR"/peripheral-bus/pio_board_rp3_b_12.ini"
+#define BOARD_INI_RP3_B_PATH	SYSCONFDIR"/peripheral-bus/pio_board_rp3_b.ini"
 #define BOARD_INI_UNKNOWN_PATH	SYSCONFDIR"/peripheral-bus/pio_board_unknown.ini"
 
 static const pb_board_type_s pb_board_type[] = {
 	{PB_BOARD_ARTIK710, "artik710 raptor", BOARD_INI_ARTIK710_PATH},
 	{PB_BOARD_ARTIK530, "artik530 raptor", BOARD_INI_ARTIK710_PATH},
-	{PB_BOARD_RP3_B_12, "Raspberry Pi 3 Model B Rev 1.2", BOARD_INI_RP3_B_12_PATH},
+	{PB_BOARD_RP3_B, "Raspberry Pi 3 Model B", BOARD_INI_RP3_B_PATH},
 	{PB_BOARD_UNKOWN, "unkown board", BOARD_INI_UNKNOWN_PATH},
 };
 
