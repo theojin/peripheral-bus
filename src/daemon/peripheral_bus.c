@@ -984,7 +984,7 @@ gboolean handle_spi_open(
 		goto out;
 
 	if (peripheral_bus_get_client_info(invocation, pb_data, &spi_handle->client_info) < 0) {
-		peripheral_bus_gpio_close(spi_handle);
+		peripheral_bus_spi_close(spi_handle);
 		ret = PERIPHERAL_ERROR_UNKNOWN;
 		goto out;
 	}
