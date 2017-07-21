@@ -25,6 +25,7 @@
 
 #include "gpio.h"
 #include "peripheral_bus.h"
+#include "peripheral_bus_gdbus_gpio.h"
 #include "peripheral_common.h"
 #include "peripheral_bus_util.h"
 

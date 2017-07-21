@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2016-2017 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef __PERIPHERAL_UTIL_H__
-#define __PERIPHERAL_UTIL_H__
+#ifndef __PERIPHERAL_BUS_GDBUS_ADC_H__
+#define __PERIPHERAL_BUS_GDBUS_ADC_H__
 
-GVariant *peripheral_bus_build_variant_ay(uint8_t *data, int length);
-pb_data_h peripheral_bus_data_new(GList **plist);
-int peripheral_bus_data_free(pb_data_h handle);
+#include "peripheral_io_gdbus.h"
 
-int peripheral_bus_get_client_info(
+gboolean handle_adc_read(
+		PeripheralIoGdbusAdc *adc,
 		GDBusMethodInvocation *invocation,
-		peripheral_bus_s *pb_data,
-		pb_client_info_s *client_info);
+		guint device,
+		guint channel,
+		gpointer user_data);
 
-int peripheral_bus_handle_is_valid(
-		GDBusMethodInvocation *invocation,
-		pb_data_h handle,
-		GList *list);
-
-#endif /* __PERIPHERAL_UTIL_H__ */
+#endif /* __PERIPHERAL_BUS_GDBUS_ADC_H__ */

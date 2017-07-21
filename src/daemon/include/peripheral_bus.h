@@ -122,8 +122,4 @@ typedef struct {
 
 typedef peripheral_bus_data_s *pb_data_h;
 
-void peripheral_bus_emit_gpio_changed(PeripheralIoGdbusGpio *gpio,
-									gint pin,
-									gint value,
-									guint64 timestamp);
 #endif /* __PERIPHERAL_BUS_H__ */
