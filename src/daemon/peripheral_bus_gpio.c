@@ -253,9 +253,11 @@ int peripheral_bus_gpio_write(pb_data_h handle, gint value)
 	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
 	int ret;
 
-	/* Return error if direction is input mode */
-	if (gpio->direction == GPIO_DIRECTION_IN)
-		return PERIPHERAL_ERROR_IO_ERROR;
+	/* Return error if direction of the pin is input mode */
+	if (gpio->direction == GPIO_DIRECTION_IN) {
+		_E("The direction of the pin is INPUT mode, Cannot write");
+		return PERIPHERAL_ERROR_INVALID_OPERATION;
+	}
 
 	if ((ret = gpio_write(gpio->pin, value)) < 0) {
 		_E("gpio_write error (%d)", ret);
