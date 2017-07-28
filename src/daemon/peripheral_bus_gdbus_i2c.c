@@ -61,7 +61,7 @@ gboolean handle_i2c_open(
 			__i2c_on_name_vanished,
 			i2c_handle,
 			NULL);
-	_D("bus : %d, address : %d, id = %s", bus, address, i2c_handle->client_info.id);
+	_D("bus : %d, address : 0x%x, id = %s", bus, address, i2c_handle->client_info.id);
 
 out:
 	peripheral_io_gdbus_i2c_complete_open(i2c, invocation, GPOINTER_TO_UINT(i2c_handle), ret);

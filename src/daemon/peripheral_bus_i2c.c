@@ -63,10 +63,10 @@ int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer us
 	int ret;
 	int fd;
 
-	if (!peripheral_bus_i2c_is_available(bus, address, pb_data)) {
-		_E("i2c %d (address : %X) is not available", bus, address);
+	_D("bus : %d, address : 0x%x", bus, address);
+
+	if (!peripheral_bus_i2c_is_available(bus, address, pb_data))
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
-	}
 
 	if ((ret = i2c_open(bus, &fd)) < 0)
 		return ret;
@@ -94,10 +94,6 @@ int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer us
 
 	*handle = i2c_handle;
 
-	_D("bus : %d, address : %d, pgid = %d, id = %s", bus, address,
-		i2c_handle->client_info.pgid,
-		i2c_handle->client_info.id);
-
 	return ret;
 }
 
@@ -106,7 +102,7 @@ int peripheral_bus_i2c_close(pb_data_h handle)
 	peripheral_bus_i2c_s *i2c = &handle->dev.i2c;
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	_D("bus : %d, address : %d, pgid = %d", i2c->bus, i2c->address, handle->client_info.pgid);
+	_D("bus : %d, address : 0x%x, pgid = %d", i2c->bus, i2c->address, handle->client_info.pgid);
 
 	if ((ret = i2c_close(i2c->fd)) < 0)
 		return ret;
@@ -143,6 +139,9 @@ int peripheral_bus_i2c_read(pb_data_h handle, int length, GVariant **data_array)
 	}
 
 	ret = i2c_read(i2c->fd, i2c->buffer, length);
+	if (ret < 0)
+		_E("Read Failed, bus : %d, address : 0x%x", i2c->bus, i2c->address);
+
 	*data_array = peripheral_bus_build_variant_ay(i2c->buffer, length);
 
 	return ret;
@@ -158,7 +157,7 @@ int peripheral_bus_i2c_write(pb_data_h handle, int length, GVariant *data_array)
 	peripheral_bus_i2c_s *i2c = &handle->dev.i2c;
 	GVariantIter *iter;
 	guchar str;
-	int i = 0;
+	int ret, i = 0;
 
 	/* Limit maximum length */
 	if (length > MAX_BUFFER_SIZE) length = MAX_BUFFER_SIZE;
@@ -178,7 +177,11 @@ int peripheral_bus_i2c_write(pb_data_h handle, int length, GVariant *data_array)
 		i2c->buffer[i++] = str;
 	g_variant_iter_free(iter);
 
-	return i2c_write(i2c->fd, i2c->buffer, length);
+	ret = i2c_write(i2c->fd, i2c->buffer, length);
+	if (ret < 0)
+		_E("Write Failed, bus : %d, address : 0x%x", i2c->bus, i2c->address);
+
+	return ret;
 }
 
 int peripheral_bus_i2c_smbus_ioctl(pb_data_h handle, uint8_t read_write, uint8_t command, uint32_t size, uint16_t data_in, uint16_t *data_out)
@@ -188,7 +191,6 @@ int peripheral_bus_i2c_smbus_ioctl(pb_data_h handle, uint8_t read_write, uint8_t
 	union i2c_smbus_data data;
 	int ret;
 
-	memset(&data_arg, 0x0, sizeof(struct i2c_smbus_ioctl_data));
 	memset(&data, 0x0, sizeof(data.block));
 
 	data_arg.read_write = read_write;
@@ -211,6 +213,8 @@ int peripheral_bus_i2c_smbus_ioctl(pb_data_h handle, uint8_t read_write, uint8_t
 	}
 
 	ret = i2c_smbus_ioctl(i2c->fd, &data_arg);
+	if (ret < 0)
+		_E("Ioctl failed, bus : %d, address : 0x%x", i2c->bus, i2c->address);
 
 	if (ret == 0 && read_write == I2C_SMBUS_READ) {
 		if (size == I2C_SMBUS_BYTE_DATA || size == I2C_SMBUS_BYTE)
