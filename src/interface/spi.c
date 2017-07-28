@@ -47,6 +47,7 @@ int spi_open(int bus, int cs, int *fd)
 		_E("Can't Open %s, errmsg : %s", spi_dev, errmsg);
 		return -ENXIO;
 	}
+	_D("fd : %d", new_fd);
 	*fd = new_fd;
 
 	return 0;
@@ -57,8 +58,7 @@ int spi_close(int fd)
 	int status;
 
 	_D("fd : %d", fd);
-
-	if (fd < 0) return -EINVAL;
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
 	status = close(fd);
 	if (status < 0) {
@@ -76,10 +76,8 @@ int spi_set_mode(int fd, unsigned char mode)
 	int status;
 
 	_D("fd : %d, mode : %d", fd, mode);
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
-	if (fd < 0) return -EINVAL;
-
-	_D("Set mode : %d", mode);
 	status = ioctl(fd, SPI_IOC_WR_MODE, &mode);
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
@@ -96,13 +94,14 @@ int spi_get_mode(int fd, unsigned char *mode)
 	unsigned char value = 0;
 	int status;
 
-	if (fd < 0) return -EINVAL;
+	_D("fd : %d", fd);
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
 	status = ioctl(fd, SPI_IOC_RD_MODE, &value);
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to get mode : %s", errmsg);
+		_E("Failed to get mode, fd : %d, errmsg : %s", fd, errmsg);
 		return -EIO;
 	}
 	*mode = value;
@@ -115,15 +114,13 @@ int spi_set_lsb_first(int fd, unsigned char lsb)
 	int status;
 
 	_D("fd : %d, lsb : %d", fd, lsb);
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
-	if (fd < 0) return -EINVAL;
-
-	_D("Set lsb first : %d", lsb);
 	status = ioctl(fd, SPI_IOC_WR_LSB_FIRST, &lsb);
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to set lsb first(%d) : %s", lsb, errmsg);
+		_E("Failed to set lsb first(%d), fd : %d, errmsg : %s", lsb, fd, errmsg);
 		return -EIO;
 	}
 
@@ -135,13 +132,14 @@ int spi_get_lsb_first(int fd, unsigned char *lsb)
 	unsigned char value = 0;
 	int status;
 
-	if (fd < 0) return -EINVAL;
+	_D("fd : %d", fd);
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
 	status = ioctl(fd, SPI_IOC_RD_LSB_FIRST, &value);
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to get lsb first : %s", errmsg);
+		_E("Failed to get lsb first, fd : %d, errmsg : %s", fd, errmsg);
 		return -EIO;
 	}
 	*lsb = value ? 1 : 0;
@@ -154,15 +152,13 @@ int spi_set_bits(int fd, unsigned char bits)
 	int status;
 
 	_D("fd : %d, bits : %d", fd, bits);
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
-	if (fd < 0) return -EINVAL;
-
-	_D("Set bit per word : %d", bits);
 	status = ioctl(fd, SPI_IOC_WR_BITS_PER_WORD, &bits);
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to set bits(%d) : %s", bits, errmsg);
+		_E("Failed to set bits(%d), fd : %d, errmsg : %s", bits, fd, errmsg);
 		return -EIO;
 	}
 
@@ -174,13 +170,14 @@ int spi_get_bits(int fd, unsigned char *bits)
 	unsigned char value = 0;
 	int status;
 
-	if (fd < 0) return -EINVAL;
+	_D("fd : %d", fd);
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
 	status = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &value);
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to get bits : %s", errmsg);
+		_E("Failed to get bits, fd : %d, errmsg : %s", fd, errmsg);
 		return -EIO;
 	}
 	*bits = value;
@@ -193,15 +190,13 @@ int spi_set_frequency(int fd, unsigned int freq)
 	int status;
 
 	_D("fd : %d, freq : %d", fd, freq);
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
-	if (fd < 0) return -EINVAL;
-
-	_D("Set frequency : %d", freq);
 	status = ioctl(fd, SPI_IOC_WR_MAX_SPEED_HZ, &freq);
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to set frequency(%d) : %s", freq, errmsg);
+		_E("Failed to set frequency(%d), fd : %d, errmsg : %s", freq, fd, errmsg);
 		return -EIO;
 	}
 
@@ -213,13 +208,14 @@ int spi_get_frequency(int fd, unsigned int *freq)
 	unsigned int value = 0;
 	int status;
 
-	if (fd < 0) return -EINVAL;
+	_D("fd : %d", fd);
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
 	status = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &value);
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to get frequency : %s", errmsg);
+		_E("Failed to get frequency, fd : %d, errmsg : %s", fd, errmsg);
 		return -EIO;
 	}
 	*freq = value;
@@ -258,7 +254,7 @@ int spi_read(int fd, unsigned char *rxbuf, int length)
 	int status;
 	struct spi_ioc_transfer xfer;
 
-	if (fd < 0) return -EINVAL;
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd : %d", fd);
 
 	memset(&xfer, 0, sizeof(struct spi_ioc_transfer));
 	xfer.rx_buf = (unsigned long)rxbuf;
@@ -268,7 +264,7 @@ int spi_read(int fd, unsigned char *rxbuf, int length)
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to read data(%d) : %s", length, errmsg);
+		_E("Failed to read data, fd : %d, length : %d, errmsg : %s", fd, length, errmsg);
 		return -EIO;
 	}
 
@@ -280,7 +276,7 @@ int spi_write(int fd, unsigned char *txbuf, int length)
 	int status;
 	struct spi_ioc_transfer xfer;
 
-	if (fd < 0) return -EINVAL;
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd : %d", fd);
 
 	memset(&xfer, 0, sizeof(struct spi_ioc_transfer));
 	xfer.tx_buf = (unsigned long)txbuf;
@@ -302,7 +298,7 @@ int spi_read_write(int fd, unsigned char *txbuf, unsigned char *rxbuf, int lengt
 	int status;
 	struct spi_ioc_transfer xfer[2];
 
-	if (fd < 0) return -EINVAL;
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd : %d", fd);
 
 	if (!txbuf || !rxbuf || length < 0) return -EINVAL;
 

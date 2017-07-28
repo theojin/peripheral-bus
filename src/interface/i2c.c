@@ -36,13 +36,13 @@ int i2c_open(int bus, int *fd)
 
 	snprintf(i2c_dev, sizeof(i2c_dev)-1, SYSFS_I2C_DIR"-%d", bus);
 	new_fd = open(i2c_dev, O_RDWR);
-
 	if (new_fd < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Can't Open %s : %s", i2c_dev, errmsg);
 		return -ENXIO;
 	}
+	_D("fd : %d", new_fd);
 	*fd = new_fd;
 
 	return 0;
@@ -53,10 +53,9 @@ int i2c_close(int fd)
 	int status;
 
 	_D("fd : %d", fd);
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
-	if (fd < 0) return -EINVAL;
 	status = close(fd);
-
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
@@ -71,14 +70,14 @@ int i2c_set_address(int fd, int address)
 {
 	int status;
 
-	_D("slave address : 0x%x", address);
+	_D("fd : %d, slave address : 0x%x", fd, address);
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
 	status = ioctl(fd, I2C_SLAVE, address);
-
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to set slave address(%x) : %s", address, errmsg);
+		_E("Failed to set slave address(%x), fd : %d, errmsg : %s", address, fd, errmsg);
 		return status;
 	}
 
@@ -89,12 +88,13 @@ int i2c_read(int fd, unsigned char *data, int length)
 {
 	int status;
 
-	status = read(fd, data, length);
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd : %d", fd);
 
+	status = read(fd, data, length);
 	if (status != length) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("i2c_read failed : %s", errmsg);
+		_E("i2c read failed, fd : %d, errmsg : %s", fd, errmsg);
 		return -EIO;
 	}
 
@@ -105,12 +105,13 @@ int i2c_write(int fd, const unsigned char *data, int length)
 {
 	int status;
 
-	status = write(fd, data, length);
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd : %d", fd);
 
+	status = write(fd, data, length);
 	if (status != length) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("i2c write failed : %s\n", errmsg);
+		_E("i2c write failed fd : %d, errmsg : %s", fd, errmsg);
 		return -EIO;
 	}
 
@@ -121,11 +122,13 @@ int i2c_smbus_ioctl(int fd, struct i2c_smbus_ioctl_data *data)
 {
 	int status;
 
+	RETVM_IF(fd < 0, -EINVAL, "Invalid fd : %d", fd);
+
 	status = ioctl(fd, I2C_SMBUS, data);
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("i2c write failed : %s\n", errmsg);
+		_E("i2c transaction failed fd : %d, errmsg : %s", fd, errmsg);
 		return -EIO;
 	}
 
