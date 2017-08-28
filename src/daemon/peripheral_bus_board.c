@@ -36,7 +36,7 @@ static const pb_board_type_s pb_board_type[] = {
 	{PB_BOARD_ARTIK710, "artik710 raptor", BOARD_INI_ARTIK710_PATH},
 	{PB_BOARD_ARTIK530, "artik530 raptor", BOARD_INI_ARTIK710_PATH},
 	{PB_BOARD_RP3_B, "Raspberry Pi 3 Model B", BOARD_INI_RP3_B_PATH},
-	{PB_BOARD_UNKOWN, "unkown board", BOARD_INI_UNKNOWN_PATH},
+	{PB_BOARD_UNKNOWN, "unknown board", BOARD_INI_UNKNOWN_PATH},
 };
 
 static int peripheral_bus_board_get_device_type(char *string)
@@ -122,7 +122,7 @@ static int peripheral_bus_board_get_type(void)
 {
 	int fd, i;
 	char str_buf[STR_BUF_MAX] = {0};
-	int type = PB_BOARD_UNKOWN;
+	int type = PB_BOARD_UNKNOWN;
 
 	fd = open(BOARD_DEVICE_TREE, O_RDONLY);
 	if (fd < 0) {
@@ -137,7 +137,7 @@ static int peripheral_bus_board_get_type(void)
 		return -EIO;
 	}
 
-	for (i = 0; i < PB_BOARD_UNKOWN; i++) {
+	for (i = 0; i < PB_BOARD_UNKNOWN; i++) {
 		if (strstr(str_buf, pb_board_type[i].name)) {
 			type = pb_board_type[i].type;
 			break;
