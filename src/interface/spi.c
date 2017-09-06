@@ -300,19 +300,18 @@ int spi_write(int fd, unsigned char *txbuf, int length)
 int spi_read_write(int fd, unsigned char *txbuf, unsigned char *rxbuf, int length)
 {
 	int status;
-	struct spi_ioc_transfer xfer[2];
+	struct spi_ioc_transfer xfer;
 
 	if (fd < 0) return -EINVAL;
 
 	if (!txbuf || !rxbuf || length < 0) return -EINVAL;
 
-	memset(xfer, 0, sizeof(xfer));
-	xfer[0].tx_buf = (unsigned long)txbuf;
-	xfer[0].len = length;
-	xfer[1].rx_buf = (unsigned long)rxbuf;
-	xfer[1].len = length;
+	memset(&xfer, 0, sizeof(xfer));
+	xfer.tx_buf = (unsigned long)txbuf;
+	xfer.rx_buf = (unsigned long)rxbuf;
+	xfer.len = length;
 
-	status = ioctl(fd, SPI_IOC_MESSAGE(2), xfer);
+	status = ioctl(fd, SPI_IOC_MESSAGE(1), xfer);
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
