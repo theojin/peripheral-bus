@@ -129,75 +129,6 @@ int peripheral_bus_i2c_close(pb_data_h handle)
 	return ret;
 }
 
-int peripheral_bus_i2c_read(pb_data_h handle, int length, GVariant **data_array)
-{
-	peripheral_bus_i2c_s *i2c = &handle->dev.i2c;
-	uint8_t err_buf[2] = {0, };
-	int ret;
-
-	/* Limit maximum length */
-	if (length > MAX_BUFFER_SIZE) length = MAX_BUFFER_SIZE;
-
-	/* Increase buffer if needed */
-	if (length > i2c->buffer_size) {
-		uint8_t *new;
-		new = (uint8_t*)realloc(i2c->buffer, length);
-
-		if (!new) {
-			ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
-			_E("Failed to realloc buffer");
-			goto out;
-		}
-		i2c->buffer = new;
-		i2c->buffer_size = length;
-	}
-
-	ret = i2c_read(i2c->fd, i2c->buffer, length);
-	if (ret < 0)
-		_E("Read Failed, bus : %d, address : 0x%x", i2c->bus, i2c->address);
-
-	*data_array = peripheral_bus_build_variant_ay(i2c->buffer, length);
-
-	return ret;
-
-out:
-	*data_array = peripheral_bus_build_variant_ay(err_buf, sizeof(err_buf));
-
-	return ret;
-}
-
-int peripheral_bus_i2c_write(pb_data_h handle, int length, GVariant *data_array)
-{
-	peripheral_bus_i2c_s *i2c = &handle->dev.i2c;
-	GVariantIter *iter;
-	guchar str;
-	int ret, i = 0;
-
-	/* Limit maximum length */
-	if (length > MAX_BUFFER_SIZE) length = MAX_BUFFER_SIZE;
-
-	/* Increase buffer if needed */
-	if (length > i2c->buffer_size) {
-		uint8_t *new;
-		new = (uint8_t*)realloc(i2c->buffer, length);
-
-		RETVM_IF(new == NULL, PERIPHERAL_ERROR_OUT_OF_MEMORY, "Failed to realloc buffer");
-		i2c->buffer = new;
-		i2c->buffer_size = length;
-	}
-
-	g_variant_get(data_array, "a(y)", &iter);
-	while (g_variant_iter_loop(iter, "(y)", &str) && i < length)
-		i2c->buffer[i++] = str;
-	g_variant_iter_free(iter);
-
-	ret = i2c_write(i2c->fd, i2c->buffer, length);
-	if (ret < 0)
-		_E("Write Failed, bus : %d, address : 0x%x", i2c->bus, i2c->address);
-
-	return ret;
-}
-
 int peripheral_bus_i2c_smbus_ioctl(pb_data_h handle, uint8_t read_write, uint8_t command, uint32_t size, uint16_t data_in, uint16_t *data_out)
 {
 	peripheral_bus_i2c_s *i2c = &handle->dev.i2c;
@@ -239,3 +170,89 @@ int peripheral_bus_i2c_smbus_ioctl(pb_data_h handle, uint8_t read_write, uint8_t
 
 	return ret;
 }
+
+int peripheral_bus_i2c_read(pb_data_h handle, int length, GVariant **data_array)
+{
+	peripheral_bus_i2c_s *i2c = &handle->dev.i2c;
+	uint8_t err_buf[2] = {0, };
+	int ret;
+
+	/* Limit maximum length */
+	if (length > MAX_BUFFER_SIZE) length = MAX_BUFFER_SIZE;
+
+	/* Increase buffer if needed */
+	if (length > i2c->buffer_size) {
+		uint8_t *new;
+		new = (uint8_t*)realloc(i2c->buffer, length);
+
+		if (!new) {
+			ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
+			_E("Failed to realloc buffer");
+			goto out;
+		}
+		i2c->buffer = new;
+		i2c->buffer_size = length;
+	}
+
+	ret = i2c_read(i2c->fd, i2c->buffer, length);
+
+	/* If read() is failed, try to call ioctl with SMBus */
+	if (ret < 0) {
+		_D("Try to call ioctl() instead of read(), bus : %d, address : 0x%x",
+				i2c->bus, i2c->address);
+		ret = peripheral_bus_i2c_smbus_ioctl(handle, I2C_SMBUS_READ,
+				0x0, I2C_SMBUS_BYTE, 0x0, (uint16_t *)&i2c->buffer[0]);
+		if (ret < 0)
+			_E("Read Failed, bus : %d, address : 0x%x", i2c->bus, i2c->address);
+	}
+
+	*data_array = peripheral_bus_build_variant_ay(i2c->buffer, I2C_SMBUS_BYTE);
+
+	return ret;
+
+out:
+	*data_array = peripheral_bus_build_variant_ay(err_buf, sizeof(err_buf));
+
+	return ret;
+}
+
+int peripheral_bus_i2c_write(pb_data_h handle, int length, GVariant *data_array)
+{
+	peripheral_bus_i2c_s *i2c = &handle->dev.i2c;
+	GVariantIter *iter;
+	guchar str;
+	int ret, i = 0;
+
+	/* Limit maximum length */
+	if (length > MAX_BUFFER_SIZE) length = MAX_BUFFER_SIZE;
+
+	/* Increase buffer if needed */
+	if (length > i2c->buffer_size) {
+		uint8_t *new;
+		new = (uint8_t*)realloc(i2c->buffer, length);
+
+		RETVM_IF(new == NULL, PERIPHERAL_ERROR_OUT_OF_MEMORY, "Failed to realloc buffer");
+		i2c->buffer = new;
+		i2c->buffer_size = length;
+	}
+
+	g_variant_get(data_array, "a(y)", &iter);
+	while (g_variant_iter_loop(iter, "(y)", &str) && i < length)
+		i2c->buffer[i++] = str;
+	g_variant_iter_free(iter);
+
+	ret = i2c_write(i2c->fd, i2c->buffer, length);
+
+	/* If write() is failed, try to call ioctl with SMBus */
+	if (ret < 0) {
+		_D("Try to call ioctl() instead of write(), bus : %d, address : 0x%x",
+				i2c->bus, i2c->address);
+		ret = peripheral_bus_i2c_smbus_ioctl(handle, I2C_SMBUS_WRITE,
+				0x0, I2C_SMBUS_BYTE, i2c->buffer[0], NULL);
+		if (ret < 0)
+			_E("Write Failed, bus : %d, address : 0x%x", i2c->bus, i2c->address);
+	}
+
+	return ret;
+}
+
