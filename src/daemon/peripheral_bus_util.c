@@ -109,6 +109,11 @@ int peripheral_bus_get_client_info(
 	const gchar *id;
 
 	id = g_dbus_method_invocation_get_sender(invocation);
+	if (id == NULL) {
+		_E("Current id is NULL");
+		return -1;
+	}
+
 	_ret = g_dbus_connection_call_sync(pb_data->connection,
 		"org.freedesktop.DBus",
 		"/org/freedesktop/DBus",
@@ -151,6 +156,11 @@ int peripheral_bus_handle_is_valid(
 	}
 
 	id = g_dbus_method_invocation_get_sender(invocation);
+	if (id == NULL) {
+		_E("Current id is NULL");
+		return -1;
+	}
+
 	if (strcmp(handle->client_info.id, id)) {
 		_E("Invalid access, handle id : %s, current id : %s", handle->client_info.id, id);
 		return -1;
