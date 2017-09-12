@@ -307,7 +307,7 @@ int spi_read_write(int fd, unsigned char *txbuf, unsigned char *rxbuf, int lengt
 	xfer.rx_buf = (unsigned long)rxbuf;
 	xfer.len = length;
 
-	status = ioctl(fd, SPI_IOC_MESSAGE(1), xfer);
+	status = ioctl(fd, SPI_IOC_MESSAGE(1), &xfer);
 	if (status < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
