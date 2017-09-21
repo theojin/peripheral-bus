@@ -143,14 +143,6 @@
 			<arg type="i" name="result" direction="out"/>
 		</method>
 	</interface>
-	<interface name="org.tizen.peripheral_io.adc">
-		<method name="Read">
-			<arg type="u" name="device" direction="in"/>
-			<arg type="u" name="channel" direction="in"/>
-			<arg type="i" name="value" direction="out"/>
-			<arg type="i" name="result" direction="out"/>
-		</method>
-	</interface>
 	<interface name="org.tizen.peripheral_io.uart">
 		<method name="Open">
 			<arg type="i" name="port" direction="in"/>

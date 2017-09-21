@@ -26,15 +26,12 @@ typedef enum {
 	PERIPHERAL_BUS_TYPE_GPIO = 0,
 	PERIPHERAL_BUS_TYPE_I2C,
 	PERIPHERAL_BUS_TYPE_PWM,
-	PERIPHERAL_BUS_TYPE_ADC,
 	PERIPHERAL_BUS_TYPE_UART,
 	PERIPHERAL_BUS_TYPE_SPI,
 } peripheral_bus_type_e;
 
 typedef struct {
 	pb_board_s *board;
-	/* daemon variable */
-	char *adc_path;
 	/* devices */
 	GList *gpio_list;
 	GList *i2c_list;
@@ -47,7 +44,6 @@ typedef struct {
 	PeripheralIoGdbusGpio *gpio_skeleton;
 	PeripheralIoGdbusI2c *i2c_skeleton;
 	PeripheralIoGdbusPwm *pwm_skeleton;
-	PeripheralIoGdbusAdc *adc_skeleton;
 	PeripheralIoGdbusUart *uart_skeleton;
 	PeripheralIoGdbusSpi *spi_skeleton;
 } peripheral_bus_s;
