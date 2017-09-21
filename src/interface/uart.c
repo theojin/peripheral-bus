@@ -430,7 +430,9 @@ int uart_read(int file_hndl, uint8_t *buf, unsigned int length)
 	}
 
 	ret = read(file_hndl, (void *)buf, length);
-	if ((errno != EAGAIN && errno != EINTR) && ret < 0) {
+	if (ret <= 0) {
+		if (errno == EAGAIN)
+			return -EAGAIN;
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("read failed, errmsg : %s", errmsg);
@@ -450,7 +452,9 @@ int uart_write(int file_hndl, uint8_t *buf, unsigned int length)
 	}
 
 	ret = write(file_hndl, buf, length);
-	if (ret < 0) {
+	if (ret <= 0) {
+		if (errno == EAGAIN)
+			return -EAGAIN;
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("write failed, errmsg : %s", errmsg);
