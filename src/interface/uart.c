@@ -77,13 +77,31 @@ int uart_open(int port, int *file_hndl)
 
 int uart_close(int file_hndl)
 {
+	int status;
+
 	_D("file_hndl : %d", file_hndl);
 
-	if (!file_hndl) {
+	if (file_hndl < 0) {
 		_E("Invalid NULL parameter");
 		return -EINVAL;
 	}
-	close(file_hndl);
+
+	status = uart_flush(file_hndl);
+	if (status < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Failed to close fd : %d, errmsg : %s", file_hndl, errmsg);
+		return -EIO;
+	}
+
+	status = close(file_hndl);
+	if (status < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Failed to close fd : %d, errmsg : %s", file_hndl, errmsg);
+		return -EIO;
+	}
+
 	return 0;
 }
 
