@@ -79,8 +79,8 @@ typedef struct {
 } peripheral_bus_i2c_s;
 
 typedef struct {
-	int device;
-	int channel;
+	int chip;
+	int pin;
 } peripheral_bus_pwm_s;
 
 typedef struct {

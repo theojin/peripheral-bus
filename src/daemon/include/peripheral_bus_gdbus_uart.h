@@ -31,29 +31,35 @@ gboolean handle_uart_close(
 		gint handle,
 		gpointer user_data);
 
-gboolean handle_uart_flush(
-		PeripheralIoGdbusUart *uart,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data);
-
-gboolean handle_uart_set_baudrate(
+gboolean handle_uart_set_baud_rate(
 		PeripheralIoGdbusUart *uart,
 		GDBusMethodInvocation *invocation,
 		gint handle,
 		guint baudrate,
 		gpointer user_data);
 
-gboolean handle_uart_set_mode(
+gboolean handle_uart_set_byte_size(
 		PeripheralIoGdbusUart *uart,
 		GDBusMethodInvocation *invocation,
 		gint handle,
 		guint byte_size,
+		gpointer user_data);
+
+gboolean handle_uart_set_parity(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint handle,
 		guint parity,
+		gpointer user_data);
+
+gboolean handle_uart_set_stop_bits(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint handle,
 		guint stop_bits,
 		gpointer user_data);
 
-gboolean handle_uart_set_flowcontrol(
+gboolean handle_uart_set_flow_control(
 		PeripheralIoGdbusUart *uart,
 		GDBusMethodInvocation *invocation,
 		gint handle,

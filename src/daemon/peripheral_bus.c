@@ -50,12 +50,20 @@ static gboolean __gpio_init(peripheral_bus_s *pb_data)
 			G_CALLBACK(handle_gpio_close),
 			pb_data);
 	g_signal_connect(pb_data->gpio_skeleton,
-			"handle-get-direction",
-			G_CALLBACK(handle_gpio_get_direction),
-			pb_data);
-	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-set-direction",
 			G_CALLBACK(handle_gpio_set_direction),
+			pb_data);
+	g_signal_connect(pb_data->gpio_skeleton,
+			"handle-set-edge-mode",
+			G_CALLBACK(handle_gpio_set_edge_mode),
+			pb_data);
+	g_signal_connect(pb_data->gpio_skeleton,
+			"handle-set-interrupted-cb",
+			G_CALLBACK(handle_gpio_set_interrupted_cb),
+			pb_data);
+	g_signal_connect(pb_data->gpio_skeleton,
+			"handle-unset-interrupted-cb",
+			G_CALLBACK(handle_gpio_unset_interrupted_cb),
 			pb_data);
 	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-read",
@@ -64,22 +72,6 @@ static gboolean __gpio_init(peripheral_bus_s *pb_data)
 	g_signal_connect(pb_data->gpio_skeleton,
 			"handle-write",
 			G_CALLBACK(handle_gpio_write),
-			pb_data);
-	g_signal_connect(pb_data->gpio_skeleton,
-			"handle-get-edge-mode",
-			G_CALLBACK(handle_gpio_get_edge_mode),
-			pb_data);
-	g_signal_connect(pb_data->gpio_skeleton,
-			"handle-set-edge-mode",
-			G_CALLBACK(handle_gpio_set_edge_mode),
-			pb_data);
-	g_signal_connect(pb_data->gpio_skeleton,
-			"handle-register-irq",
-			G_CALLBACK(handle_gpio_register_irq),
-			pb_data);
-	g_signal_connect(pb_data->gpio_skeleton,
-			"handle-unregister-irq",
-			G_CALLBACK(handle_gpio_unregister_irq),
 			pb_data);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_GPIO_PATH);
@@ -168,32 +160,16 @@ static gboolean __pwm_init(peripheral_bus_s *pb_data)
 			G_CALLBACK(handle_pwm_set_period),
 			pb_data);
 	g_signal_connect(pb_data->pwm_skeleton,
-			"handle-get-period",
-			G_CALLBACK(handle_pwm_get_period),
-			pb_data);
-	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-set-duty-cycle",
 			G_CALLBACK(handle_pwm_set_duty_cycle),
-			pb_data);
-	g_signal_connect(pb_data->pwm_skeleton,
-			"handle-get-duty-cycle",
-			G_CALLBACK(handle_pwm_get_duty_cycle),
 			pb_data);
 	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-set-polarity",
 			G_CALLBACK(handle_pwm_set_polarity),
 			pb_data);
 	g_signal_connect(pb_data->pwm_skeleton,
-			"handle-get-polarity",
-			G_CALLBACK(handle_pwm_get_polarity),
-			pb_data);
-	g_signal_connect(pb_data->pwm_skeleton,
 			"handle-set-enable",
 			G_CALLBACK(handle_pwm_set_enable),
-			pb_data);
-	g_signal_connect(pb_data->pwm_skeleton,
-			"handle-get-enable",
-			G_CALLBACK(handle_pwm_get_enable),
 			pb_data);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_PWM_PATH);
@@ -231,20 +207,24 @@ static gboolean __uart_init(peripheral_bus_s *pb_data)
 			G_CALLBACK(handle_uart_close),
 			pb_data);
 	g_signal_connect(pb_data->uart_skeleton,
-			"handle-flush",
-			G_CALLBACK(handle_uart_flush),
+			"handle-set-baud-rate",
+			G_CALLBACK(handle_uart_set_baud_rate),
 			pb_data);
 	g_signal_connect(pb_data->uart_skeleton,
-			"handle-set-baudrate",
-			G_CALLBACK(handle_uart_set_baudrate),
+			"handle-set-byte-size",
+			G_CALLBACK(handle_uart_set_byte_size),
 			pb_data);
 	g_signal_connect(pb_data->uart_skeleton,
-			"handle-set-mode",
-			G_CALLBACK(handle_uart_set_mode),
+			"handle-set-parity",
+			G_CALLBACK(handle_uart_set_parity),
 			pb_data);
 	g_signal_connect(pb_data->uart_skeleton,
-			"handle-set-flowcontrol",
-			G_CALLBACK(handle_uart_set_flowcontrol),
+			"handle-set-stop-bits",
+			G_CALLBACK(handle_uart_set_stop_bits),
+			pb_data);
+	g_signal_connect(pb_data->uart_skeleton,
+			"handle-set-flow-control",
+			G_CALLBACK(handle_uart_set_flow_control),
 			pb_data);
 	g_signal_connect(pb_data->uart_skeleton,
 			"handle-read",
@@ -294,44 +274,28 @@ static gboolean __spi_init(peripheral_bus_s *pb_data)
 			G_CALLBACK(handle_spi_set_mode),
 			pb_data);
 	g_signal_connect(pb_data->spi_skeleton,
-			"handle-get-mode",
-			G_CALLBACK(handle_spi_get_mode),
+			"handle-set-bit-order",
+			G_CALLBACK(handle_spi_set_bit_order),
 			pb_data);
 	g_signal_connect(pb_data->spi_skeleton,
-			"handle-set-lsb-first",
-			G_CALLBACK(handle_spi_set_lsb_first),
-			pb_data);
-	g_signal_connect(pb_data->spi_skeleton,
-			"handle-get-lsb-first",
-			G_CALLBACK(handle_spi_get_lsb_first),
-			pb_data);
-	g_signal_connect(pb_data->spi_skeleton,
-			"handle-set-bits",
-			G_CALLBACK(handle_spi_set_bits),
-			pb_data);
-	g_signal_connect(pb_data->spi_skeleton,
-			"handle-get-bits",
-			G_CALLBACK(handle_spi_get_bits),
+			"handle-set-bits-per-word",
+			G_CALLBACK(handle_spi_set_bits_per_word),
 			pb_data);
 	g_signal_connect(pb_data->spi_skeleton,
 			"handle-set-frequency",
 			G_CALLBACK(handle_spi_set_frequency),
 			pb_data);
 	g_signal_connect(pb_data->spi_skeleton,
-			"handle-get-frequency",
-			G_CALLBACK(handle_spi_get_frequency),
+			"handle-read",
+			G_CALLBACK(handle_spi_read),
 			pb_data);
 	g_signal_connect(pb_data->spi_skeleton,
 			"handle-write",
 			G_CALLBACK(handle_spi_write),
 			pb_data);
 	g_signal_connect(pb_data->spi_skeleton,
-			"handle-read",
-			G_CALLBACK(handle_spi_read),
-			pb_data);
-	g_signal_connect(pb_data->spi_skeleton,
-			"handle-read-write",
-			G_CALLBACK(handle_spi_read_write),
+			"handle-transfer",
+			G_CALLBACK(handle_spi_transfer),
 			pb_data);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_SPI_PATH);

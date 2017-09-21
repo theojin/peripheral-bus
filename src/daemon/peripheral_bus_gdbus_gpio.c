@@ -91,28 +91,6 @@ gboolean handle_gpio_close(
 	return true;
 }
 
-gboolean handle_gpio_get_direction(
-		PeripheralIoGdbusGpio *gpio,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h gpio_handle = GUINT_TO_POINTER(handle);
-	gint direction = 0;
-
-	if (peripheral_bus_handle_is_valid(invocation, gpio_handle, pb_data->gpio_list) != 0) {
-		_E("gpio handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-		ret = peripheral_bus_gpio_get_direction(gpio_handle, &direction);
-
-	peripheral_io_gdbus_gpio_complete_get_direction(gpio, invocation, direction, ret);
-
-	return true;
-}
-
 gboolean handle_gpio_set_direction(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
@@ -133,6 +111,81 @@ gboolean handle_gpio_set_direction(
 	peripheral_io_gdbus_gpio_complete_set_direction(gpio, invocation, ret);
 
 	return true;
+}
+
+gboolean handle_gpio_set_edge_mode(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gint edge,
+		gpointer user_data)
+{
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_data_h gpio_handle = GUINT_TO_POINTER(handle);
+
+	if (peripheral_bus_handle_is_valid(invocation, gpio_handle, pb_data->gpio_list) != 0) {
+		_E("gpio handle is not valid");
+		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
+	} else
+		ret = peripheral_bus_gpio_set_edge(gpio_handle, edge);
+
+	peripheral_io_gdbus_gpio_complete_set_edge_mode(gpio, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_gpio_set_interrupted_cb(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_data_h gpio_handle = GUINT_TO_POINTER(handle);
+
+	if (peripheral_bus_handle_is_valid(invocation, gpio_handle, pb_data->gpio_list) != 0) {
+		_E("gpio handle is not valid");
+		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
+	} else
+		ret = peripheral_bus_gpio_set_interrupted_cb(gpio_handle);
+
+	peripheral_io_gdbus_gpio_complete_set_interrupted_cb(gpio, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_gpio_unset_interrupted_cb(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_data_h gpio_handle = GUINT_TO_POINTER(handle);
+
+	if (peripheral_bus_handle_is_valid(invocation, gpio_handle, pb_data->gpio_list) != 0) {
+		_E("gpio handle is not valid");
+		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
+	} else
+		ret = peripheral_bus_gpio_unset_interrupted_cb(gpio_handle);
+
+	peripheral_io_gdbus_gpio_complete_unset_interrupted_cb(gpio, invocation, ret);
+
+	return true;
+}
+
+void peripheral_bus_emit_interrupted_cb(
+		PeripheralIoGdbusGpio *gpio,
+		gint pin,
+		gint value,
+		guint64 timestamp)
+{
+	g_assert(gpio != NULL);
+
+	peripheral_io_gdbus_gpio_emit_interrupted_cb(gpio, pin, value, timestamp);
 }
 
 gboolean handle_gpio_read(
@@ -177,101 +230,4 @@ gboolean handle_gpio_write(
 	peripheral_io_gdbus_gpio_complete_write(gpio, invocation, ret);
 
 	return true;
-}
-
-gboolean handle_gpio_get_edge_mode(
-		PeripheralIoGdbusGpio *gpio,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h gpio_handle = GUINT_TO_POINTER(handle);
-	gint edge = 0;
-
-	if (peripheral_bus_handle_is_valid(invocation, gpio_handle, pb_data->gpio_list) != 0) {
-		_E("gpio handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-		ret = peripheral_bus_gpio_get_edge(gpio_handle, &edge);
-
-	peripheral_io_gdbus_gpio_complete_get_edge_mode(gpio, invocation, edge, ret);
-
-	return true;
-}
-
-gboolean handle_gpio_set_edge_mode(
-		PeripheralIoGdbusGpio *gpio,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gint edge,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h gpio_handle = GUINT_TO_POINTER(handle);
-
-	if (peripheral_bus_handle_is_valid(invocation, gpio_handle, pb_data->gpio_list) != 0) {
-		_E("gpio handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-		ret = peripheral_bus_gpio_set_edge(gpio_handle, edge);
-
-	peripheral_io_gdbus_gpio_complete_set_edge_mode(gpio, invocation, ret);
-
-	return true;
-}
-
-gboolean handle_gpio_register_irq(
-		PeripheralIoGdbusGpio *gpio,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h gpio_handle = GUINT_TO_POINTER(handle);
-
-	if (peripheral_bus_handle_is_valid(invocation, gpio_handle, pb_data->gpio_list) != 0) {
-		_E("gpio handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-		ret = peripheral_bus_gpio_register_irq(gpio_handle);
-
-	peripheral_io_gdbus_gpio_complete_register_irq(gpio, invocation, ret);
-
-	return true;
-}
-
-gboolean handle_gpio_unregister_irq(
-		PeripheralIoGdbusGpio *gpio,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h gpio_handle = GUINT_TO_POINTER(handle);
-
-	if (peripheral_bus_handle_is_valid(invocation, gpio_handle, pb_data->gpio_list) != 0) {
-		_E("gpio handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-		ret = peripheral_bus_gpio_unregister_irq(gpio_handle);
-
-	peripheral_io_gdbus_gpio_complete_unregister_irq(gpio, invocation, ret);
-
-	return true;
-}
-
-void peripheral_bus_emit_gpio_changed(
-		PeripheralIoGdbusGpio *gpio,
-		gint pin,
-		gint value,
-		guint64 timestamp)
-{
-	g_assert(gpio != NULL);
-
-	peripheral_io_gdbus_gpio_emit_gpio_changed(gpio, pin, value, timestamp);
 }

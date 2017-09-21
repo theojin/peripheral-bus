@@ -72,12 +72,12 @@ int gpio_set_direction(int gpiopin, gpio_direction_e dir)
 		return -ENXIO;
 	}
 
-	if (dir == GPIO_DIRECTION_OUT)
-		status = write(fd, "low", strlen("low")+1);
-	else if (dir == GPIO_DIRECTION_IN)
+	if (dir == GPIO_DIRECTION_IN)
 		status = write(fd, "in", strlen("in")+1);
 	else if (dir == GPIO_DIRECTION_OUT_HIGH)
 		status = write(fd, "high", strlen("high")+1);
+	else if (dir == GPIO_DIRECTION_OUT_LOW)
+		status = write(fd, "low", strlen("low")+1);
 	else {
 		close(fd);
 		_E("Error: gpio direction is wrong\n");
@@ -121,7 +121,7 @@ int gpio_get_direction(int gpiopin, gpio_direction_e *dir)
 	if (0 == strncmp(gpio_buf, "in", strlen("in")))
 		*dir = GPIO_DIRECTION_IN;
 	else if (0 == strncmp(gpio_buf, "out", strlen("out")))
-		*dir = GPIO_DIRECTION_OUT;
+		*dir = GPIO_DIRECTION_OUT_LOW;
 	else {
 		close(fd);
 		_E("Error: gpio direction is wrong\n");

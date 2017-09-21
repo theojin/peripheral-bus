@@ -31,18 +31,37 @@ gboolean handle_gpio_close(
 		gint handle,
 		gpointer user_data);
 
-gboolean handle_gpio_get_direction(
-		PeripheralIoGdbusGpio *gpio,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data);
-
 gboolean handle_gpio_set_direction(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
 		gint handle,
 		gint direction,
 		gpointer user_data);
+
+gboolean handle_gpio_set_edge_mode(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gint edge,
+		gpointer user_data);
+
+gboolean handle_gpio_set_interrupted_cb(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data);
+
+gboolean handle_gpio_unset_interrupted_cb(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data);
+
+void peripheral_bus_emit_interrupted_cb(
+		PeripheralIoGdbusGpio *gpio,
+		gint pin,
+		gint value,
+		guint64 timestamp);
 
 gboolean handle_gpio_read(
 		PeripheralIoGdbusGpio *gpio,
@@ -56,36 +75,5 @@ gboolean handle_gpio_write(
 		gint handle,
 		gint value,
 		gpointer user_data);
-
-gboolean handle_gpio_get_edge_mode(
-		PeripheralIoGdbusGpio *gpio,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data);
-
-gboolean handle_gpio_set_edge_mode(
-		PeripheralIoGdbusGpio *gpio,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gint edge,
-		gpointer user_data);
-
-gboolean handle_gpio_register_irq(
-		PeripheralIoGdbusGpio *gpio,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data);
-
-gboolean handle_gpio_unregister_irq(
-		PeripheralIoGdbusGpio *gpio,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data);
-
-void peripheral_bus_emit_gpio_changed(
-		PeripheralIoGdbusGpio *gpio,
-		gint pin,
-		gint value,
-		guint64 timestamp);
 
 #endif /* __PERIPHERAL_BUS_GDBUS_GPIO_H__ */

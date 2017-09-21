@@ -18,14 +18,11 @@
 #define __PERIPHERAL_BUS_GPIO_H__
 
 int peripheral_bus_gpio_open(gint pin, pb_data_h *handle, gpointer user_data);
-int peripheral_bus_gpio_set_direction(pb_data_h handle, gint direction);
-int peripheral_bus_gpio_get_direction(pb_data_h handle, gint *direction);
-int peripheral_bus_gpio_set_edge(pb_data_h handle, gint edge);
-int peripheral_bus_gpio_get_edge(pb_data_h handle, gint *edge);
-int peripheral_bus_gpio_write(pb_data_h handle, gint value);
-int peripheral_bus_gpio_read(pb_data_h handle, gint *value);
-int peripheral_bus_gpio_register_irq(pb_data_h handle);
-int peripheral_bus_gpio_unregister_irq(pb_data_h handle);
 int peripheral_bus_gpio_close(pb_data_h handle);
-
+int peripheral_bus_gpio_set_direction(pb_data_h handle, gint direction);
+int peripheral_bus_gpio_set_edge(pb_data_h handle, gint edge);
+int peripheral_bus_gpio_set_interrupted_cb(pb_data_h handle);
+int peripheral_bus_gpio_unset_interrupted_cb(pb_data_h handle);
+int peripheral_bus_gpio_read(pb_data_h handle, gint *value);
+int peripheral_bus_gpio_write(pb_data_h handle, gint value);
 #endif /* __PERIPHERAL_BUS_GPIO_H__ */

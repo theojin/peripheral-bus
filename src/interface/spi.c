@@ -89,27 +89,7 @@ int spi_set_mode(int fd, unsigned char mode)
 	return 0;
 }
 
-int spi_get_mode(int fd, unsigned char *mode)
-{
-	unsigned char value = 0;
-	int status;
-
-	_D("fd : %d", fd);
-	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
-
-	status = ioctl(fd, SPI_IOC_RD_MODE, &value);
-	if (status < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to get mode, fd : %d, errmsg : %s", fd, errmsg);
-		return -EIO;
-	}
-	*mode = value;
-
-	return 0;
-}
-
-int spi_set_lsb_first(int fd, unsigned char lsb)
+int spi_set_bit_order(int fd, unsigned char lsb)
 {
 	int status;
 
@@ -127,27 +107,7 @@ int spi_set_lsb_first(int fd, unsigned char lsb)
 	return 0;
 }
 
-int spi_get_lsb_first(int fd, unsigned char *lsb)
-{
-	unsigned char value = 0;
-	int status;
-
-	_D("fd : %d", fd);
-	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
-
-	status = ioctl(fd, SPI_IOC_RD_LSB_FIRST, &value);
-	if (status < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to get lsb first, fd : %d, errmsg : %s", fd, errmsg);
-		return -EIO;
-	}
-	*lsb = value ? 1 : 0;
-
-	return 0;
-}
-
-int spi_set_bits(int fd, unsigned char bits)
+int spi_set_bits_per_word(int fd, unsigned char bits)
 {
 	int status;
 
@@ -161,26 +121,6 @@ int spi_set_bits(int fd, unsigned char bits)
 		_E("Failed to set bits(%d), fd : %d, errmsg : %s", bits, fd, errmsg);
 		return -EIO;
 	}
-
-	return 0;
-}
-
-int spi_get_bits(int fd, unsigned char *bits)
-{
-	unsigned char value = 0;
-	int status;
-
-	_D("fd : %d", fd);
-	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
-
-	status = ioctl(fd, SPI_IOC_RD_BITS_PER_WORD, &value);
-	if (status < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to get bits, fd : %d, errmsg : %s", fd, errmsg);
-		return -EIO;
-	}
-	*bits = value;
 
 	return 0;
 }
@@ -199,26 +139,6 @@ int spi_set_frequency(int fd, unsigned int freq)
 		_E("Failed to set frequency(%d), fd : %d, errmsg : %s", freq, fd, errmsg);
 		return -EIO;
 	}
-
-	return 0;
-}
-
-int spi_get_frequency(int fd, unsigned int *freq)
-{
-	unsigned int value = 0;
-	int status;
-
-	_D("fd : %d", fd);
-	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
-
-	status = ioctl(fd, SPI_IOC_RD_MAX_SPEED_HZ, &value);
-	if (status < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to get frequency, fd : %d, errmsg : %s", fd, errmsg);
-		return -EIO;
-	}
-	*freq = value;
 
 	return 0;
 }
@@ -293,7 +213,7 @@ int spi_write(int fd, unsigned char *txbuf, int length)
 	return 0;
 }
 
-int spi_read_write(int fd, unsigned char *txbuf, unsigned char *rxbuf, int length)
+int spi_transfer(int fd, unsigned char *txbuf, unsigned char *rxbuf, int length)
 {
 	int status;
 	struct spi_ioc_transfer xfer;

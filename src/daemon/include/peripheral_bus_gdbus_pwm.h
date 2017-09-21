@@ -22,8 +22,8 @@
 gboolean handle_pwm_open(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
-		gint device,
-		gint channel,
+		gint chip,
+		gint pin,
 		gpointer user_data);
 
 gboolean handle_pwm_close(
@@ -39,23 +39,11 @@ gboolean handle_pwm_set_period(
 		gint period,
 		gpointer user_data);
 
-gboolean handle_pwm_get_period(
-		PeripheralIoGdbusPwm *pwm,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data);
-
 gboolean handle_pwm_set_duty_cycle(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
 		gint handle,
 		gint duty_cycle,
-		gpointer user_data);
-
-gboolean handle_pwm_get_duty_cycle(
-		PeripheralIoGdbusPwm *pwm,
-		GDBusMethodInvocation *invocation,
-		gint handle,
 		gpointer user_data);
 
 gboolean handle_pwm_set_polarity(
@@ -65,23 +53,11 @@ gboolean handle_pwm_set_polarity(
 		gint polarity,
 		gpointer user_data);
 
-gboolean handle_pwm_get_polarity(
-		PeripheralIoGdbusPwm *pwm,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data);
-
 gboolean handle_pwm_set_enable(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
 		gint handle,
 		gint enable,
-		gpointer user_data);
-
-gboolean handle_pwm_get_enable(
-		PeripheralIoGdbusPwm *pwm,
-		GDBusMethodInvocation *invocation,
-		gint handle,
 		gpointer user_data);
 
 #endif /* __PERIPHERAL_BUS_GDBUS_PWM_H__ */

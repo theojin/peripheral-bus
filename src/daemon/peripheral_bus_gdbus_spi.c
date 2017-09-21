@@ -114,29 +114,7 @@ gboolean handle_spi_set_mode(
 	return true;
 }
 
-gboolean handle_spi_get_mode(
-		PeripheralIoGdbusSpi *spi,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h spi_handle = GUINT_TO_POINTER(handle);
-	uint8_t mode = 0;
-
-	if (peripheral_bus_handle_is_valid(invocation, spi_handle, pb_data->spi_list) != 0) {
-		_E("spi handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-		ret = peripheral_bus_spi_get_mode(spi_handle, &mode);
-
-	peripheral_io_gdbus_spi_complete_get_mode(spi, invocation, mode, ret);
-
-	return true;
-}
-
-gboolean handle_spi_set_lsb_first(
+gboolean handle_spi_set_bit_order(
 		PeripheralIoGdbusSpi *spi,
 		GDBusMethodInvocation *invocation,
 		gint handle,
@@ -151,36 +129,14 @@ gboolean handle_spi_set_lsb_first(
 		_E("spi handle is not valid");
 		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
 	} else
-		ret = peripheral_bus_spi_set_lsb_first(spi_handle, lsb);
+		ret = peripheral_bus_spi_set_bit_order(spi_handle, lsb);
 
-	peripheral_io_gdbus_spi_complete_set_lsb_first(spi, invocation, ret);
-
-	return true;
-}
-
-gboolean handle_spi_get_lsb_first(
-		PeripheralIoGdbusSpi *spi,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h spi_handle = GUINT_TO_POINTER(handle);
-	gboolean lsb = 0;
-
-	if (peripheral_bus_handle_is_valid(invocation, spi_handle, pb_data->spi_list) != 0) {
-		_E("spi handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-		ret = peripheral_bus_spi_get_lsb_first(spi_handle, &lsb);
-
-	peripheral_io_gdbus_spi_complete_get_lsb_first(spi, invocation, lsb, ret);
+	peripheral_io_gdbus_spi_complete_set_bit_order(spi, invocation, ret);
 
 	return true;
 }
 
-gboolean handle_spi_set_bits(
+gboolean handle_spi_set_bits_per_word(
 		PeripheralIoGdbusSpi *spi,
 		GDBusMethodInvocation *invocation,
 		gint handle,
@@ -195,31 +151,9 @@ gboolean handle_spi_set_bits(
 		_E("spi handle is not valid");
 		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
 	} else
-		ret = peripheral_bus_spi_set_bits(spi_handle, bits);
+		ret = peripheral_bus_spi_set_bits_per_word(spi_handle, bits);
 
-	peripheral_io_gdbus_spi_complete_set_bits(spi, invocation, ret);
-
-	return true;
-}
-
-gboolean handle_spi_get_bits(
-		PeripheralIoGdbusSpi *spi,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h spi_handle = GUINT_TO_POINTER(handle);
-	uint8_t bits = 0;
-
-	if (peripheral_bus_handle_is_valid(invocation, spi_handle, pb_data->spi_list) != 0) {
-		_E("spi handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-		ret = peripheral_bus_spi_get_bits(spi_handle, &bits);
-
-	peripheral_io_gdbus_spi_complete_get_bits(spi, invocation, bits, ret);
+	peripheral_io_gdbus_spi_complete_set_bits_per_word(spi, invocation, ret);
 
 	return true;
 }
@@ -242,28 +176,6 @@ gboolean handle_spi_set_frequency(
 		ret = peripheral_bus_spi_set_frequency(spi_handle, freq);
 
 	peripheral_io_gdbus_spi_complete_set_frequency(spi, invocation, ret);
-
-	return true;
-}
-
-gboolean handle_spi_get_frequency(
-		PeripheralIoGdbusSpi *spi,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h spi_handle = GUINT_TO_POINTER(handle);
-	unsigned int freq = 0;
-
-	if (peripheral_bus_handle_is_valid(invocation, spi_handle, pb_data->spi_list) != 0) {
-		_E("spi handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-		ret = peripheral_bus_spi_get_frequency(spi_handle, &freq);
-
-	peripheral_io_gdbus_spi_complete_get_frequency(spi, invocation, freq, ret);
 
 	return true;
 }
@@ -316,7 +228,7 @@ gboolean handle_spi_write(
 	return true;
 }
 
-gboolean handle_spi_read_write(
+gboolean handle_spi_transfer(
 		PeripheralIoGdbusSpi *spi,
 		GDBusMethodInvocation *invocation,
 		gint handle,
@@ -335,9 +247,9 @@ gboolean handle_spi_read_write(
 		rx_data_array = peripheral_bus_build_variant_ay(err_buf, sizeof(err_buf));
 		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
 	} else
-		ret = peripheral_bus_spi_read_write(spi_handle, tx_data_array, &rx_data_array, length);
+		ret = peripheral_bus_spi_transfer(spi_handle, tx_data_array, &rx_data_array, length);
 
-	peripheral_io_gdbus_spi_complete_read_write(spi, invocation, rx_data_array, ret);
+	peripheral_io_gdbus_spi_complete_transfer(spi, invocation, rx_data_array, ret);
 
 	return true;
 }

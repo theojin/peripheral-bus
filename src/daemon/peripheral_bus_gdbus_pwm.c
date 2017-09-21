@@ -37,15 +37,15 @@ static void __pwm_on_name_vanished(GDBusConnection *connection,
 gboolean handle_pwm_open(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
-		gint device,
-		gint channel,
+		gint chip,
+		gint pin,
 		gpointer user_data)
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_data_h pwm_handle;
 
-	if ((ret = peripheral_bus_pwm_open(device, channel, &pwm_handle, user_data)) <  PERIPHERAL_ERROR_NONE)
+	if ((ret = peripheral_bus_pwm_open(chip, pin, &pwm_handle, user_data)) <  PERIPHERAL_ERROR_NONE)
 		goto out;
 
 	if (peripheral_bus_get_client_info(invocation, pb_data, &pwm_handle->client_info) < 0) {
@@ -61,7 +61,7 @@ gboolean handle_pwm_open(
 			__pwm_on_name_vanished,
 			pwm_handle,
 			NULL);
-	_D("device : %d, channel : %d, id = %s", device, channel, pwm_handle->client_info.id);
+	_D("chip : %d, pin : %d, id = %s", chip, pin, pwm_handle->client_info.id);
 
 out:
 	peripheral_io_gdbus_pwm_complete_open(pwm, invocation, GPOINTER_TO_UINT(pwm_handle), ret);
@@ -114,28 +114,6 @@ gboolean handle_pwm_set_period(
 	return true;
 }
 
-gboolean handle_pwm_get_period(
-		PeripheralIoGdbusPwm *pwm,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h pwm_handle = GUINT_TO_POINTER(handle);
-	int period = 0;
-
-	if (peripheral_bus_handle_is_valid(invocation, pwm_handle, pb_data->pwm_list) != 0) {
-		_E("pwm handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-		ret = peripheral_bus_pwm_get_period(pwm_handle, &period);
-
-	peripheral_io_gdbus_pwm_complete_get_period(pwm, invocation, period, ret);
-
-	return true;
-}
-
 gboolean handle_pwm_set_duty_cycle(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
@@ -154,28 +132,6 @@ gboolean handle_pwm_set_duty_cycle(
 		ret = peripheral_bus_pwm_set_duty_cycle(pwm_handle, duty_cycle);
 
 	peripheral_io_gdbus_pwm_complete_set_duty_cycle(pwm, invocation, ret);
-
-	return true;
-}
-
-gboolean handle_pwm_get_duty_cycle(
-		PeripheralIoGdbusPwm *pwm,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h pwm_handle = GUINT_TO_POINTER(handle);
-	int duty_cycle = 0;
-
-	if (peripheral_bus_handle_is_valid(invocation, pwm_handle, pb_data->pwm_list) != 0) {
-		_E("pwm handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-		ret = peripheral_bus_pwm_get_duty_cycle(pwm_handle, &duty_cycle);
-
-	peripheral_io_gdbus_pwm_complete_get_duty_cycle(pwm, invocation, duty_cycle, ret);
 
 	return true;
 }
@@ -202,28 +158,6 @@ gboolean handle_pwm_set_polarity(
 	return true;
 }
 
-gboolean handle_pwm_get_polarity(
-		PeripheralIoGdbusPwm *pwm,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h pwm_handle = GUINT_TO_POINTER(handle);
-	int polarity = 0;
-
-	if (peripheral_bus_handle_is_valid(invocation, pwm_handle, pb_data->pwm_list) != 0) {
-		_E("pwm handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-	ret = peripheral_bus_pwm_get_polarity(pwm_handle, &polarity);
-
-	peripheral_io_gdbus_pwm_complete_get_polarity(pwm, invocation, polarity, ret);
-
-	return true;
-}
-
 gboolean handle_pwm_set_enable(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
@@ -242,28 +176,6 @@ gboolean handle_pwm_set_enable(
 		ret = peripheral_bus_pwm_set_enable(pwm_handle, enable);
 
 	peripheral_io_gdbus_pwm_complete_set_enable(pwm, invocation, ret);
-
-	return true;
-}
-
-gboolean handle_pwm_get_enable(
-		PeripheralIoGdbusPwm *pwm,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h pwm_handle = GUINT_TO_POINTER(handle);
-	bool enable = false;
-
-	if (peripheral_bus_handle_is_valid(invocation, pwm_handle, pb_data->pwm_list) != 0) {
-		_E("pwm handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-		ret = peripheral_bus_pwm_get_enable(pwm_handle, &enable);
-
-	peripheral_io_gdbus_pwm_complete_get_enable(pwm, invocation, enable, ret);
 
 	return true;
 }

@@ -22,8 +22,8 @@
 
 typedef enum {
 	GPIO_DIRECTION_IN = 0,
-	GPIO_DIRECTION_OUT = 1,
-	GPIO_DIRECTION_OUT_HIGH = 2,
+	GPIO_DIRECTION_OUT_HIGH = 1,
+	GPIO_DIRECTION_OUT_LOW = 2,
 } gpio_direction_e;
 
 typedef enum {

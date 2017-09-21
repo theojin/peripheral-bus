@@ -91,10 +91,11 @@ gboolean handle_uart_close(
 	return true;
 }
 
-gboolean handle_uart_flush(
+gboolean handle_uart_set_baud_rate(
 		PeripheralIoGdbusUart *uart,
 		GDBusMethodInvocation *invocation,
 		gint handle,
+		guint baud_rate,
 		gpointer user_data)
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
@@ -105,41 +106,61 @@ gboolean handle_uart_flush(
 		_E("uart handle is not valid");
 		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
 	} else
-		ret = peripheral_bus_uart_flush(uart_handle);
+		ret = peripheral_bus_uart_set_baud_rate(uart_handle, baud_rate);
 
-	peripheral_io_gdbus_uart_complete_flush(uart, invocation, ret);
-
-	return true;
-}
-
-gboolean handle_uart_set_baudrate(
-		PeripheralIoGdbusUart *uart,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		guint baudrate,
-		gpointer user_data)
-{
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h uart_handle = GUINT_TO_POINTER(handle);
-
-	if (peripheral_bus_handle_is_valid(invocation, uart_handle, pb_data->uart_list) != 0) {
-		_E("uart handle is not valid");
-		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
-	} else
-		ret = peripheral_bus_uart_set_baudrate(uart_handle, baudrate);
-
-	peripheral_io_gdbus_uart_complete_set_baudrate(uart, invocation, ret);
+	peripheral_io_gdbus_uart_complete_set_baud_rate(uart, invocation, ret);
 
 	return true;
 }
 
-gboolean handle_uart_set_mode(
+gboolean handle_uart_set_byte_size(
 		PeripheralIoGdbusUart *uart,
 		GDBusMethodInvocation *invocation,
 		gint handle,
 		guint byte_size,
+		gpointer user_data)
+{
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_data_h uart_handle = GUINT_TO_POINTER(handle);
+
+	if (peripheral_bus_handle_is_valid(invocation, uart_handle, pb_data->uart_list) != 0) {
+		_E("uart handle is not valid");
+		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
+	} else
+		ret = peripheral_bus_uart_set_byte_size(uart_handle, byte_size);
+
+	peripheral_io_gdbus_uart_complete_set_byte_size(uart, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_uart_set_parity(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint handle,
 		guint parity,
+		gpointer user_data)
+{
+	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	pb_data_h uart_handle = GUINT_TO_POINTER(handle);
+
+	if (peripheral_bus_handle_is_valid(invocation, uart_handle, pb_data->uart_list) != 0) {
+		_E("uart handle is not valid");
+		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
+	} else
+		ret = peripheral_bus_uart_set_parity(uart_handle, parity);
+
+	peripheral_io_gdbus_uart_complete_set_parity(uart, invocation, ret);
+
+	return true;
+}
+
+gboolean handle_uart_set_stop_bits(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint handle,
 		guint stop_bits,
 		gpointer user_data)
 {
@@ -151,14 +172,14 @@ gboolean handle_uart_set_mode(
 		_E("uart handle is not valid");
 		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
 	} else
-		ret = peripheral_bus_uart_set_mode(uart_handle, byte_size, parity, stop_bits);
+		ret = peripheral_bus_uart_set_stop_bits(uart_handle, stop_bits);
 
-	peripheral_io_gdbus_uart_complete_set_mode(uart, invocation, ret);
+	peripheral_io_gdbus_uart_complete_set_stop_bits(uart, invocation, ret);
 
 	return true;
 }
 
-gboolean handle_uart_set_flowcontrol(
+gboolean handle_uart_set_flow_control(
 		PeripheralIoGdbusUart *uart,
 		GDBusMethodInvocation *invocation,
 		gint handle,
@@ -174,9 +195,9 @@ gboolean handle_uart_set_flowcontrol(
 		_E("uart handle is not valid");
 		ret = PERIPHERAL_ERROR_INVALID_PARAMETER;
 	} else
-		ret = peripheral_bus_uart_set_flowcontrol(uart_handle, xonxoff, rtscts);
+		ret = peripheral_bus_uart_set_flow_control(uart_handle, xonxoff, rtscts);
 
-	peripheral_io_gdbus_uart_complete_set_flowcontrol(uart, invocation, ret);
+	peripheral_io_gdbus_uart_complete_set_flow_control(uart, invocation, ret);
 
 	return true;
 }

@@ -31,15 +31,15 @@
 #define PWM_BUF_MAX	16
 #define MAX_ERR_LEN	255
 
-int pwm_open(int device, int channel)
+int pwm_open(int chip, int pin)
 {
 	int fd, len, status;
 	char pwm_dev[PATH_BUF_MAX] = {0};
 	char pwm_buf[PWM_BUF_MAX] = {0};
 
-	_D("device : %d, channel : %d", device, channel);
+	_D("chip : %d, pin : %d", chip, pin);
 
-	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/export", device);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/export", chip);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
@@ -48,10 +48,10 @@ int pwm_open(int device, int channel)
 		return -ENXIO;
 	}
 
-	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", channel);
+	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", pin);
 	status = write(fd, pwm_buf, len);
 	if (status < 0) {
-		_E("Failed to export pwmchip%d, pwm%", device, channel);
+		_E("Failed to export pwmchip%d, pwm%d", chip, pin);
 		close(fd);
 		return -EIO;
 	}
@@ -60,15 +60,15 @@ int pwm_open(int device, int channel)
 	return 0;
 }
 
-int pwm_close(int device, int channel)
+int pwm_close(int chip, int pin)
 {
 	int fd, len, status;
 	char pwm_dev[PATH_BUF_MAX] = {0};
 	char pwm_buf[PWM_BUF_MAX] = {0};
 
-	_D("device : %d, channel : %d", device, channel);
+	_D("chip : %d, pin : %d", chip, pin);
 
-	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/unexport", device);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/unexport", chip);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
@@ -77,10 +77,10 @@ int pwm_close(int device, int channel)
 		return -ENXIO;
 	}
 
-	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", channel);
+	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", pin);
 	status = write(fd, pwm_buf, len);
 	if (status < 0) {
-		_E("Failed to unexport pwmchip%d, pwm%", device, channel);
+		_E("Failed to unexport pwmchip%d, pwm%", chip, pin);
 		close(fd);
 		return -EIO;
 	}
@@ -89,15 +89,15 @@ int pwm_close(int device, int channel)
 	return 0;
 }
 
-int pwm_set_period(int device, int channel, int period)
+int pwm_set_period(int chip, int pin, int period)
 {
 	int fd, len, status;
 	char pwm_buf[PWM_BUF_MAX] = {0};
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	_D("device : %d, channel : %d, period : %d", device, channel, period);
+	_D("chip : %d, pin : %d, period : %d", chip, pin, period);
 
-	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/period", device, channel);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/period", chip, pin);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
@@ -118,13 +118,13 @@ int pwm_set_period(int device, int channel, int period)
 	return 0;
 }
 
-int pwm_get_period(int device, int channel, int *period)
+int pwm_get_period(int chip, int pin, int *period)
 {
 	int fd, result, status;
 	char pwm_buf[PWM_BUF_MAX] = {0};
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/period", device, channel);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/period", chip, pin);
 	fd = open(pwm_dev, O_RDONLY);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
@@ -146,15 +146,15 @@ int pwm_get_period(int device, int channel, int *period)
 	return 0;
 }
 
-int pwm_set_duty_cycle(int device, int channel, int duty_cycle)
+int pwm_set_duty_cycle(int chip, int pin, int duty_cycle)
 {
 	int fd, len, status;
 	char pwm_buf[PWM_BUF_MAX] = {0};
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	_D("device : %d, channel : %d, duty_cycle : %d", device, channel, duty_cycle);
+	_D("chip : %d, pin : %d, duty_cycle : %d", chip, pin, duty_cycle);
 
-	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/duty_cycle", device, channel);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/duty_cycle", chip, pin);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
@@ -175,13 +175,13 @@ int pwm_set_duty_cycle(int device, int channel, int duty_cycle)
 	return 0;
 }
 
-int pwm_get_duty_cycle(int device, int channel, int *duty_cycle)
+int pwm_get_duty_cycle(int chip, int pin, int *duty_cycle)
 {
 	int fd, result, status;
 	char pwm_buf[PWM_BUF_MAX] = {0};
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/duty_cycle", device, channel);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/duty_cycle", chip, pin);
 	fd = open(pwm_dev, O_RDONLY);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
@@ -203,14 +203,14 @@ int pwm_get_duty_cycle(int device, int channel, int *duty_cycle)
 	return 0;
 }
 
-int pwm_set_polarity(int device, int channel, pwm_polarity_e polarity)
+int pwm_set_polarity(int chip, int pin, pwm_polarity_e polarity)
 {
 	int fd, status;
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	_D("device : %d, channel : %d, polarity : %d", device, channel, polarity);
+	_D("chip : %d, pin : %d, polarity : %d", chip, pin, polarity);
 
-	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/polarity", device, channel);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/polarity", chip, pin);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
@@ -239,13 +239,13 @@ int pwm_set_polarity(int device, int channel, pwm_polarity_e polarity)
 	return 0;
 }
 
-int pwm_get_polarity(int device, int channel, pwm_polarity_e *polarity)
+int pwm_get_polarity(int chip, int pin, pwm_polarity_e *polarity)
 {
 	int fd, status;
 	char pwm_buf[PWM_BUF_MAX] = {0};
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/polarity", device, channel);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/polarity", chip, pin);
 	fd = open(pwm_dev, O_RDONLY);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
@@ -275,15 +275,15 @@ int pwm_get_polarity(int device, int channel, pwm_polarity_e *polarity)
 	return 0;
 }
 
-int pwm_set_enable(int device, int channel, bool enable)
+int pwm_set_enable(int chip, int pin, bool enable)
 {
 	int fd, len, status;
 	char pwm_buf[PWM_BUF_MAX] = {0};
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	_D("device : %d, channel : %d, enable : %d", device, channel, enable);
+	_D("chip : %d, pin : %d, enable : %d", chip, pin, enable);
 
-	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/enable", device, channel);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/enable", chip, pin);
 	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
@@ -304,13 +304,13 @@ int pwm_set_enable(int device, int channel, bool enable)
 	return 0;
 }
 
-int pwm_get_enable(int device, int channel, bool *enable)
+int pwm_get_enable(int chip, int pin, bool *enable)
 {
 	int fd, result, status;
 	char pwm_buf[PWM_BUF_MAX] = {0};
 	char pwm_dev[PATH_BUF_MAX] = {0};
 
-	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/enable", device, channel);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/pwm%d/enable", chip, pin);
 	fd = open(pwm_dev, O_RDONLY);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];

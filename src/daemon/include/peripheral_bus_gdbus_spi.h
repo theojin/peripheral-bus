@@ -39,36 +39,18 @@ gboolean handle_spi_set_mode(
 		guchar mode,
 		gpointer user_data);
 
-gboolean handle_spi_get_mode(
-		PeripheralIoGdbusSpi *spi,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data);
-
-gboolean handle_spi_set_lsb_first(
+gboolean handle_spi_set_bit_order(
 		PeripheralIoGdbusSpi *spi,
 		GDBusMethodInvocation *invocation,
 		gint handle,
 		gboolean lsb,
 		gpointer user_data);
 
-gboolean handle_spi_get_lsb_first(
-		PeripheralIoGdbusSpi *spi,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data);
-
-gboolean handle_spi_set_bits(
+gboolean handle_spi_set_bits_per_word(
 		PeripheralIoGdbusSpi *spi,
 		GDBusMethodInvocation *invocation,
 		gint handle,
 		guchar bits,
-		gpointer user_data);
-
-gboolean handle_spi_get_bits(
-		PeripheralIoGdbusSpi *spi,
-		GDBusMethodInvocation *invocation,
-		gint handle,
 		gpointer user_data);
 
 gboolean handle_spi_set_frequency(
@@ -76,12 +58,6 @@ gboolean handle_spi_set_frequency(
 		GDBusMethodInvocation *invocation,
 		gint handle,
 		guint freq,
-		gpointer user_data);
-
-gboolean handle_spi_get_frequency(
-		PeripheralIoGdbusSpi *spi,
-		GDBusMethodInvocation *invocation,
-		gint handle,
 		gpointer user_data);
 
 gboolean handle_spi_read(
@@ -99,7 +75,7 @@ gboolean handle_spi_write(
 		GVariant *data_array,
 		gpointer user_data);
 
-gboolean handle_spi_read_write(
+gboolean handle_spi_transfer(
 		PeripheralIoGdbusSpi *spi,
 		GDBusMethodInvocation *invocation,
 		gint handle,
