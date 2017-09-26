@@ -23,15 +23,18 @@ SET(PERIPHERAL-BUS "peripheral-bus")
 SET(SRCS
 	src/daemon/peripheral_bus.c
 	src/daemon/peripheral_bus_util.c
+	src/daemon/peripheral_bus_gdbus_gpio.c
+	src/daemon/peripheral_bus_gdbus_i2c.c
+	src/daemon/peripheral_bus_gdbus_pwm.c
+	src/daemon/peripheral_bus_gdbus_spi.c
+	src/daemon/peripheral_bus_gdbus_uart.c
 	src/daemon/peripheral_bus_pwm.c
-	src/daemon/peripheral_bus_adc.c
 	src/daemon/peripheral_bus_i2c.c
 	src/daemon/peripheral_bus_gpio.c
 	src/daemon/peripheral_bus_uart.c
 	src/daemon/peripheral_bus_spi.c
 	src/daemon/peripheral_bus_board.c
 	src/daemon/peripheral_io_gdbus.c
-	src/interface/adc.c
 	src/interface/gpio.c
 	src/interface/i2c.c
 	src/interface/pwm.c

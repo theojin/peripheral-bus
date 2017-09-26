@@ -23,36 +23,36 @@
  * @brief Enumeration for Baud Rate
  */
 typedef enum {
-	UART_BAUDRATE_0 = 0,
-	UART_BAUDRATE_50,
-	UART_BAUDRATE_75,
-	UART_BAUDRATE_110,
-	UART_BAUDRATE_134,
-	UART_BAUDRATE_150,
-	UART_BAUDRATE_200,
-	UART_BAUDRATE_300,
-	UART_BAUDRATE_600,
-	UART_BAUDRATE_1200,
-	UART_BAUDRATE_1800,
-	UART_BAUDRATE_2400,
-	UART_BAUDRATE_4800,
-	UART_BAUDRATE_9600,
-	UART_BAUDRATE_19200,
-	UART_BAUDRATE_38400,
-	UART_BAUDRATE_57600,
-	UART_BAUDRATE_115200,
-	UART_BAUDRATE_230400
-} uart_baudrate_e;
+	UART_BAUD_RATE_0 = 0,
+	UART_BAUD_RATE_50,
+	UART_BAUD_RATE_75,
+	UART_BAUD_RATE_110,
+	UART_BAUD_RATE_134,
+	UART_BAUD_RATE_150,
+	UART_BAUD_RATE_200,
+	UART_BAUD_RATE_300,
+	UART_BAUD_RATE_600,
+	UART_BAUD_RATE_1200,
+	UART_BAUD_RATE_1800,
+	UART_BAUD_RATE_2400,
+	UART_BAUD_RATE_4800,
+	UART_BAUD_RATE_9600,
+	UART_BAUD_RATE_19200,
+	UART_BAUD_RATE_38400,
+	UART_BAUD_RATE_57600,
+	UART_BAUD_RATE_115200,
+	UART_BAUD_RATE_230400
+} uart_baud_rate_e;
 
 /**
  * @brief Enumeration for Byte Size
  */
 typedef enum {
-	UART_BYTESIZE_5BIT = 0,
-	UART_BYTESIZE_6BIT,
-	UART_BYTESIZE_7BIT,
-	UART_BYTESIZE_8BIT
-} uart_bytesize_e;
+	UART_BYTE_SIZE_5BIT = 0,
+	UART_BYTE_SIZE_6BIT,
+	UART_BYTE_SIZE_7BIT,
+	UART_BYTE_SIZE_8BIT
+} uart_byte_size_e;
 
 /**
  * @brief Enumeration of Parity Bit
@@ -67,9 +67,9 @@ typedef enum {
  * @brief Enumeration for Stop Bits
  */
 typedef enum {
-	UART_STOPBITS_1BIT = 0,
-	UART_STOPBITS_2BIT
-} uart_stopbits_e;
+	UART_STOP_BITS_1BIT = 0,
+	UART_STOP_BITS_2BIT
+} uart_stop_bits_e;
 
 /**
 * @brief uart_valid_baudrate() validation check of input baudrate
@@ -77,7 +77,7 @@ typedef enum {
 * @param[in] baudrate baudrate for uart
 * @return On success, valid input. On failure, NULL is returned.
 */
-int uart_valid_baudrate(unsigned int baudrate);
+int uart_valid_baud_rate(unsigned int baud_rate);
 
 /**
 * @brief uart_open() initializes uart port.
@@ -111,28 +111,55 @@ int uart_flush(int file_hndl);
 * @param[in] baud uart baud rate
 * @return On success, 0 is returned. On failure, a negative value is returned.
 */
-int uart_set_baudrate(int file_hndl, uart_baudrate_e baud);
+int uart_set_baud_rate(int file_hndl, uart_baud_rate_e baud);
 
 /**
 * @brief uart_set_mode() sets byte size, parity bit and stop bits.
 *
 * @param[in] file_hndl handle of uart_context
-* @param[in] bytesize uart byte size
+* @param[in] byte_size uart byte size
 * @param[in] parity uart parity type (even/odd/none)
-* @param[in] stopbits uart stop bits
+* @param[in] stop_bits uart stop bits
 * @return On success, 0 is returned. On failure, a negative value is returned.
 */
-int uart_set_mode(int file_hndl, uart_bytesize_e bytesize, uart_parity_e parity, uart_stopbits_e stopbits);
+int uart_set_mode(int file_hndl, uart_byte_size_e byte_size, uart_parity_e parity, uart_stop_bits_e stop_bits);
 
 /**
-* @brief uart_set_flowcontrol() set flow control settings.
+* @brief peripheral_bus_uart_set_byte_size() set byte size.
+*
+* @param[in] file_hndl handle of uart_context
+* @param[in] byte_size uart byte size
+* @return On success, 0 is returned. On failure, a negative value is returned.
+*/
+int uart_set_byte_size(int file_hndl, uart_byte_size_e byte_size);
+
+/**
+* @brief peripheral_bus_uart_set_parity() set parity bit.
+*
+* @param[in] file_hndl handle of uart_context
+* @param[in] parity uart parity type (even/odd/none)
+* @return On success, 0 is returned. On failure, a negative value is returned.
+*/
+int uart_set_parity(int file_hndl, uart_parity_e parity);
+
+/**
+* @brief peripheral_bus_uart_set_stop_bits() set stop bits.
+*
+* @param[in] file_hndl handle of uart_context
+* @param[in] stop_bits uart stop bits
+* @return On success, 0 is returned. On failure, a negative value is returned.
+*/
+int uart_set_stop_bits(int file_hndl, uart_stop_bits_e stop_bits);
+
+/**
+* @brief uart_set_flow_control() set flow control settings.
 *
 * @param[in] file_hndl handle of uart_context
 * @param[in] xonxoff ixon/ixoff
 * @param[in] rtscts rts/cts
 * @return On success, 0 is returned. On failure, a negative value is returned.
 */
-int uart_set_flowcontrol(int file_hndl, bool xonxoff, bool rtscts);
+int uart_set_flow_control(int file_hndl, bool xonxoff, bool rtscts);
 
 /**
 * @brief uart_read() reads data over uart bus.

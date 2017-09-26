@@ -25,7 +25,7 @@
 #include "peripheral_common.h"
 #include "peripheral_bus_util.h"
 
-static bool peripheral_bus_pwm_is_available(int device, int channel, peripheral_bus_s *pb_data)
+static bool peripheral_bus_pwm_is_available(int chip, int pin, peripheral_bus_s *pb_data)
 {
 	pb_board_dev_s *pwm = NULL;
 	pb_data_h handle;
@@ -34,17 +34,17 @@ static bool peripheral_bus_pwm_is_available(int device, int channel, peripheral_
 	RETV_IF(pb_data == NULL, false);
 	RETV_IF(pb_data->board == NULL, false);
 
-	pwm = peripheral_bus_board_find_device(PB_BOARD_DEV_PWM, pb_data->board, device, channel);
+	pwm = peripheral_bus_board_find_device(PB_BOARD_DEV_PWM, pb_data->board, chip, pin);
 	if (pwm == NULL) {
-		_E("Not supported PWM device : %d, channel : %d", device, channel);
+		_E("Not supported PWM chip : %d, pin : %d", chip, pin);
 		return false;
 	}
 
 	link = pb_data->pwm_list;
 	while (link) {
 		handle = (pb_data_h)link->data;
-		if (handle->dev.pwm.device == device && handle->dev.pwm.channel == channel) {
-			_E("Resource is in use, device : %d, channel : %d", device, channel);
+		if (handle->dev.pwm.chip == chip && handle->dev.pwm.pin == pin) {
+			_E("Resource is in use, chip : %d, pin : %d", chip, pin);
 			return false;
 		}
 		link = g_list_next(link);
@@ -53,18 +53,18 @@ static bool peripheral_bus_pwm_is_available(int device, int channel, peripheral_
 	return true;
 }
 
-int peripheral_bus_pwm_open(int device, int channel, pb_data_h *handle, gpointer user_data)
+int peripheral_bus_pwm_open(int chip, int pin, pb_data_h *handle, gpointer user_data)
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	pb_data_h pwm_handle;
 	int ret;
 
-	if (!peripheral_bus_pwm_is_available(device, channel, pb_data)) {
-		_E("pwm %d.%d is not available", device, channel);
+	if (!peripheral_bus_pwm_is_available(chip, pin, pb_data)) {
+		_E("pwm %d.%d is not available", chip, pin);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
-	if ((ret = pwm_open(device, channel)) < 0)
+	if ((ret = pwm_open(chip, pin)) < 0)
 		goto open_err;
 
 	pwm_handle = peripheral_bus_data_new(&pb_data->pwm_list);
@@ -76,14 +76,14 @@ int peripheral_bus_pwm_open(int device, int channel, pb_data_h *handle, gpointer
 
 	pwm_handle->type = PERIPHERAL_BUS_TYPE_PWM;
 	pwm_handle->list = &pb_data->pwm_list;
-	pwm_handle->dev.pwm.device = device;
-	pwm_handle->dev.pwm.channel = channel;
+	pwm_handle->dev.pwm.chip = chip;
+	pwm_handle->dev.pwm.pin = pin;
 	*handle = pwm_handle;
 
 	return PERIPHERAL_ERROR_NONE;
 
 err:
-	pwm_close(device, channel);
+	pwm_close(chip, pin);
 
 open_err:
 	return ret;
@@ -94,7 +94,7 @@ int peripheral_bus_pwm_close(pb_data_h handle)
 	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	if ((ret = pwm_close(pwm->device, pwm->channel)) < 0)
+	if ((ret = pwm_close(pwm->chip, pwm->pin)) < 0)
 		return ret;
 
 	if (peripheral_bus_data_free(handle) < 0) {
@@ -109,54 +109,29 @@ int peripheral_bus_pwm_set_period(pb_data_h handle, int period)
 {
 	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
 
-	return pwm_set_period(pwm->device, pwm->channel, period);
+	return pwm_set_period(pwm->chip, pwm->pin, period);
 }
 
-int peripheral_bus_pwm_get_period(pb_data_h handle, int *period)
-{
-	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
-
-	return pwm_get_period(pwm->device, pwm->channel, period);
-}
 
 int peripheral_bus_pwm_set_duty_cycle(pb_data_h handle, int duty_cycle)
 {
 	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
 
-	return pwm_set_duty_cycle(pwm->device, pwm->channel, duty_cycle);
+	return pwm_set_duty_cycle(pwm->chip, pwm->pin, duty_cycle);
 }
 
-int peripheral_bus_pwm_get_duty_cycle(pb_data_h handle, int *duty_cycle)
-{
-	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
-
-	return pwm_get_duty_cycle(pwm->device, pwm->channel, duty_cycle);
-}
 
 int peripheral_bus_pwm_set_polarity(pb_data_h handle, int polarity)
 {
 	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
 
-	return pwm_set_polarity(pwm->device, pwm->channel, (pwm_polarity_e)polarity);
+	return pwm_set_polarity(pwm->chip, pwm->pin, (pwm_polarity_e)polarity);
 }
 
-int peripheral_bus_pwm_get_polarity(pb_data_h handle, int *polarity)
-{
-	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
-
-	return pwm_get_polarity(pwm->device, pwm->channel, (pwm_polarity_e*)polarity);
-}
 
 int peripheral_bus_pwm_set_enable(pb_data_h handle, bool enable)
 {
 	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
 
-	return pwm_set_enable(pwm->device, pwm->channel, enable);
-}
-
-int peripheral_bus_pwm_get_enable(pb_data_h handle, bool *enable)
-{
-	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
-
-	return pwm_get_enable(pwm->device, pwm->channel, enable);
+	return pwm_set_enable(pwm->chip, pwm->pin, enable);
 }

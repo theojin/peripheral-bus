@@ -97,3 +97,74 @@ int peripheral_bus_data_free(pb_data_h handle)
 
 	return 0;
 }
+
+int peripheral_bus_get_client_info(
+		GDBusMethodInvocation *invocation,
+		peripheral_bus_s *pb_data,
+		pb_client_info_s *client_info)
+{
+	guint pid = 0;
+	GError *error = NULL;
+	GVariant *_ret;
+	const gchar *id;
+
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (id == NULL) {
+		_E("Current id is NULL");
+		return -1;
+	}
+
+	_ret = g_dbus_connection_call_sync(pb_data->connection,
+		"org.freedesktop.DBus",
+		"/org/freedesktop/DBus",
+		"org.freedesktop.DBus",
+		"GetConnectionUnixProcessID",
+		g_variant_new("(s)", id),
+		NULL,
+		G_DBUS_CALL_FLAGS_NONE,
+		-1,
+		NULL,
+		&error);
+
+	if (_ret == NULL) {
+		_E("Failed to get client pid, %s", error->message);
+		g_error_free(error);
+
+		return -1;
+	}
+
+	g_variant_get(_ret, "(u)", &pid);
+	g_variant_unref(_ret);
+
+	client_info->pid = (pid_t)pid;
+	client_info->pgid = getpgid(pid);
+	client_info->id = strdup(id);
+
+	return 0;
+}
+
+int peripheral_bus_handle_is_valid(
+		GDBusMethodInvocation *invocation,
+		pb_data_h handle,
+		GList *list)
+{
+	const gchar *id;
+
+	if (!g_list_find(list, handle)) {
+		_E("Cannot find handle");
+		return -1;
+	}
+
+	id = g_dbus_method_invocation_get_sender(invocation);
+	if (id == NULL) {
+		_E("Current id is NULL");
+		return -1;
+	}
+
+	if (strcmp(handle->client_info.id, id)) {
+		_E("Invalid access, handle id : %s, current id : %s", handle->client_info.id, id);
+		return -1;
+	}
+
+	return 0;
+}

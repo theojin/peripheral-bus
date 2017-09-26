@@ -28,7 +28,7 @@
 static int initial_buffer_size = 128;
 static int max_buffer_size = 4096;
 
-static bool peripheral_bus_spi_is_available(int bus, int cs, peripheral_bus_s *pb_data)
+static bool __peripheral_bus_spi_is_available(int bus, int cs, peripheral_bus_s *pb_data)
 {
 	pb_board_dev_s *spi = NULL;
 	pb_data_h handle;
@@ -63,7 +63,7 @@ int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_da
 	int ret = PERIPHERAL_ERROR_NONE;
 	int fd, bufsiz;
 
-	if (!peripheral_bus_spi_is_available(bus, cs, pb_data)) {
+	if (!__peripheral_bus_spi_is_available(bus, cs, pb_data)) {
 		_E("spi %d.%d is not available", bus, cs);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
@@ -146,47 +146,18 @@ int peripheral_bus_spi_set_mode(pb_data_h handle, unsigned char mode)
 	return spi_set_mode(spi->fd, mode);
 }
 
-int peripheral_bus_spi_get_mode(pb_data_h handle, unsigned char *mode)
+int peripheral_bus_spi_set_bit_order(pb_data_h handle, gboolean lsb)
 {
 	peripheral_bus_spi_s *spi = &handle->dev.spi;
 
-	return spi_get_mode(spi->fd, mode);
+	return spi_set_bit_order(spi->fd, (unsigned char)lsb);
 }
 
-int peripheral_bus_spi_set_lsb_first(pb_data_h handle, gboolean lsb)
+int peripheral_bus_spi_set_bits_per_word(pb_data_h handle, unsigned char bits)
 {
 	peripheral_bus_spi_s *spi = &handle->dev.spi;
 
-	return spi_set_lsb_first(spi->fd, (unsigned char)lsb);
-}
-
-int peripheral_bus_spi_get_lsb_first(pb_data_h handle, gboolean *lsb)
-{
-	peripheral_bus_spi_s *spi = &handle->dev.spi;
-	int ret;
-	unsigned char value;
-
-	if ((ret = spi_get_lsb_first(spi->fd, &value)) < 0) {
-		_E("spi_get_lsb_first error (%d)", ret);
-		return ret;
-	}
-	*lsb = value ? true : false;
-
-	return PERIPHERAL_ERROR_NONE;
-}
-
-int peripheral_bus_spi_set_bits(pb_data_h handle, unsigned char bits)
-{
-	peripheral_bus_spi_s *spi = &handle->dev.spi;
-
-	return spi_set_bits(spi->fd, bits);
-}
-
-int peripheral_bus_spi_get_bits(pb_data_h handle, unsigned char *bits)
-{
-	peripheral_bus_spi_s *spi = &handle->dev.spi;
-
-	return spi_get_bits(spi->fd, bits);
+	return spi_set_bits_per_word(spi->fd, bits);
 }
 
 int peripheral_bus_spi_set_frequency(pb_data_h handle, unsigned int freq)
@@ -194,13 +165,6 @@ int peripheral_bus_spi_set_frequency(pb_data_h handle, unsigned int freq)
 	peripheral_bus_spi_s *spi = &handle->dev.spi;
 
 	return spi_set_frequency(spi->fd, freq);
-}
-
-int peripheral_bus_spi_get_frequency(pb_data_h handle, unsigned int *freq)
-{
-	peripheral_bus_spi_s *spi = &handle->dev.spi;
-
-	return spi_get_frequency(spi->fd, freq);
 }
 
 int peripheral_bus_spi_read(pb_data_h handle, GVariant **data_array, int length)
@@ -266,7 +230,7 @@ int peripheral_bus_spi_write(pb_data_h handle, GVariant *data_array, int length)
 	return spi_write(spi->fd, spi->tx_buf, length);
 }
 
-int peripheral_bus_spi_read_write(pb_data_h handle, GVariant *tx_data_array, GVariant **rx_data_array, int length)
+int peripheral_bus_spi_transfer(pb_data_h handle, GVariant *tx_data_array, GVariant **rx_data_array, int length)
 {
 	peripheral_bus_spi_s *spi = &handle->dev.spi;
 	uint8_t err_buf[2] = {0, };
@@ -311,7 +275,7 @@ int peripheral_bus_spi_read_write(pb_data_h handle, GVariant *tx_data_array, GVa
 		spi->tx_buf[i++] = str;
 	g_variant_iter_free(iter);
 
-	ret = spi_read_write(spi->fd, spi->tx_buf, spi->rx_buf, length);
+	ret = spi_transfer(spi->fd, spi->tx_buf, spi->rx_buf, length);
 	*rx_data_array = peripheral_bus_build_variant_ay(spi->rx_buf, length);
 
 	return ret;

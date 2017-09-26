@@ -77,13 +77,31 @@ int uart_open(int port, int *file_hndl)
 
 int uart_close(int file_hndl)
 {
+	int status;
+
 	_D("file_hndl : %d", file_hndl);
 
-	if (!file_hndl) {
+	if (file_hndl < 0) {
 		_E("Invalid NULL parameter");
 		return -EINVAL;
 	}
-	close(file_hndl);
+
+	status = uart_flush(file_hndl);
+	if (status < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Failed to close fd : %d, errmsg : %s", file_hndl, errmsg);
+		return -EIO;
+	}
+
+	status = close(file_hndl);
+	if (status < 0) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("Failed to close fd : %d, errmsg : %s", file_hndl, errmsg);
+		return -EIO;
+	}
+
 	return 0;
 }
 
@@ -107,7 +125,7 @@ int uart_flush(int file_hndl)
 	return 0;
 }
 
-int uart_set_baudrate(int file_hndl, uart_baudrate_e baud)
+int uart_set_baud_rate(int file_hndl, uart_baud_rate_e baud)
 {
 	int ret;
 	struct termios tio;
@@ -120,7 +138,7 @@ int uart_set_baudrate(int file_hndl, uart_baudrate_e baud)
 		return -EINVAL;
 	}
 
-	if (baud > UART_BAUDRATE_230400) {
+	if (baud > UART_BAUD_RATE_230400) {
 		_E("Invalid parameter");
 		return -EINVAL;
 	}
@@ -151,19 +169,19 @@ int uart_set_baudrate(int file_hndl, uart_baudrate_e baud)
 	return 0;
 }
 
-int uart_set_mode(int file_hndl, uart_bytesize_e bytesize, uart_parity_e parity, uart_stopbits_e stopbits)
+int uart_set_mode(int file_hndl, uart_byte_size_e byte_size, uart_parity_e parity, uart_stop_bits_e stop_bits)
 {
 	int ret;
 	struct termios tio;
 
-	_D("file_hndl : %d, bytesize : %d, parity : %d, stopbits : %d", file_hndl, bytesize, parity, stopbits);
+	_D("file_hndl : %d, bytesize : %d, parity : %d, stopbits : %d", file_hndl, byte_size, parity, stop_bits);
 
 	if (!file_hndl) {
 		_E("Invalid NULL parameter");
 		return -EINVAL;
 	}
 
-	if (bytesize > UART_BYTESIZE_8BIT) {
+	if (byte_size > UART_BYTE_SIZE_8BIT) {
 		_E("Invalid bytesize parameter");
 		return -EINVAL;
 	}
@@ -178,7 +196,7 @@ int uart_set_mode(int file_hndl, uart_bytesize_e bytesize, uart_parity_e parity,
 
 	/* set byte size */
 	tio.c_cflag &= ~CSIZE;
-	tio.c_cflag |= byteinfo[bytesize];
+	tio.c_cflag |= byteinfo[byte_size];
 	tio.c_cflag |= (CLOCAL | CREAD);
 
 	/* set parity info */
@@ -199,15 +217,15 @@ int uart_set_mode(int file_hndl, uart_bytesize_e bytesize, uart_parity_e parity,
 	}
 
 	/* set stop bit */
-	switch (stopbits) {
-	case UART_STOPBITS_1BIT:
+	switch (stop_bits) {
+	case UART_STOP_BITS_1BIT:
 		tio.c_cflag &= ~CSTOPB;
 		break;
-	case UART_STOPBITS_2BIT:
+	case UART_STOP_BITS_2BIT:
 		tio.c_cflag |= CSTOPB;
 		break;
 	default:
-		_E("Invalid parameter stopbits");
+		_E("Invalid parameter stop_bits");
 		return -EINVAL;
 	}
 
@@ -223,7 +241,143 @@ int uart_set_mode(int file_hndl, uart_bytesize_e bytesize, uart_parity_e parity,
 	return 0;
 }
 
-int uart_set_flowcontrol(int file_hndl, bool xonxoff, bool rtscts)
+int uart_set_byte_size(int file_hndl, uart_byte_size_e byte_size)
+{
+	int ret;
+	struct termios tio;
+
+	_D("file_hndl : %d, bytesize : %d", file_hndl, byte_size);
+
+	if (!file_hndl) {
+		_E("Invalid NULL parameter");
+		return -EINVAL;
+	}
+
+	if (byte_size > UART_BYTE_SIZE_8BIT) {
+		_E("Invalid bytesize parameter");
+		return -EINVAL;
+	}
+
+	ret = tcgetattr(file_hndl, &tio);
+	if (ret) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("tcgetattr failed, errmsg: %s", errmsg);
+		return -1;
+	}
+
+	/* set byte size */
+	tio.c_cflag &= ~CSIZE;
+	tio.c_cflag |= byteinfo[byte_size];
+	tio.c_cflag |= (CLOCAL | CREAD);
+
+	uart_flush(file_hndl);
+	ret = tcsetattr(file_hndl, TCSANOW, &tio);
+	if (ret) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("tcsetattr failed, errmsg : %s", errmsg);
+		return -1;
+	}
+
+	return 0;
+}
+
+int uart_set_parity(int file_hndl, uart_parity_e parity)
+{
+	int ret;
+	struct termios tio;
+
+	_D("file_hndl : %d, parity : %d", file_hndl, parity);
+
+	if (!file_hndl) {
+		_E("Invalid NULL parameter");
+		return -EINVAL;
+	}
+
+	ret = tcgetattr(file_hndl, &tio);
+	if (ret) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("tcgetattr failed, errmsg: %s", errmsg);
+		return -1;
+	}
+
+	/* set parity info */
+	switch (parity) {
+	case UART_PARITY_EVEN:
+		tio.c_cflag |= PARENB;
+		tio.c_cflag &= ~PARODD;
+		break;
+	case UART_PARITY_ODD:
+		tio.c_cflag |= PARENB;
+		tio.c_cflag |= PARODD;
+		break;
+	case UART_PARITY_NONE:
+	default:
+		tio.c_cflag &= ~PARENB;
+		tio.c_cflag &= ~PARODD;
+		break;
+	}
+
+	uart_flush(file_hndl);
+	ret = tcsetattr(file_hndl, TCSANOW, &tio);
+	if (ret) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("tcsetattr failed, errmsg : %s", errmsg);
+		return -1;
+	}
+
+	return 0;
+}
+
+int uart_set_stop_bits(int file_hndl, uart_stop_bits_e stop_bits)
+{
+	int ret;
+	struct termios tio;
+
+	_D("file_hndl : %d, stopbits : %d", file_hndl, stop_bits);
+
+	if (!file_hndl) {
+		_E("Invalid NULL parameter");
+		return -EINVAL;
+	}
+
+	ret = tcgetattr(file_hndl, &tio);
+	if (ret) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("tcgetattr failed, errmsg: %s", errmsg);
+		return -1;
+	}
+
+	/* set stop bit */
+	switch (stop_bits) {
+	case UART_STOP_BITS_1BIT:
+		tio.c_cflag &= ~CSTOPB;
+		break;
+	case UART_STOP_BITS_2BIT:
+		tio.c_cflag |= CSTOPB;
+		break;
+	default:
+		_E("Invalid parameter stop_bits");
+		return -EINVAL;
+	}
+
+	uart_flush(file_hndl);
+	ret = tcsetattr(file_hndl, TCSANOW, &tio);
+	if (ret) {
+		char errmsg[MAX_ERR_LEN];
+		strerror_r(errno, errmsg, MAX_ERR_LEN);
+		_E("tcsetattr failed, errmsg : %s", errmsg);
+		return -1;
+	}
+
+	return 0;
+}
+
+int uart_set_flow_control(int file_hndl, bool xonxoff, bool rtscts)
 {
 	int ret;
 	struct termios tio;
@@ -276,7 +430,9 @@ int uart_read(int file_hndl, uint8_t *buf, unsigned int length)
 	}
 
 	ret = read(file_hndl, (void *)buf, length);
-	if ((errno != EAGAIN && errno != EINTR) && ret < 0) {
+	if (ret <= 0) {
+		if (errno == EAGAIN)
+			return -EAGAIN;
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("read failed, errmsg : %s", errmsg);
@@ -296,7 +452,9 @@ int uart_write(int file_hndl, uint8_t *buf, unsigned int length)
 	}
 
 	ret = write(file_hndl, buf, length);
-	if (ret < 0) {
+	if (ret <= 0) {
+		if (errno == EAGAIN)
+			return -EAGAIN;
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("write failed, errmsg : %s", errmsg);

@@ -26,17 +26,21 @@
 #include "peripheral_bus_board.h"
 #include "peripheral_common.h"
 
-#define STR_BUF_MAX			255
+#define STR_BUF_MAX 255
 
-#define BOARD_INI_ARTIK710_PATH	SYSCONFDIR"/peripheral-bus/pio_board_artik710.ini"
-#define BOARD_INI_RP3_B_PATH	SYSCONFDIR"/peripheral-bus/pio_board_rp3_b.ini"
-#define BOARD_INI_UNKNOWN_PATH	SYSCONFDIR"/peripheral-bus/pio_board_unknown.ini"
+#define BOARD_INI_BASE SYSCONFDIR "/peripheral-bus/"
+
+#define BOARD_INI_ARTIK710_PATH BOARD_INI_BASE "pio_board_artik710.ini"
+#define BOARD_INI_ARTIK520_PATH BOARD_INI_BASE "pio_board_artik520.ini"
+#define BOARD_INI_RP3_B_PATH    BOARD_INI_BASE "pio_board_rp3_b.ini"
+#define BOARD_INI_UNKNOWN_PATH  BOARD_INI_BASE "pio_board_unknown.ini"
 
 static const pb_board_type_s pb_board_type[] = {
 	{PB_BOARD_ARTIK710, "artik710 raptor", BOARD_INI_ARTIK710_PATH},
 	{PB_BOARD_ARTIK530, "artik530 raptor", BOARD_INI_ARTIK710_PATH},
-	{PB_BOARD_RP3_B, "Raspberry Pi 3 Model B", BOARD_INI_RP3_B_PATH},
-	{PB_BOARD_UNKOWN, "unkown board", BOARD_INI_UNKNOWN_PATH},
+	{PB_BOARD_ARTIK520, "ARTIK5 board",    BOARD_INI_ARTIK520_PATH},
+	{PB_BOARD_RP3_B,    "Raspberry Pi 3 Model B", BOARD_INI_RP3_B_PATH},
+	{PB_BOARD_UNKNOWN,  "unknown board",   BOARD_INI_UNKNOWN_PATH},
 };
 
 static int peripheral_bus_board_get_device_type(char *string)
@@ -47,8 +51,6 @@ static int peripheral_bus_board_get_device_type(char *string)
 		return PB_BOARD_DEV_I2C;
 	else if (0 == strncmp(string, "pwm", strlen("pwm")))
 		return PB_BOARD_DEV_PWM;
-	else if (0 == strncmp(string, "adc", strlen("adc")))
-		return PB_BOARD_DEV_ADC;
 	else if (0 == strncmp(string, "uart", strlen("uart")))
 		return PB_BOARD_DEV_UART;
 	else if (0 == strncmp(string, "spi", strlen("spi")))
@@ -67,9 +69,6 @@ static void peripheral_bus_board_ini_parse_key(pb_board_dev_e type, char *string
 		sscanf(string, "%*50[^-]-%d", &args[0]);
 		break;
 	case PB_BOARD_DEV_PWM:
-		sscanf(string, "%*50[^0-9]%d%*50[^0-9]%d", &args[0], &args[1]);
-		break;
-	case PB_BOARD_DEV_ADC:
 		sscanf(string, "%*50[^0-9]%d%*50[^0-9]%d", &args[0], &args[1]);
 		break;
 	case PB_BOARD_DEV_UART:
@@ -122,7 +121,7 @@ static int peripheral_bus_board_get_type(void)
 {
 	int fd, i;
 	char str_buf[STR_BUF_MAX] = {0};
-	int type = PB_BOARD_UNKOWN;
+	int type = PB_BOARD_UNKNOWN;
 
 	fd = open(BOARD_DEVICE_TREE, O_RDONLY);
 	if (fd < 0) {
@@ -137,7 +136,7 @@ static int peripheral_bus_board_get_type(void)
 		return -EIO;
 	}
 
-	for (i = 0; i < PB_BOARD_UNKOWN; i++) {
+	for (i = 0; i < PB_BOARD_UNKNOWN; i++) {
 		if (strstr(str_buf, pb_board_type[i].name)) {
 			type = pb_board_type[i].type;
 			break;
@@ -232,7 +231,7 @@ pb_board_dev_s *peripheral_bus_board_find_device(pb_board_dev_e dev_type, pb_boa
 	RETV_IF(board == NULL, false);
 
 	args[0] = arg;
-	if (dev_type == PB_BOARD_DEV_PWM || dev_type == PB_BOARD_DEV_ADC || dev_type == PB_BOARD_DEV_SPI) {
+	if (dev_type == PB_BOARD_DEV_PWM || dev_type == PB_BOARD_DEV_SPI) {
 		va_start(ap, arg);
 		args[1] = va_arg(ap, int);
 		va_end(ap);

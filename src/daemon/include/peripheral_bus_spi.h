@@ -20,15 +20,11 @@
 int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_data);
 int peripheral_bus_spi_close(pb_data_h handle);
 int peripheral_bus_spi_set_mode(pb_data_h handle, unsigned char mode);
-int peripheral_bus_spi_get_mode(pb_data_h handle, unsigned char *mode);
-int peripheral_bus_spi_set_lsb_first(pb_data_h handle, gboolean lsb);
-int peripheral_bus_spi_get_lsb_first(pb_data_h handle, gboolean *lsb);
-int peripheral_bus_spi_set_bits(pb_data_h handle, unsigned char bits);
-int peripheral_bus_spi_get_bits(pb_data_h handle, unsigned char *bits);
+int peripheral_bus_spi_set_bit_order(pb_data_h handle, gboolean lsb);
+int peripheral_bus_spi_set_bits_per_word(pb_data_h handle, unsigned char bits);
 int peripheral_bus_spi_set_frequency(pb_data_h handle, unsigned int freq);
-int peripheral_bus_spi_get_frequency(pb_data_h handle, unsigned int *freq);
 int peripheral_bus_spi_read(pb_data_h handle, GVariant **data_array, int length);
 int peripheral_bus_spi_write(pb_data_h handle, GVariant *data_array, int length);
-int peripheral_bus_spi_read_write(pb_data_h handle, GVariant *tx_data_array, GVariant **rx_data_array, int length);
+int peripheral_bus_spi_transfer(pb_data_h handle, GVariant *tx_data_array, GVariant **rx_data_array, int length);
 
 #endif /* __PERIPHERAL_BUS_SPI_H__ */

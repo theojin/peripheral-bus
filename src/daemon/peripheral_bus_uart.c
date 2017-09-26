@@ -29,7 +29,7 @@
 #define INITIAL_BUFFER_SIZE 128
 #define MAX_BUFFER_SIZE 8192
 
-static bool peripheral_bus_uart_is_available(int port, peripheral_bus_s *pb_data)
+static bool __peripheral_bus_uart_is_available(int port, peripheral_bus_s *pb_data)
 {
 	pb_board_dev_s *uart = NULL;
 	pb_data_h handle;
@@ -64,7 +64,7 @@ int peripheral_bus_uart_open(int port, pb_data_h *handle, gpointer user_data)
 	int ret = PERIPHERAL_ERROR_NONE;
 	int fd;
 
-	if (!peripheral_bus_uart_is_available(port, pb_data)) {
+	if (!__peripheral_bus_uart_is_available(port, pb_data)) {
 		_E("uart %d is not available", port);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
@@ -116,32 +116,38 @@ int peripheral_bus_uart_close(pb_data_h handle)
 	return ret;
 }
 
-int peripheral_bus_uart_flush(pb_data_h handle)
+int peripheral_bus_uart_set_baud_rate(pb_data_h handle, int baud_rate)
 {
 	peripheral_bus_uart_s *uart = &handle->dev.uart;
 
-	return  uart_flush(uart->fd);
+	return uart_set_baud_rate(uart->fd, baud_rate);
 }
 
-int peripheral_bus_uart_set_baudrate(pb_data_h handle, int baudrate)
+int peripheral_bus_uart_set_byte_size(pb_data_h handle, int byte_size)
 {
 	peripheral_bus_uart_s *uart = &handle->dev.uart;
 
-	return  uart_set_baudrate(uart->fd, baudrate);
+	return uart_set_byte_size(uart->fd, byte_size);
 }
 
-int peripheral_bus_uart_set_mode(pb_data_h handle, int byte_size, int parity, int stop_bits)
+int peripheral_bus_uart_set_parity(pb_data_h handle, int parity)
 {
 	peripheral_bus_uart_s *uart = &handle->dev.uart;
 
-	return  uart_set_mode(uart->fd, byte_size, parity, stop_bits);
+	return uart_set_parity(uart->fd, parity);
+}
+int peripheral_bus_uart_set_stop_bits(pb_data_h handle, int stop_bits)
+{
+	peripheral_bus_uart_s *uart = &handle->dev.uart;
+
+	return uart_set_stop_bits(uart->fd, stop_bits);
 }
 
-int peripheral_bus_uart_set_flowcontrol(pb_data_h handle, bool xonxoff, bool rtscts)
+int peripheral_bus_uart_set_flow_control(pb_data_h handle, bool xonxoff, bool rtscts)
 {
 	peripheral_bus_uart_s *uart = &handle->dev.uart;
 
-	return  uart_set_flowcontrol(uart->fd, xonxoff, rtscts);
+	return uart_set_flow_control(uart->fd, xonxoff, rtscts);
 }
 
 int peripheral_bus_uart_read(pb_data_h handle, GVariant **data_array, int length)
