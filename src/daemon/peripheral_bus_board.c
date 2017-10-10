@@ -119,7 +119,7 @@ static int peripheral_bus_board_ini_get_nkeys(dictionary *dict)
 
 static int peripheral_bus_board_get_type(void)
 {
-	int fd, i;
+	int fd, i, ret = 0;
 	char str_buf[STR_BUF_MAX] = {0};
 	int type = PB_BOARD_UNKNOWN;
 
@@ -130,8 +130,9 @@ static int peripheral_bus_board_get_type(void)
 		return -ENXIO;
 	}
 
-	if (read(fd, str_buf, STR_BUF_MAX) < 0) {
-		_E("Failed to read model information, path : %s", BOARD_DEVICE_TREE);
+	ret = read(fd, str_buf, STR_BUF_MAX);
+	if (ret < 0) {
+		_E("Failed to read model information, path: %s, ret: %d", BOARD_DEVICE_TREE, ret);
 		close(fd);
 		return -EIO;
 	}
