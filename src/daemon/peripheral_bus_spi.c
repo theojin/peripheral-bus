@@ -68,8 +68,10 @@ int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_da
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
-	if ((ret = spi_open(bus, cs, &fd)) < 0)
+	if ((ret = spi_open(bus, cs, &fd)) < 0) {
+		_E("spi_open error (%d)", ret);
 		goto err_open;
+	}
 
 	spi_handle = peripheral_bus_data_new(&pb_data->spi_list);
 	if (!spi_handle) {

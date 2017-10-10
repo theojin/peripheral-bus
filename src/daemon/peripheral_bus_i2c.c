@@ -63,20 +63,27 @@ int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer us
 	int ret;
 	int fd;
 
-	_D("bus : %d, address : 0x%x", bus, address);
-
-	if (!peripheral_bus_i2c_is_available(bus, address, pb_data))
+	if (!peripheral_bus_i2c_is_available(bus, address, pb_data)) {
+		_E("bus : %d, address : 0x%x is not available", bus, address);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
+	}
 
-	if ((ret = i2c_open(bus, &fd)) < 0)
-		return ret;
+	if ((ret = i2c_open(bus, &fd)) < 0) {
+		_E("i2c_open error (%d)", ret);
+		goto open_err;
+	}
 
 	if ((ret = i2c_set_address(fd, address)) < 0) {
-		i2c_close(fd);
-		return ret;
+		_E("i2c_set_address error (%d)", ret);
+		goto err;
 	}
 
 	i2c_handle = peripheral_bus_data_new(&pb_data->i2c_list);
+	if (!i2c_handle) {
+		_E("peripheral_bus_data_new error");
+		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
+		goto err;
+	}
 
 	i2c_handle->type = PERIPHERAL_BUS_TYPE_I2C;
 	i2c_handle->list = &pb_data->i2c_list;
@@ -87,14 +94,20 @@ int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer us
 
 	if (!(i2c_handle->dev.i2c.buffer)) {
 		peripheral_bus_data_free(i2c_handle);
-		i2c_close(fd);
 		_E("Failed to allocate data buffer");
-		return PERIPHERAL_ERROR_OUT_OF_MEMORY;
+		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
+		goto err;
 	}
 	i2c_handle->dev.i2c.buffer_size = INITIAL_BUFFER_SIZE;
 
 	*handle = i2c_handle;
 
+	return PERIPHERAL_ERROR_NONE;
+
+err:
+	i2c_close(fd);
+
+open_err:
 	return ret;
 }
 
