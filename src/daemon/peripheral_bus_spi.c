@@ -87,6 +87,10 @@ int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_da
 	spi_handle->dev.spi.cs = cs;
 
 	if (!spi_get_buffer_size(&bufsiz)) {
+		if (bufsiz <= 0) {
+			_E("Buffer size is less than or equal to zero");
+			goto err_buf_size;
+		}
 		if (initial_buffer_size > bufsiz) initial_buffer_size = bufsiz;
 		if (max_buffer_size > bufsiz) max_buffer_size = bufsiz;
 	}
@@ -116,6 +120,7 @@ err_tx_buf:
 	spi_handle->dev.spi.rx_buf_size = 0;
 
 err_rx_buf:
+err_buf_size:
 	peripheral_bus_data_free(spi_handle);
 
 err_spi_data:
