@@ -43,7 +43,7 @@ gboolean handle_pwm_open(
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h pwm_handle;
+	pb_data_h pwm_handle = NULL;
 
 	if ((ret = peripheral_bus_pwm_open(chip, pin, &pwm_handle, user_data)) <  PERIPHERAL_ERROR_NONE)
 		goto out;
@@ -51,6 +51,7 @@ gboolean handle_pwm_open(
 	if (peripheral_bus_get_client_info(invocation, pb_data, &pwm_handle->client_info) < 0) {
 		peripheral_bus_pwm_close(pwm_handle);
 		ret = PERIPHERAL_ERROR_UNKNOWN;
+		pwm_handle = NULL;
 		goto out;
 	}
 

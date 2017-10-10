@@ -42,7 +42,7 @@ gboolean handle_gpio_open(
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	pb_data_h gpio_handle;
+	pb_data_h gpio_handle = NULL;
 
 	if ((ret = peripheral_bus_gpio_open(pin, &gpio_handle, user_data)) < PERIPHERAL_ERROR_NONE)
 		goto out;
@@ -50,6 +50,7 @@ gboolean handle_gpio_open(
 	if (peripheral_bus_get_client_info(invocation, pb_data, &gpio_handle->client_info) < 0) {
 		peripheral_bus_gpio_close(gpio_handle);
 		ret = PERIPHERAL_ERROR_UNKNOWN;
+		gpio_handle = NULL;
 		goto out;
 	}
 

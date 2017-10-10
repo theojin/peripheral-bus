@@ -42,7 +42,7 @@ gboolean handle_uart_open(
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h uart_handle;
+	pb_data_h uart_handle = NULL;
 
 	if ((ret = peripheral_bus_uart_open(port, &uart_handle, user_data)) < PERIPHERAL_ERROR_NONE)
 		goto out;
@@ -50,6 +50,7 @@ gboolean handle_uart_open(
 	if (peripheral_bus_get_client_info(invocation, pb_data, &uart_handle->client_info) < 0) {
 		peripheral_bus_uart_close(uart_handle);
 		ret = PERIPHERAL_ERROR_UNKNOWN;
+		uart_handle = NULL;
 		goto out;
 	}
 

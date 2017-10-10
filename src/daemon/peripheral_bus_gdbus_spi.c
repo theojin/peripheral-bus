@@ -43,7 +43,7 @@ gboolean handle_spi_open(
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h spi_handle;
+	pb_data_h spi_handle = NULL;
 
 	if ((ret = peripheral_bus_spi_open(bus, cs, &spi_handle, user_data)) < PERIPHERAL_ERROR_NONE)
 		goto out;
@@ -51,6 +51,7 @@ gboolean handle_spi_open(
 	if (peripheral_bus_get_client_info(invocation, pb_data, &spi_handle->client_info) < 0) {
 		peripheral_bus_spi_close(spi_handle);
 		ret = PERIPHERAL_ERROR_UNKNOWN;
+		spi_handle = NULL;
 		goto out;
 	}
 
