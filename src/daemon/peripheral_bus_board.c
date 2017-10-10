@@ -120,7 +120,7 @@ static int peripheral_bus_board_ini_get_nkeys(dictionary *dict)
 static int peripheral_bus_board_get_type(void)
 {
 	int fd, i, ret = 0;
-	char str_buf[STR_BUF_MAX] = {0};
+	char str_buf[STR_BUF_MAX + 1] = {0};
 	int type = PB_BOARD_UNKNOWN;
 
 	fd = open(BOARD_DEVICE_TREE, O_RDONLY);
