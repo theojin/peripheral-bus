@@ -98,7 +98,7 @@ int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_da
 		goto err_rx_buf;
 	}
 	spi_handle->dev.spi.tx_buf = (uint8_t*)calloc(1, initial_buffer_size);
-	if (!spi_handle->dev.spi.rx_buf) {
+	if (!spi_handle->dev.spi.tx_buf) {
 		_E("Failed to allocate tx buffer");
 		ret =  PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto err_tx_buf;
