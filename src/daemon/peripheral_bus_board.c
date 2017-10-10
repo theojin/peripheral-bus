@@ -212,6 +212,9 @@ static pb_board_s *peripheral_bus_board_get_info()
 		}
 	}
 
+	if (key_list)
+		free(key_list);
+
 	iniparser_freedict(dict);
 
 	return board;
