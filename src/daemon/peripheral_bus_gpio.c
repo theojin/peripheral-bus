@@ -152,7 +152,7 @@ int peripheral_bus_gpio_open(gint pin, pb_data_h *handle, gpointer user_data)
 	gpio_handle = peripheral_bus_data_new(&pb_data->gpio_list);
 	if (!gpio_handle) {
 		_E("peripheral_bus_data_new error");
-		ret = PERIPHERAL_ERROR_UNKNOWN;
+		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto err;
 	}
 
