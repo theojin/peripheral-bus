@@ -156,8 +156,6 @@ static pb_board_s *peripheral_bus_board_get_info()
 	dictionary *dict = NULL;
 	int i, j, ret;
 	int sec_num, key_num, cnt_key = 0;
-	char *section, *key_str;
-	char **key_list = NULL;
 	pb_board_dev_s *dev;
 	pb_board_dev_e enum_dev;
 	pb_board_s *board;
@@ -195,6 +193,9 @@ static pb_board_s *peripheral_bus_board_get_info()
 
 	sec_num = iniparser_getnsec(dict);
 	for (i = 0; i < sec_num; i++) {
+		char *section, *key_str;
+		char **key_list = NULL;
+
 		section = iniparser_getsecname(dict, i);
 		ret = peripheral_bus_board_get_device_type(section);
 		if (ret < 0) continue;
@@ -212,10 +213,10 @@ static pb_board_s *peripheral_bus_board_get_info()
 			dev->num_pins = peripheral_bus_board_ini_parse_pins(key_str, dev->pins);
 			cnt_key++;
 		}
-	}
 
-	if (key_list)
-		free(key_list);
+		if (key_list)
+			free(key_list);
+	}
 
 	iniparser_freedict(dict);
 
