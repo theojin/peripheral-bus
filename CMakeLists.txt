@@ -4,7 +4,7 @@ PROJECT(peripheral-bus C)
 SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(VERSION 0.0.1)
 
-SET(dependents "dlog glib-2.0 gio-2.0 gio-unix-2.0 libsystemd-daemon iniparser libudev")
+SET(dependents "dlog glib-2.0 gio-2.0 gio-unix-2.0 libsystemd-daemon iniparser libudev cynara-creds-gdbus cynara-client cynara-session")
 
 FIND_PROGRAM(GDBUS_CODEGEN NAMES gdbus-codegen)
 EXEC_PROGRAM(${GDBUS_CODEGEN} ARGS
@@ -35,6 +35,7 @@ SET(SRCS
 	src/daemon/peripheral_bus_spi.c
 	src/daemon/peripheral_bus_board.c
 	src/daemon/peripheral_io_gdbus.c
+	src/daemon/privilege_checker.c
 	src/interface/gpio.c
 	src/interface/i2c.c
 	src/interface/pwm.c

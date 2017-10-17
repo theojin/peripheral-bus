@@ -32,6 +32,8 @@
 #include "peripheral_bus_gdbus_spi.h"
 #include "peripheral_bus_gdbus_uart.h"
 
+#include "privilege_checker.h"
+
 static gboolean __gpio_init(peripheral_bus_s *pb_data)
 {
 	GDBusObjectManagerServer *manager;
@@ -323,6 +325,7 @@ static void on_bus_acquired(GDBusConnection *connection,
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 
 	pb_data->connection = connection;
+
 	if (__gpio_init(pb_data) == FALSE)
 		_E("Can not signal connect");
 
@@ -395,8 +398,12 @@ int main(int argc, char *argv[])
 
 	g_idle_add(peripheral_bus_notify, NULL);
 
+	peripheral_privilege_init();
+
 	_D("Enter main loop!");
 	g_main_loop_run(loop);
+
+	peripheral_privilege_deinit();
 
 	if (pb_data) {
 		peripheral_bus_board_deinit(pb_data->board);
