@@ -22,6 +22,8 @@
 #include "peripheral_io_gdbus.h"
 #include "peripheral_bus_board.h"
 
+#define PERIPHERAL_PRIVILEGE "http://tizen.org/privilege/peripheralio"
+
 typedef enum {
 	PERIPHERAL_BUS_TYPE_GPIO = 0,
 	PERIPHERAL_BUS_TYPE_I2C,

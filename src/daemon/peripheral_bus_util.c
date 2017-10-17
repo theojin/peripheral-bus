@@ -19,8 +19,14 @@
 #include <string.h>
 #include <gio/gio.h>
 
+#include <cynara-creds-gdbus.h>
+#include <cynara-client.h>
+#include <cynara-session.h>
+
 #include "peripheral_bus.h"
 #include "peripheral_common.h"
+
+#include "privilege_checker.h"
 
 GVariant *peripheral_bus_build_variant_ay(uint8_t *data, int length)
 {
@@ -98,6 +104,43 @@ int peripheral_bus_data_free(pb_data_h handle)
 	return 0;
 }
 
+static int peripheral_bus_check_privilege(
+		GDBusMethodInvocation *invocation,
+		peripheral_bus_s *pb_data)
+{
+	int pid;
+	const char *sender;
+	char *session;
+	char *client;
+	char *user;
+
+	sender = g_dbus_method_invocation_get_sender(invocation);
+
+	cynara_creds_gdbus_get_pid(pb_data->connection, sender, &pid);
+	session = cynara_session_from_pid(pid);
+
+	cynara_creds_gdbus_get_client(pb_data->connection, sender, CLIENT_METHOD_DEFAULT, &client);
+	cynara_creds_gdbus_get_user(pb_data->connection, sender, USER_METHOD_DEFAULT, &user);
+
+	if (!session || !client || !user) {
+		_E("Failed to get client info");
+		return -1;
+	}
+
+	if (!peripheral_privilege_check(client, session, user, PERIPHERAL_PRIVILEGE)) {
+		g_free(session);
+		g_free(client);
+		g_free(user);
+		return -EACCES;
+	}
+
+	g_free(session);
+	g_free(client);
+	g_free(user);
+
+	return 0;
+}
+
 int peripheral_bus_get_client_info(
 		GDBusMethodInvocation *invocation,
 		peripheral_bus_s *pb_data,
@@ -107,6 +150,7 @@ int peripheral_bus_get_client_info(
 	GError *error = NULL;
 	GVariant *_ret;
 	const gchar *id;
+	int err;
 
 	id = g_dbus_method_invocation_get_sender(invocation);
 	if (id == NULL) {
@@ -135,6 +179,11 @@ int peripheral_bus_get_client_info(
 
 	g_variant_get(_ret, "(u)", &pid);
 	g_variant_unref(_ret);
+
+	if ((err = peripheral_bus_check_privilege(invocation, pb_data)) < 0) {
+		_E("Permission denied(%d)", pid);
+		return err;
+	}
 
 	client_info->pid = (pid_t)pid;
 	client_info->pgid = getpgid(pid);

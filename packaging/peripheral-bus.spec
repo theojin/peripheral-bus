@@ -17,6 +17,9 @@ BuildRequires:  pkgconfig(libsystemd)
 BuildRequires:  pkgconfig(capi-system-peripheral-io)
 BuildRequires:  pkgconfig(iniparser)
 BuildRequires:  pkgconfig(libudev)
+BuildRequires:  pkgconfig(cynara-creds-gdbus)
+BuildRequires:  pkgconfig(cynara-client)
+BuildRequires:  pkgconfig(cynara-session)
 
 Requires(post): /sbin/ldconfig
 Requires(postun): /sbin/ldconfig
