@@ -51,25 +51,6 @@ install -m 0644 %SOURCE4 %{buildroot}%{_udevrulesdir}
 mkdir -p %{buildroot}/etc/peripheral-bus
 cp %{_builddir}/%{name}-%{version}/data/*.ini %{buildroot}/etc/%{name}
 
-%post
-systemctl daemon-reload
-if [ $1 == 1 ]; then
-	# install
-	systemctl start %{name}.service
-elif [ $1 == 2 ]; then
-	# upgrade
-	systemctl restart %{name}.service
-fi
-
-%preun
-if [ $1 == 0 ]; then
-	# uninstall
-	systemctl stop %{name}.service
-fi
-
-%postun
-systemctl daemon-reload
-
 %files
 %manifest %{name}.manifest
 %defattr(-,root,root,-)
