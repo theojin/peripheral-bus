@@ -26,35 +26,4 @@ gboolean handle_i2c_open(
 		gint address,
 		gpointer user_data);
 
-gboolean handle_i2c_close(
-		PeripheralIoGdbusI2c *i2c,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gpointer user_data);
-
-gboolean handle_i2c_read(
-		PeripheralIoGdbusI2c *i2c,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gint length,
-		gpointer user_data);
-
-gboolean handle_i2c_write(
-		PeripheralIoGdbusI2c *i2c,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		gint length,
-		GVariant *data_array,
-		gpointer user_data);
-
-gboolean handle_i2c_smbus_ioctl(
-		PeripheralIoGdbusI2c *i2c,
-		GDBusMethodInvocation *invocation,
-		gint handle,
-		guchar read_write,
-		guchar command,
-		guint size,
-		guint16 data_in,
-		gpointer user_data);
-
 #endif /* __PERIPHERAL_BUS_GDBUS_I2C_H__ */

@@ -196,6 +196,7 @@ int peripheral_bus_gpio_close(pb_data_h handle)
 	return ret;;
 }
 
+// TODO : This function will be removed.
 int peripheral_bus_gpio_set_direction(pb_data_h handle, gint direction)
 {
 	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
@@ -211,6 +212,7 @@ int peripheral_bus_gpio_set_direction(pb_data_h handle, gint direction)
 	return PERIPHERAL_ERROR_NONE;
 }
 
+// TODO : This function will be removed.
 int peripheral_bus_gpio_set_edge(pb_data_h handle, gint edge)
 {
 	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
@@ -226,11 +228,12 @@ int peripheral_bus_gpio_set_edge(pb_data_h handle, gint edge)
 	return PERIPHERAL_ERROR_NONE;
 }
 
+// TODO : This function will be removed.
 static gboolean  peripheral_bus_interrupted_cb(GIOChannel *io, GIOCondition condition, gpointer data)
 {
 	peripheral_bus_gpio_s *gpio_data = (peripheral_bus_gpio_s *)data;
 	struct timeval time;
-	unsigned long long timestamp;
+	// unsigned long long timestamp;
 	GIOStatus status;
 	gchar* strval;
 	int value;
@@ -270,12 +273,13 @@ static gboolean  peripheral_bus_interrupted_cb(GIOChannel *io, GIOCondition cond
 	else if (gpio_data->edge == PERIPHERAL_GPIO_EDGE_FALLING && value == 1)
 		return TRUE;
 
-	timestamp = (unsigned long long)time.tv_sec * 1000000 + time.tv_usec;
-	peripheral_bus_emit_interrupted_cb(gpio_data->gpio_skeleton, gpio_data->pin, value, timestamp);
+	//timestamp = (unsigned long long)time.tv_sec * 1000000 + time.tv_usec;
+	//peripheral_bus_emit_interrupted_cb(gpio_data->gpio_skeleton, gpio_data->pin, value, timestamp);
 
 	return TRUE;
 }
 
+// TODO : This function will be removed.
 int peripheral_bus_gpio_set_interrupted_cb(pb_data_h handle)
 {
 	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
@@ -322,6 +326,7 @@ err_open_isr:
 	return PERIPHERAL_ERROR_UNKNOWN;
 }
 
+// TODO : This function will be removed.
 int peripheral_bus_gpio_unset_interrupted_cb(pb_data_h handle)
 {
 	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
@@ -339,6 +344,7 @@ int peripheral_bus_gpio_unset_interrupted_cb(pb_data_h handle)
 	return PERIPHERAL_ERROR_NONE;
 }
 
+// TODO : This function will be removed.
 int peripheral_bus_gpio_read(pb_data_h handle, gint *value)
 {
 	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
@@ -352,6 +358,7 @@ int peripheral_bus_gpio_read(pb_data_h handle, gint *value)
 	return PERIPHERAL_ERROR_NONE;
 }
 
+// TODO : This function will be removed.
 int peripheral_bus_gpio_write(pb_data_h handle, gint value)
 {
 	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
