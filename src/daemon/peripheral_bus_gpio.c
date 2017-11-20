@@ -154,7 +154,6 @@ int peripheral_bus_gpio_open(gint pin, pb_data_h *handle, gpointer user_data)
 	gpio_handle->type = PERIPHERAL_BUS_TYPE_GPIO;
 	gpio_handle->list = &pb_data->gpio_list;
 	gpio_handle->dev.gpio.pin = pin;
-	gpio_handle->dev.gpio.gpio_skeleton = pb_data->gpio_skeleton;
 
 	*handle = gpio_handle;
 

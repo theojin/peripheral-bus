@@ -79,25 +79,6 @@ int peripheral_bus_data_free(pb_data_h handle)
 
 	*handle->list = g_list_remove_link(list, link);
 
-	switch (handle->type) {
-	case PERIPHERAL_BUS_TYPE_I2C:
-		if (handle->dev.i2c.buffer)
-			free(handle->dev.i2c.buffer);
-		break;
-	case PERIPHERAL_BUS_TYPE_UART:
-		if (handle->dev.uart.buffer)
-			free(handle->dev.uart.buffer);
-		break;
-	case PERIPHERAL_BUS_TYPE_SPI:
-		if (handle->dev.spi.rx_buf)
-			free(handle->dev.spi.rx_buf);
-		if (handle->dev.spi.tx_buf)
-			free(handle->dev.spi.tx_buf);
-		break;
-	default:
-		break;
-	}
-
 	free(handle);
 	g_list_free(link);
 

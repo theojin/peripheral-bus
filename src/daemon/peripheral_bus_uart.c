@@ -86,15 +86,6 @@ int peripheral_bus_uart_open(int port, pb_data_h *handle, gpointer user_data)
 	uart_handle->dev.uart.fd = fd;
 	uart_handle->dev.uart.port = port;
 
-	uart_handle->dev.uart.buffer = (uint8_t*)calloc(1, INITIAL_BUFFER_SIZE);
-	if (!uart_handle->dev.uart.buffer) {
-		_E("Failed to allocate buffer");
-		peripheral_bus_data_free(uart_handle);
-		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
-		goto err;
-	}
-
-	uart_handle->dev.uart.buffer_size = INITIAL_BUFFER_SIZE;
 	*handle = uart_handle;
 
 	return PERIPHERAL_ERROR_NONE;

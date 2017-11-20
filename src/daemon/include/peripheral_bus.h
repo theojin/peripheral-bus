@@ -57,27 +57,13 @@ typedef struct {
 } pb_client_info_s;
 
 typedef struct {
-	/* gpio info */
 	int pin;
-	int direction;
-	int edge;
-	/* interrupt variable */
-	int irq_en;
-	int value_fd;
-	GIOChannel *io;
-	guint io_id;
-	/* gdbus variable */
-	PeripheralIoGdbusGpio *gpio_skeleton;
 } peripheral_bus_gpio_s;
 
 typedef struct {
-	/* i2c device information */
 	int bus;
 	int address;
 	int fd;
-	/* data buffer */
-	uint8_t *buffer;
-	int buffer_size;
 } peripheral_bus_i2c_s;
 
 typedef struct {
@@ -88,19 +74,12 @@ typedef struct {
 typedef struct {
 	int port;
 	int fd;
-	uint8_t *buffer;
-	int buffer_size;
 } peripheral_bus_uart_s;
 
 typedef struct {
 	int bus;
 	int cs;
 	int fd;
-	/* data buffer */
-	uint8_t *rx_buf;
-	uint8_t *tx_buf;
-	int rx_buf_size;
-	int tx_buf_size;
 } peripheral_bus_spi_s;
 
 typedef struct {

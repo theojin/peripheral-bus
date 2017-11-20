@@ -90,15 +90,6 @@ int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer us
 	i2c_handle->dev.i2c.fd = fd;
 	i2c_handle->dev.i2c.bus = bus;
 	i2c_handle->dev.i2c.address = address;
-	i2c_handle->dev.i2c.buffer = malloc(INITIAL_BUFFER_SIZE);
-
-	if (!(i2c_handle->dev.i2c.buffer)) {
-		peripheral_bus_data_free(i2c_handle);
-		_E("Failed to allocate data buffer");
-		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
-		goto err;
-	}
-	i2c_handle->dev.i2c.buffer_size = INITIAL_BUFFER_SIZE;
 
 	*handle = i2c_handle;
 
