@@ -48,24 +48,23 @@ gboolean handle_spi_open(
 
 	GUnixFDList *spi_fd_list = NULL;
 
-	if ((ret = peripheral_bus_spi_open(bus, cs, &spi_handle, user_data)) < PERIPHERAL_ERROR_NONE)
-		goto out;
-
-	if (peripheral_bus_get_client_info(invocation, pb_data, &spi_handle->client_info) < 0) {
-		peripheral_bus_spi_close(spi_handle);
-		ret = PERIPHERAL_ERROR_UNKNOWN;
-		spi_handle = NULL;
+	ret = peripheral_bus_check_privilege(invocation, pb_data);
+	if (ret != 0) {
+		_E("Permission denied.");
+		ret = PERIPHERAL_ERROR_PERMISSION_DENIED;
 		goto out;
 	}
 
-	spi_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
-			spi_handle->client_info.id,
-			G_BUS_NAME_WATCHER_FLAGS_NONE ,
+	if ((ret = peripheral_bus_spi_open(bus, cs, &spi_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+		goto out;
+
+	spi_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
+			g_dbus_method_invocation_get_sender(invocation),
+			G_BUS_NAME_WATCHER_FLAGS_NONE,
 			NULL,
 			__spi_on_name_vanished,
 			spi_handle,
 			NULL);
-	_D("bus : %d, cs : %d, id = %s", bus, cs, spi_handle->client_info.id);
 
 out:
 	peripheral_io_gdbus_spi_complete_open(spi, invocation, spi_fd_list, GPOINTER_TO_UINT(spi_handle), ret);

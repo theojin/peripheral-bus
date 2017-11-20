@@ -104,7 +104,7 @@ int peripheral_bus_data_free(pb_data_h handle)
 	return 0;
 }
 
-static int peripheral_bus_check_privilege(
+int peripheral_bus_check_privilege(
 		GDBusMethodInvocation *invocation,
 		peripheral_bus_s *pb_data)
 {

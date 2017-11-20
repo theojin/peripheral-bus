@@ -48,24 +48,23 @@ gboolean handle_i2c_open(
 
 	GUnixFDList *i2c_fd_list = NULL;
 
-	if ((ret = peripheral_bus_i2c_open(bus, address, &i2c_handle, user_data)) < PERIPHERAL_ERROR_NONE)
-		goto out;
-
-	if (peripheral_bus_get_client_info(invocation, pb_data, &i2c_handle->client_info) < 0) {
-		peripheral_bus_i2c_close(i2c_handle);
-		ret = PERIPHERAL_ERROR_UNKNOWN;
-		i2c_handle = NULL;
+	ret = peripheral_bus_check_privilege(invocation, pb_data);
+	if (ret != 0) {
+		_E("Permission denied.");
+		ret = PERIPHERAL_ERROR_PERMISSION_DENIED;
 		goto out;
 	}
 
-	i2c_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
-			i2c_handle->client_info.id,
-			G_BUS_NAME_WATCHER_FLAGS_NONE ,
+	if ((ret = peripheral_bus_i2c_open(bus, address, &i2c_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+		goto out;
+
+	i2c_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
+			g_dbus_method_invocation_get_sender(invocation),
+			G_BUS_NAME_WATCHER_FLAGS_NONE,
 			NULL,
 			__i2c_on_name_vanished,
 			i2c_handle,
 			NULL);
-	_D("bus : %d, address : 0x%x, id = %s", bus, address, i2c_handle->client_info.id);
 
 out:
 	peripheral_io_gdbus_i2c_complete_open(i2c, invocation, i2c_fd_list, GPOINTER_TO_UINT(i2c_handle), ret);

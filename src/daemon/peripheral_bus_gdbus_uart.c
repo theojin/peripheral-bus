@@ -47,24 +47,23 @@ gboolean handle_uart_open(
 
 	GUnixFDList *uart_fd_list = NULL;
 
-	if ((ret = peripheral_bus_uart_open(port, &uart_handle, user_data)) < PERIPHERAL_ERROR_NONE)
-		goto out;
-
-	if (peripheral_bus_get_client_info(invocation, pb_data, &uart_handle->client_info) < 0) {
-		peripheral_bus_uart_close(uart_handle);
-		ret = PERIPHERAL_ERROR_UNKNOWN;
-		uart_handle = NULL;
+	ret = peripheral_bus_check_privilege(invocation, pb_data);
+	if (ret != 0) {
+		_E("Permission denied.");
+		ret = PERIPHERAL_ERROR_PERMISSION_DENIED;
 		goto out;
 	}
 
-	uart_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
-			uart_handle->client_info.id,
-			G_BUS_NAME_WATCHER_FLAGS_NONE ,
+	if ((ret = peripheral_bus_uart_open(port, &uart_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+		goto out;
+
+	uart_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
+			g_dbus_method_invocation_get_sender(invocation),
+			G_BUS_NAME_WATCHER_FLAGS_NONE,
 			NULL,
 			__uart_on_name_vanished,
 			uart_handle,
 			NULL);
-	_D("port : %d, id = %s", port, uart_handle->client_info.id);
 
 out:
 	peripheral_io_gdbus_uart_complete_open(uart, invocation, uart_fd_list, GPOINTER_TO_UINT(uart_handle), ret);

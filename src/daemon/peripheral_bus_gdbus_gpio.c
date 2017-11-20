@@ -48,23 +48,23 @@ gboolean handle_gpio_open(
 
 	GUnixFDList *gpio_fd_list = NULL;
 
-	if ((ret = peripheral_bus_gpio_open(pin, &gpio_handle, user_data)) < PERIPHERAL_ERROR_NONE)
-		goto out;
-
-	if ((ret = peripheral_bus_get_client_info(invocation, pb_data, &gpio_handle->client_info)) < 0) {
-		peripheral_bus_gpio_close(gpio_handle);
-		gpio_handle = NULL;
+	ret = peripheral_bus_check_privilege(invocation, pb_data);
+	if (ret != 0) {
+		_E("Permission denied.");
+		ret = PERIPHERAL_ERROR_PERMISSION_DENIED;
 		goto out;
 	}
 
-	gpio_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
-			gpio_handle->client_info.id,
-			G_BUS_NAME_WATCHER_FLAGS_NONE ,
+	if ((ret = peripheral_bus_gpio_open(pin, &gpio_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+		goto out;
+
+	gpio_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
+			g_dbus_method_invocation_get_sender(invocation),
+			G_BUS_NAME_WATCHER_FLAGS_NONE,
 			NULL,
 			__gpio_on_name_vanished,
 			gpio_handle,
 			NULL);
-	_D("gpio : %d, id = %s", gpio_handle->dev.gpio.pin, gpio_handle->client_info.id);
 
 out:
 	peripheral_io_gdbus_gpio_complete_open(gpio, invocation, gpio_fd_list, GPOINTER_TO_UINT(gpio_handle), ret);

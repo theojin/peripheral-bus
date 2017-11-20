@@ -48,24 +48,23 @@ gboolean handle_pwm_open(
 
 	GUnixFDList *pwm_fd_list = NULL;
 
-	if ((ret = peripheral_bus_pwm_open(chip, pin, &pwm_handle, user_data)) <  PERIPHERAL_ERROR_NONE)
-		goto out;
-
-	if (peripheral_bus_get_client_info(invocation, pb_data, &pwm_handle->client_info) < 0) {
-		peripheral_bus_pwm_close(pwm_handle);
-		ret = PERIPHERAL_ERROR_UNKNOWN;
-		pwm_handle = NULL;
+	ret = peripheral_bus_check_privilege(invocation, pb_data);
+	if (ret != 0) {
+		_E("Permission denied.");
+		ret = PERIPHERAL_ERROR_PERMISSION_DENIED;
 		goto out;
 	}
 
-	pwm_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM ,
-			pwm_handle->client_info.id,
-			G_BUS_NAME_WATCHER_FLAGS_NONE ,
+	if ((ret = peripheral_bus_pwm_open(chip, pin, &pwm_handle, user_data)) <  PERIPHERAL_ERROR_NONE)
+		goto out;
+
+	pwm_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
+			g_dbus_method_invocation_get_sender(invocation),
+			G_BUS_NAME_WATCHER_FLAGS_NONE,
 			NULL,
 			__pwm_on_name_vanished,
 			pwm_handle,
 			NULL);
-	_D("chip : %d, pin : %d, id = %s", chip, pin, pwm_handle->client_info.id);
 
 out:
 	peripheral_io_gdbus_pwm_complete_open(pwm, invocation, pwm_fd_list, GPOINTER_TO_UINT(pwm_handle), ret);
