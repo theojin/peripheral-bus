@@ -22,6 +22,7 @@
 gboolean handle_pwm_open(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
+		GUnixFDList *fd_list,
 		gint chip,
 		gint pin,
 		gpointer user_data);

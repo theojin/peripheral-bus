@@ -37,6 +37,7 @@ static void __pwm_on_name_vanished(GDBusConnection *connection,
 gboolean handle_pwm_open(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
+		GUnixFDList *fd_list,
 		gint chip,
 		gint pin,
 		gpointer user_data)
@@ -44,6 +45,8 @@ gboolean handle_pwm_open(
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_data_h pwm_handle = NULL;
+
+	GUnixFDList *pwm_fd_list = NULL;
 
 	if ((ret = peripheral_bus_pwm_open(chip, pin, &pwm_handle, user_data)) <  PERIPHERAL_ERROR_NONE)
 		goto out;
@@ -65,7 +68,7 @@ gboolean handle_pwm_open(
 	_D("chip : %d, pin : %d, id = %s", chip, pin, pwm_handle->client_info.id);
 
 out:
-	peripheral_io_gdbus_pwm_complete_open(pwm, invocation, GPOINTER_TO_UINT(pwm_handle), ret);
+	peripheral_io_gdbus_pwm_complete_open(pwm, invocation, pwm_fd_list, GPOINTER_TO_UINT(pwm_handle), ret);
 
 	return true;
 }

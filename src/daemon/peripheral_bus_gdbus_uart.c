@@ -37,12 +37,15 @@ static void __uart_on_name_vanished(GDBusConnection *connection,
 gboolean handle_uart_open(
 		PeripheralIoGdbusUart *uart,
 		GDBusMethodInvocation *invocation,
+		GUnixFDList *fd_list,
 		gint port,
 		gpointer user_data)
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_data_h uart_handle = NULL;
+
+	GUnixFDList *uart_fd_list = NULL;
 
 	if ((ret = peripheral_bus_uart_open(port, &uart_handle, user_data)) < PERIPHERAL_ERROR_NONE)
 		goto out;
@@ -64,7 +67,7 @@ gboolean handle_uart_open(
 	_D("port : %d, id = %s", port, uart_handle->client_info.id);
 
 out:
-	peripheral_io_gdbus_uart_complete_open(uart, invocation, GPOINTER_TO_UINT(uart_handle), ret);
+	peripheral_io_gdbus_uart_complete_open(uart, invocation, uart_fd_list, GPOINTER_TO_UINT(uart_handle), ret);
 
 	return true;
 }

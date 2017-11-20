@@ -37,6 +37,7 @@ static void __i2c_on_name_vanished(GDBusConnection *connection,
 gboolean handle_i2c_open(
 		PeripheralIoGdbusI2c *i2c,
 		GDBusMethodInvocation *invocation,
+		GUnixFDList *fd_list,
 		gint bus,
 		gint address,
 		gpointer user_data)
@@ -44,6 +45,8 @@ gboolean handle_i2c_open(
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	pb_data_h i2c_handle = NULL;
+
+	GUnixFDList *i2c_fd_list = NULL;
 
 	if ((ret = peripheral_bus_i2c_open(bus, address, &i2c_handle, user_data)) < PERIPHERAL_ERROR_NONE)
 		goto out;
@@ -65,7 +68,7 @@ gboolean handle_i2c_open(
 	_D("bus : %d, address : 0x%x, id = %s", bus, address, i2c_handle->client_info.id);
 
 out:
-	peripheral_io_gdbus_i2c_complete_open(i2c, invocation, GPOINTER_TO_UINT(i2c_handle), ret);
+	peripheral_io_gdbus_i2c_complete_open(i2c, invocation, i2c_fd_list, GPOINTER_TO_UINT(i2c_handle), ret);
 
 	return true;
 }

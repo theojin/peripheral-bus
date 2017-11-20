@@ -22,6 +22,7 @@
 gboolean handle_uart_open(
 		PeripheralIoGdbusUart *uart,
 		GDBusMethodInvocation *invocation,
+		GUnixFDList *fd_list,
 		gint port,
 		gpointer user_data);
 

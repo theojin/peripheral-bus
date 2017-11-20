@@ -15,6 +15,7 @@
  */
 
 #include <peripheral_io.h>
+#include <gio/gunixfdlist.h>
 
 #include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
@@ -37,12 +38,15 @@ static void __gpio_on_name_vanished(GDBusConnection *connection,
 gboolean handle_gpio_open(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
+		GUnixFDList *fd_list,
 		gint pin,
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	pb_data_h gpio_handle = NULL;
+
+	GUnixFDList *gpio_fd_list = NULL;
 
 	if ((ret = peripheral_bus_gpio_open(pin, &gpio_handle, user_data)) < PERIPHERAL_ERROR_NONE)
 		goto out;
@@ -63,7 +67,7 @@ gboolean handle_gpio_open(
 	_D("gpio : %d, id = %s", gpio_handle->dev.gpio.pin, gpio_handle->client_info.id);
 
 out:
-	peripheral_io_gdbus_gpio_complete_open(gpio, invocation, GPOINTER_TO_UINT(gpio_handle), ret);
+	peripheral_io_gdbus_gpio_complete_open(gpio, invocation, gpio_fd_list, GPOINTER_TO_UINT(gpio_handle), ret);
 
 	return true;
 }

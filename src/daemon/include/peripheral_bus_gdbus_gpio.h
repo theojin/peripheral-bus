@@ -22,6 +22,7 @@
 gboolean handle_gpio_open(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
+		GUnixFDList *fd_list,
 		gint pin,
 		gpointer user_data);
 

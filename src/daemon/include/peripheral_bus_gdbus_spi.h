@@ -22,6 +22,7 @@
 gboolean handle_spi_open(
 		PeripheralIoGdbusSpi *spi,
 		GDBusMethodInvocation *invocation,
+		GUnixFDList *fd_list,
 		gint bus,
 		gint cs,
 		gpointer user_data);

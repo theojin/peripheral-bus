@@ -22,6 +22,7 @@
 gboolean handle_i2c_open(
 		PeripheralIoGdbusI2c *i2c,
 		GDBusMethodInvocation *invocation,
+		GUnixFDList *fd_list,
 		gint bus,
 		gint address,
 		gpointer user_data);
