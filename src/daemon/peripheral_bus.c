@@ -21,7 +21,6 @@
 #include <systemd/sd-daemon.h>
 
 #include <peripheral_io.h>
-#include <peripheral_gdbus.h>
 
 #include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
@@ -33,6 +32,13 @@
 #include "peripheral_bus_gdbus_uart.h"
 
 #include "privilege_checker.h"
+
+#define PERIPHERAL_GDBUS_GPIO_PATH	"/Org/Tizen/Peripheral_io/Gpio"
+#define PERIPHERAL_GDBUS_I2C_PATH	"/Org/Tizen/Peripheral_io/I2c"
+#define PERIPHERAL_GDBUS_PWM_PATH	"/Org/Tizen/Peripheral_io/Pwm"
+#define PERIPHERAL_GDBUS_UART_PATH	"/Org/Tizen/Peripheral_io/Uart"
+#define PERIPHERAL_GDBUS_SPI_PATH	"/Org/Tizen/Peripheral_io/Spi"
+#define PERIPHERAL_GDBUS_NAME		"org.tizen.peripheral_io"
 
 static gboolean __gpio_init(peripheral_bus_s *pb_data)
 {
