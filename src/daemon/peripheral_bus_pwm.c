@@ -104,34 +104,3 @@ int peripheral_bus_pwm_close(pb_data_h handle)
 
 	return ret;
 }
-
-int peripheral_bus_pwm_set_period(pb_data_h handle, int period)
-{
-	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
-
-	return pwm_set_period(pwm->chip, pwm->pin, period);
-}
-
-
-int peripheral_bus_pwm_set_duty_cycle(pb_data_h handle, int duty_cycle)
-{
-	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
-
-	return pwm_set_duty_cycle(pwm->chip, pwm->pin, duty_cycle);
-}
-
-
-int peripheral_bus_pwm_set_polarity(pb_data_h handle, int polarity)
-{
-	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
-
-	return pwm_set_polarity(pwm->chip, pwm->pin, (pwm_polarity_e)polarity);
-}
-
-
-int peripheral_bus_pwm_set_enable(pb_data_h handle, bool enable)
-{
-	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
-
-	return pwm_set_enable(pwm->chip, pwm->pin, enable);
-}

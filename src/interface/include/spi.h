@@ -19,13 +19,5 @@
 
 int spi_open(int bus, int cs, int *fd);
 int spi_close(int fd);
-int spi_set_mode(int fd, unsigned char mode);
-int spi_set_bit_order(int fd, unsigned char lsb);
-int spi_set_bits_per_word(int fd, unsigned char bits);
-int spi_set_frequency(int fd, unsigned int freq);
-int spi_get_buffer_size(int *bufsiz);
-int spi_read(int fd, unsigned char *rxbuf, int length);
-int spi_write(int fd, unsigned char *txbuf, int length);
-int spi_transfer(int fd, unsigned char *txbuf, unsigned char *rxbuf, int length);
 
 #endif /* __SPI_H__ */

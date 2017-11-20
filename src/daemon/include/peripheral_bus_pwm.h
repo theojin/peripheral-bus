@@ -19,9 +19,5 @@
 
 int peripheral_bus_pwm_open(int chip, int pin, pb_data_h *handle, gpointer user_data);
 int peripheral_bus_pwm_close(pb_data_h handle);
-int peripheral_bus_pwm_set_period(pb_data_h handle, int period);
-int peripheral_bus_pwm_set_duty_cycle(pb_data_h handle, int duty_cycle);
-int peripheral_bus_pwm_set_polarity(pb_data_h handle, int polarity);
-int peripheral_bus_pwm_set_enable(pb_data_h handle, bool enable);
 
 #endif /* __PERIPHERAL_BUS_PWM_H__ */

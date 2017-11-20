@@ -25,9 +25,6 @@
 #include "peripheral_common.h"
 #include "peripheral_bus_util.h"
 
-static int initial_buffer_size = 128;
-static int max_buffer_size = 4096;
-
 static bool __peripheral_bus_spi_is_available(int bus, int cs, peripheral_bus_s *pb_data)
 {
 	pb_board_dev_s *spi = NULL;
@@ -61,7 +58,7 @@ int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_da
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	pb_data_h spi_handle;
 	int ret = PERIPHERAL_ERROR_NONE;
-	int fd, bufsiz;
+	int fd;
 
 	if (!__peripheral_bus_spi_is_available(bus, cs, pb_data)) {
 		_E("spi %d.%d is not available", bus, cs);
@@ -86,42 +83,9 @@ int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_da
 	spi_handle->dev.spi.bus = bus;
 	spi_handle->dev.spi.cs = cs;
 
-	if (!spi_get_buffer_size(&bufsiz)) {
-		if (bufsiz <= 0) {
-			_E("Buffer size is less than or equal to zero");
-			goto err_buf_size;
-		}
-		if (initial_buffer_size > bufsiz) initial_buffer_size = bufsiz;
-		if (max_buffer_size > bufsiz) max_buffer_size = bufsiz;
-	}
-
-	spi_handle->dev.spi.rx_buf = (uint8_t*)calloc(1, initial_buffer_size);
-	if (!spi_handle->dev.spi.rx_buf) {
-		_E("Failed to allocate rx buffer");
-		ret =  PERIPHERAL_ERROR_OUT_OF_MEMORY;
-		goto err_rx_buf;
-	}
-	spi_handle->dev.spi.tx_buf = (uint8_t*)calloc(1, initial_buffer_size);
-	if (!spi_handle->dev.spi.tx_buf) {
-		_E("Failed to allocate tx buffer");
-		ret =  PERIPHERAL_ERROR_OUT_OF_MEMORY;
-		goto err_tx_buf;
-	}
-
-	spi_handle->dev.spi.rx_buf_size = initial_buffer_size;
-	spi_handle->dev.spi.tx_buf_size = initial_buffer_size;
 	*handle = spi_handle;
 
 	return PERIPHERAL_ERROR_NONE;
-
-err_tx_buf:
-	if (spi_handle->dev.spi.rx_buf)
-		free(spi_handle->dev.spi.rx_buf);
-	spi_handle->dev.spi.rx_buf_size = 0;
-
-err_rx_buf:
-err_buf_size:
-	peripheral_bus_data_free(spi_handle);
 
 err_spi_data:
 	spi_close(fd);
@@ -142,153 +106,6 @@ int peripheral_bus_spi_close(pb_data_h handle)
 		_E("Failed to free spi data");
 		ret = PERIPHERAL_ERROR_UNKNOWN;
 	}
-
-	return ret;
-}
-
-int peripheral_bus_spi_set_mode(pb_data_h handle, unsigned char mode)
-{
-	peripheral_bus_spi_s *spi = &handle->dev.spi;
-
-	return spi_set_mode(spi->fd, mode);
-}
-
-int peripheral_bus_spi_set_bit_order(pb_data_h handle, gboolean lsb)
-{
-	peripheral_bus_spi_s *spi = &handle->dev.spi;
-
-	return spi_set_bit_order(spi->fd, (unsigned char)lsb);
-}
-
-int peripheral_bus_spi_set_bits_per_word(pb_data_h handle, unsigned char bits)
-{
-	peripheral_bus_spi_s *spi = &handle->dev.spi;
-
-	return spi_set_bits_per_word(spi->fd, bits);
-}
-
-int peripheral_bus_spi_set_frequency(pb_data_h handle, unsigned int freq)
-{
-	peripheral_bus_spi_s *spi = &handle->dev.spi;
-
-	return spi_set_frequency(spi->fd, freq);
-}
-
-int peripheral_bus_spi_read(pb_data_h handle, GVariant **data_array, int length)
-{
-	peripheral_bus_spi_s *spi = &handle->dev.spi;
-	uint8_t err_buf[2] = {0, };
-	int ret;
-
-	/* Limit maximum length */
-	if (length > max_buffer_size) length = max_buffer_size;
-
-	/* Increase buffer if needed */
-	if (length > spi->rx_buf_size) {
-		uint8_t *buffer;
-
-		buffer = (uint8_t*)realloc(spi->rx_buf, length);
-		if (!buffer) {
-			ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
-			_E("Failed to realloc buffer");
-			goto out;
-		}
-		spi->rx_buf = buffer;
-		spi->rx_buf_size = length;
-	}
-
-	ret = spi_read(spi->fd, spi->rx_buf, length);
-	*data_array = peripheral_bus_build_variant_ay(spi->rx_buf, length);
-
-	return ret;
-
-out:
-	*data_array = peripheral_bus_build_variant_ay(err_buf, sizeof(err_buf));
-
-	return ret;
-}
-
-int peripheral_bus_spi_write(pb_data_h handle, GVariant *data_array, int length)
-{
-	peripheral_bus_spi_s *spi = &handle->dev.spi;
-	GVariantIter *iter;
-	guchar str;
-	int i = 0;
-
-	/* Limit maximum length */
-	if (length > max_buffer_size) length = max_buffer_size;
-
-	/* Increase buffer if needed */
-	if (length > spi->tx_buf_size) {
-		uint8_t *buffer;
-
-		buffer = (uint8_t*)realloc(spi->tx_buf, length);
-		RETVM_IF(buffer == NULL, PERIPHERAL_ERROR_OUT_OF_MEMORY, "Failed to realloc tx buffer");
-
-		spi->tx_buf = buffer;
-		spi->tx_buf_size = length;
-	}
-
-	g_variant_get(data_array, "a(y)", &iter);
-	while (g_variant_iter_loop(iter, "(y)", &str) && i < length)
-		spi->tx_buf[i++] = str;
-	g_variant_iter_free(iter);
-
-	return spi_write(spi->fd, spi->tx_buf, length);
-}
-
-int peripheral_bus_spi_transfer(pb_data_h handle, GVariant *tx_data_array, GVariant **rx_data_array, int length)
-{
-	peripheral_bus_spi_s *spi = &handle->dev.spi;
-	uint8_t err_buf[2] = {0, };
-	GVariantIter *iter;
-	guchar str;
-	int i = 0;
-	int ret;
-
-	/* Limit maximum length */
-	if (length > max_buffer_size) length = max_buffer_size;
-
-	/* Increase rx buffer if needed */
-	if (length > spi->rx_buf_size) {
-		uint8_t *buffer;
-
-		buffer = (uint8_t*)realloc(spi->rx_buf, length);
-		if (!buffer) {
-			ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
-			_E("Failed to realloc rx buffer");
-			goto out;
-		}
-		spi->rx_buf = buffer;
-		spi->rx_buf_size = length;
-	}
-
-	/* Increase tx buffer if needed */
-	if (length > spi->tx_buf_size) {
-		uint8_t *buffer;
-
-		buffer = (uint8_t*)realloc(spi->tx_buf, length);
-		if (!buffer) {
-			ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
-			_E("Failed to realloc tx buffer");
-			goto out;
-		}
-
-		spi->tx_buf = buffer;
-		spi->tx_buf_size = length;
-	}
-	g_variant_get(tx_data_array, "a(y)", &iter);
-	while (g_variant_iter_loop(iter, "(y)", &str) && i < length)
-		spi->tx_buf[i++] = str;
-	g_variant_iter_free(iter);
-
-	ret = spi_transfer(spi->fd, spi->tx_buf, spi->rx_buf, length);
-	*rx_data_array = peripheral_bus_build_variant_ay(spi->rx_buf, length);
-
-	return ret;
-
-out:
-	*rx_data_array = peripheral_bus_build_variant_ay(err_buf, sizeof(err_buf));
 
 	return ret;
 }
