@@ -18,7 +18,7 @@
 
 #include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
-#include "peripheral_bus_spi.h"
+#include "peripheral_handle_spi.h"
 #include "peripheral_log.h"
 #include "peripheral_bus_util.h"
 #include "peripheral_bus_gdbus_spi.h"

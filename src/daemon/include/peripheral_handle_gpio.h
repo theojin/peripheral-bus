@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef __PERIPHERAL_BUS_I2C_H__
-#define __PERIPHERAL_BUS_I2C_H__
+#ifndef __PERIPHERAL_HANDLE_GPIO_H__
+#define __PERIPHERAL_HANDLE_GPIO_H__
 
-int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer user_data);
-int peripheral_bus_i2c_close(pb_data_h handle);
+int peripheral_bus_gpio_open(gint pin, pb_data_h *handle, gpointer user_data);
+int peripheral_bus_gpio_close(pb_data_h handle);
 
-#endif /* __PERIPHERAL_BUS_I2C_H__ */
+#endif /* __PERIPHERAL_HANDLE_GPIO_H__ */

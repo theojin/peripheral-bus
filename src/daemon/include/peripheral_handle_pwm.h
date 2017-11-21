@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef __PERIPHERAL_BUS_PWM_H__
-#define __PERIPHERAL_BUS_PWM_H__
+#ifndef __PERIPHERAL_HANDLE_PWM_H__
+#define __PERIPHERAL_HANDLE_PWM_H__
 
 int peripheral_bus_pwm_open(int chip, int pin, pb_data_h *handle, gpointer user_data);
 int peripheral_bus_pwm_close(pb_data_h handle);
 
-#endif /* __PERIPHERAL_BUS_PWM_H__ */
+#endif /* __PERIPHERAL_HANDLE_PWM_H__ */

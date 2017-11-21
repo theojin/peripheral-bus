@@ -18,7 +18,7 @@
 
 #include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
-#include "peripheral_bus_pwm.h"
+#include "peripheral_handle_pwm.h"
 #include "peripheral_log.h"
 #include "peripheral_bus_util.h"
 #include "peripheral_bus_gdbus_pwm.h"

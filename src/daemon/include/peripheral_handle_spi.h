@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef __PERIPHERAL_BUS_SPI_H__
-#define __PERIPHERAL_BUS_SPI_H__
+#ifndef __PERIPHERAL_HANDLE_SPI_H__
+#define __PERIPHERAL_HANDLE_SPI_H__
 
 int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_data);
 int peripheral_bus_spi_close(pb_data_h handle);
 
-#endif /* __PERIPHERAL_BUS_SPI_H__ */
+#endif /* __PERIPHERAL_HANDLE_SPI_H__ */
