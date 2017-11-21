@@ -31,8 +31,4 @@ int peripheral_bus_handle_is_valid(
 		pb_data_h handle,
 		GList *list);
 
-int peripheral_bus_check_privilege(
-		GDBusMethodInvocation *invocation,
-		peripheral_bus_s *pb_data);
-
 #endif /* __PERIPHERAL_UTIL_H__ */

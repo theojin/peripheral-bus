@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <glib.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#include <peripheral_io.h>
-
 #include <cynara-creds-gdbus.h>
 #include <cynara-client.h>
 #include <cynara-session.h>
 
-#include "peripheral_bus.h"
+#include "privilege_checker.h"
 #include "peripheral_log.h"
+
+#define PERIPHERAL_PRIVILEGE "http://tizen.org/privilege/peripheralio"
 
 #define CACHE_SIZE  100
 
@@ -67,11 +61,39 @@ void peripheral_privilege_deinit(void)
 	_D("Cynara deinitialized");
 }
 
-bool peripheral_privilege_check(const char* client, const char* session, const char* user, const char* privilege)
+int peripheral_privilege_check(GDBusMethodInvocation *invocation, GDBusConnection *connection)
 {
-	RETVM_IF(!privilege, true, "Invalid parameter");
-	RETVM_IF(!__cynara, false, "Cynara does not initialized");
+	int ret;
+	int pid;
+	const char *sender;
+	char *session;
+	char *client;
+	char *user;
 
-	int ret = cynara_check(__cynara, client, session, user, privilege);
-	return (ret == CYNARA_API_ACCESS_ALLOWED);
+	sender = g_dbus_method_invocation_get_sender(invocation);
+
+	cynara_creds_gdbus_get_pid(connection, sender, &pid);
+	session = cynara_session_from_pid(pid);
+
+	cynara_creds_gdbus_get_client(connection, sender, CLIENT_METHOD_DEFAULT, &client);
+	cynara_creds_gdbus_get_user(connection, sender, USER_METHOD_DEFAULT, &user);
+
+	if (!session || !client || !user) {
+		_E("Failed to get client info");
+		return -1;
+	}
+
+	ret = cynara_check(__cynara, client, session, user, PERIPHERAL_PRIVILEGE);
+	if (ret != 0) {
+		g_free(session);
+		g_free(client);
+		g_free(user);
+		return -EACCES;
+	}
+
+	g_free(session);
+	g_free(client);
+	g_free(user);
+
+	return 0;
 }

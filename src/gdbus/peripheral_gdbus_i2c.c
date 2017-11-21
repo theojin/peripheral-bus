@@ -22,6 +22,7 @@
 #include "peripheral_log.h"
 #include "peripheral_bus_util.h"
 #include "peripheral_gdbus_i2c.h"
+#include "privilege_checker.h"
 
 static void __i2c_on_name_vanished(GDBusConnection *connection,
 		const gchar     *name,
@@ -48,7 +49,7 @@ gboolean handle_i2c_open(
 
 	GUnixFDList *i2c_fd_list = NULL;
 
-	ret = peripheral_bus_check_privilege(invocation, pb_data);
+	ret = peripheral_privilege_check(invocation, pb_data->connection);
 	if (ret != 0) {
 		_E("Permission denied.");
 		ret = PERIPHERAL_ERROR_PERMISSION_DENIED;

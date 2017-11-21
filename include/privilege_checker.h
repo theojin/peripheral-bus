@@ -17,10 +17,10 @@
 #ifndef __PRIVILEGE_CHECKER_H__
 #define __PRIVILEGE_CHECKER_H__
 
-#include <stdbool.h>
+#include <gio/gio.h>
 
 void peripheral_privilege_init(void);
 void peripheral_privilege_deinit(void);
-bool peripheral_privilege_check(const char* client, const char* session, const char* user, const char* privilege);
+int peripheral_privilege_check(GDBusMethodInvocation *invocation, GDBusConnection *connection);
 
 #endif /* __PRIVILEGE_CHECKER_H__ */
