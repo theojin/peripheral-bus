@@ -59,22 +59,13 @@ int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer us
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	pb_data_h i2c_handle;
 	int ret;
-	int fd;
 
 	if (!peripheral_bus_i2c_is_available(bus, address, pb_data)) {
 		_E("bus : %d, address : 0x%x is not available", bus, address);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
-	if ((ret = i2c_open(bus, &fd)) < 0) {
-		_E("i2c_open error (%d)", ret);
-		goto open_err;
-	}
-
-	if ((ret = i2c_set_address(fd, address)) < 0) {
-		_E("i2c_set_address error (%d)", ret);
-		goto err;
-	}
+	// TODO : make fd list using the interface function
 
 	i2c_handle = peripheral_bus_data_new(&pb_data->i2c_list);
 	if (!i2c_handle) {
@@ -85,7 +76,6 @@ int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer us
 
 	i2c_handle->type = PERIPHERAL_BUS_TYPE_I2C;
 	i2c_handle->list = &pb_data->i2c_list;
-	i2c_handle->dev.i2c.fd = fd;
 	i2c_handle->dev.i2c.bus = bus;
 	i2c_handle->dev.i2c.address = address;
 
@@ -94,21 +84,12 @@ int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer us
 	return PERIPHERAL_ERROR_NONE;
 
 err:
-	i2c_close(fd);
-
-open_err:
 	return ret;
 }
 
 int peripheral_bus_i2c_close(pb_data_h handle)
 {
-	peripheral_bus_i2c_s *i2c = &handle->dev.i2c;
 	int ret = PERIPHERAL_ERROR_NONE;
-
-	_D("bus : %d, address : 0x%x, pgid = %d", i2c->bus, i2c->address, handle->client_info.pgid);
-
-	if ((ret = i2c_close(i2c->fd)) < 0)
-		return ret;
 
 	if (peripheral_bus_data_free(handle) < 0) {
 		_E("Failed to free i2c data");

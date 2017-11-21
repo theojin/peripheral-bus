@@ -17,40 +17,97 @@
 #include "peripheral_interface_gpio.h"
 #include "peripheral_interface_common.h"
 
-#define SYSFS_GPIO_DIR "/sys/class/gpio"
-
-int gpio_open(int gpiopin)
+int peripheral_interface_gpio_open(int pin)
 {
-	int fd, len, status;
-	char gpio_export[MAX_BUF_LEN] = {0, };
+	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
 
-	_D("gpiopin : %d", gpiopin);
+	int ret;
+	int fd;
+	int length;
+	char buf[MAX_BUF_LEN] = {0, };
 
-	fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
+	fd = open("/sys/class/gpio/export", O_WRONLY);
 	IF_ERROR_RETURN(fd < 0);
 
-	len = snprintf(gpio_export, MAX_BUF_LEN, "%d", gpiopin);
-	status = write(fd, gpio_export, len);
-	IF_ERROR_RETURN(status != len, close(fd));
-	close(fd);
+	length = snprintf(buf, MAX_BUF_LEN, "%d", pin);
+	ret = write(fd, buf, length);
+	IF_ERROR_RETURN(ret != length, close(fd));
 
-	return 0;
+	ret = close(fd);
+	IF_ERROR_RETURN(ret != 0);
+
+	return PERIPHERAL_ERROR_NONE;
 }
 
-int gpio_close(int gpiopin)
+int peripheral_interface_gpio_close(int pin)
 {
-	int fd, len, status;
-	char gpio_unexport[MAX_BUF_LEN] = {0, };
+	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
 
-	_D("gpiopin : %d", gpiopin);
+	int ret;
+	int fd;
+	int length;
+	char buf[MAX_BUF_LEN] = {0, };
 
-	fd = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
+	fd = open("/sys/class/gpio/unexport", O_WRONLY);
 	IF_ERROR_RETURN(fd < 0);
 
-	len = snprintf(gpio_unexport, MAX_BUF_LEN, "%d", gpiopin);
-	status = write(fd, gpio_unexport, len);
-	IF_ERROR_RETURN(status != len, close(fd));
-	close(fd);
+	length = snprintf(buf, MAX_BUF_LEN, "%d", pin);
+	ret = write(fd, buf, length);
+	IF_ERROR_RETURN(ret != length, close(fd));
 
-	return 0;
+	ret = close(fd);
+	IF_ERROR_RETURN(ret != 0);
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
+int peripheral_interface_gpio_open_file_direction(int pin, int *fd_out)
+{
+	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
+	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for gpio direction");
+
+	int fd;
+	char path[MAX_BUF_LEN] = {0, };
+
+	snprintf(path, MAX_BUF_LEN, "/sys/class/gpio/gpio%d/direction", pin);
+	fd = open(path, O_RDWR);
+	IF_ERROR_RETURN(fd < 0);
+
+	*fd_out = fd;
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
+int peripheral_interface_gpio_open_file_edge(int pin, int *fd_out)
+{
+	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
+	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for gpio edge");
+
+	int fd;
+	char path[MAX_BUF_LEN] = {0, };
+
+	snprintf(path, MAX_BUF_LEN, "/sys/class/gpio/gpio%d/edge", pin);
+	fd = open(path, O_RDWR);
+	IF_ERROR_RETURN(fd < 0);
+
+	*fd_out = fd;
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
+int peripheral_interface_gpio_open_file_value(int pin, int *fd_out)
+{
+	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
+	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for gpio value");
+
+	int fd;
+	char path[MAX_BUF_LEN] = {0, };
+
+	snprintf(path, MAX_BUF_LEN, "/sys/class/gpio/gpio%d/value", pin);
+	fd = open(path, O_RDWR);
+	IF_ERROR_RETURN(fd < 0);
+
+	*fd_out = fd;
+
+	return PERIPHERAL_ERROR_NONE;
 }

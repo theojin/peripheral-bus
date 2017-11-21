@@ -62,8 +62,7 @@ int peripheral_bus_pwm_open(int chip, int pin, pb_data_h *handle, gpointer user_
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
-	if ((ret = pwm_open(chip, pin)) < 0)
-		goto open_err;
+	// TODO : make fd list using the interface function
 
 	pwm_handle = peripheral_bus_data_new(&pb_data->pwm_list);
 	if (!pwm_handle) {
@@ -81,19 +80,12 @@ int peripheral_bus_pwm_open(int chip, int pin, pb_data_h *handle, gpointer user_
 	return PERIPHERAL_ERROR_NONE;
 
 err:
-	pwm_close(chip, pin);
-
-open_err:
 	return ret;
 }
 
 int peripheral_bus_pwm_close(pb_data_h handle)
 {
-	peripheral_bus_pwm_s *pwm = &handle->dev.pwm;
 	int ret = PERIPHERAL_ERROR_NONE;
-
-	if ((ret = pwm_close(pwm->chip, pwm->pin)) < 0)
-		return ret;
 
 	if (peripheral_bus_data_free(handle) < 0) {
 		_E("Failed to free i2c data");

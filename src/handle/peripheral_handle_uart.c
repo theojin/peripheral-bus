@@ -59,17 +59,13 @@ int peripheral_bus_uart_open(int port, pb_data_h *handle, gpointer user_data)
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	pb_data_h uart_handle;
 	int ret = PERIPHERAL_ERROR_NONE;
-	int fd;
 
 	if (!__peripheral_bus_uart_is_available(port, pb_data)) {
 		_E("uart %d is not available", port);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
-	if ((ret = uart_open(port, &fd)) < 0) {
-		_E("uart_open error (%d)", ret);
-		goto open_err;
-	}
+	// TODO : make fd list using the interface function
 
 	uart_handle = peripheral_bus_data_new(&pb_data->uart_list);
 	if (!uart_handle) {
@@ -80,7 +76,6 @@ int peripheral_bus_uart_open(int port, pb_data_h *handle, gpointer user_data)
 
 	uart_handle->type = PERIPHERAL_BUS_TYPE_UART;
 	uart_handle->list = &pb_data->uart_list;
-	uart_handle->dev.uart.fd = fd;
 	uart_handle->dev.uart.port = port;
 
 	*handle = uart_handle;
@@ -88,21 +83,12 @@ int peripheral_bus_uart_open(int port, pb_data_h *handle, gpointer user_data)
 	return PERIPHERAL_ERROR_NONE;
 
 err:
-	uart_close(fd);
-
-open_err:
 	return ret;
 }
 
 int peripheral_bus_uart_close(pb_data_h handle)
 {
-	peripheral_bus_uart_s *uart = &handle->dev.uart;
 	int ret = PERIPHERAL_ERROR_NONE;
-
-	_D("uart_close, port : %d, id = %s", uart->port, handle->client_info.id);
-
-	if ((ret = uart_close(uart->fd)) < 0)
-		return ret;
 
 	if (peripheral_bus_data_free(handle) < 0) {
 		_E("Failed to free uart data");

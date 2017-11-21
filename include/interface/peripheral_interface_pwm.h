@@ -17,22 +17,11 @@
 #ifndef __PERIPHERAL_INTERFACE_PWM_H__
 #define __PERIPHERAL_INTERFACE_PWM_H__
 
-/**
-* @brief pwm_open() init pwm pin.
-*
-* @param[in] chip pwm chip number
-* @param[in] pin pwm pin number
-* @return On success, 0 is returned. On failure, a negative value is returned.
-*/
-int pwm_open(int chip, int pin);
-
-/**
-* @brief pwm_close() deinit pwm pin.
-*
-* @param[in] chip pwm chip number
-* @param[in] pin pwm pin number
-* @return On success, 0 is returned. On failure, a negative value is returned.
-*/
-int pwm_close(int chip, int pin);
+int peripheral_interface_pwm_open(int chip, int pin);
+int peripheral_interface_pwm_close(int chip, int pin);
+int peripheral_interface_pwm_open_file_period(int chip, int pin, int *fd_out);
+int peripheral_interface_pwm_open_file_duty_cycle(int chip, int pin, int *fd_out);
+int peripheral_interface_pwm_open_file_polarity(int chip, int pin, int *fd_out);
+int peripheral_interface_pwm_open_file_enable(int chip, int pin, int *fd_out);
 
 #endif /* __PERIPHERAL_INTERFACE_PWM_H__ */

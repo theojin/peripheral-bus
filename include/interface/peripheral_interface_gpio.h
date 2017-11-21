@@ -17,7 +17,10 @@
 #ifndef __PERIPHERAL_INTERFACE_GPIO_H__
 #define __PERIPHERAL_INTERFACE_GPIO_H__
 
-int gpio_open(int gpiopin);
-int gpio_close(int gpiopin);
+int peripheral_interface_gpio_open(int pin);
+int peripheral_interface_gpio_close(int pin);
+int peripheral_interface_gpio_open_file_direction(int pin, int *fd_out);
+int peripheral_interface_gpio_open_file_edge(int pin, int *fd_out);
+int peripheral_interface_gpio_open_file_value(int pin, int *fd_out);
 
 #endif /*__PERIPHERAL_INTERFACE_GPIO_H__*/

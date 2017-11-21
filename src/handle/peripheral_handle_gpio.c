@@ -130,10 +130,7 @@ int peripheral_bus_gpio_open(gint pin, pb_data_h *handle, gpointer user_data)
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
-	if ((ret = gpio_open(pin)) < 0) {
-		_E("gpio_open error (%d)", ret);
-		goto open_err;
-	}
+	// TODO : make fd list using the interface function
 
 	gpio_handle = peripheral_bus_data_new(&pb_data->gpio_list);
 	if (!gpio_handle) {
@@ -157,19 +154,12 @@ int peripheral_bus_gpio_open(gint pin, pb_data_h *handle, gpointer user_data)
 	return PERIPHERAL_ERROR_NONE;
 
 err:
-	gpio_close(pin);
-
-open_err:
 	return ret;
 }
 
 int peripheral_bus_gpio_close(pb_data_h handle)
 {
-	peripheral_bus_gpio_s *gpio = &handle->dev.gpio;
 	int ret = PERIPHERAL_ERROR_NONE;
-
-	if ((ret = gpio_close(gpio->pin)) < 0)
-		return ret;
 
 	if (peripheral_bus_data_free(handle) < 0) {
 		_E("Failed to free gpio data");

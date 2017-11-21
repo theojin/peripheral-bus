@@ -17,35 +17,33 @@
 #include "peripheral_interface_spi.h"
 #include "peripheral_interface_common.h"
 
-#define SYSFS_SPI_DIR "/dev/spidev"
-
-int spi_open(int bus, int cs, int *fd)
+int peripheral_interface_spi_open_file(int bus, int cs, int *fd_out)
 {
-	int new_fd = 0;
-	char spi_dev[MAX_BUF_LEN] = {0,};
+	RETVM_IF(bus < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid spi bus");
+	RETVM_IF(cs < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid spi cs");
+	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for spi");
 
-	_D("bus : %d, cs : %d", bus, cs);
+	int fd = 0;
+	char path[MAX_BUF_LEN] = {0, };
 
-	snprintf(spi_dev, MAX_BUF_LEN, SYSFS_SPI_DIR"%d.%d", bus, cs);
+	snprintf(path, MAX_BUF_LEN, "/dev/spidev%d.%d", bus, cs);
 
-	new_fd = open(spi_dev, O_RDWR);
-	IF_ERROR_RETURN(new_fd < 0);
+	fd = open(path, O_RDWR);
+	IF_ERROR_RETURN(fd < 0);
 
-	_D("fd : %d", new_fd);
-	*fd = new_fd;
+	*fd_out = fd;
 
-	return 0;
+	return PERIPHERAL_ERROR_NONE;
 }
 
-int spi_close(int fd)
+int peripheral_interface_spi_close(int fd)
 {
-	int status;
+	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for spi");
 
-	_D("fd : %d", fd);
-	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
+	int ret;
 
-	status = close(fd);
-	IF_ERROR_RETURN(status != 0);
+	ret = close(fd);
+	IF_ERROR_RETURN(ret != 0);
 
-	return 0;
+	return PERIPHERAL_ERROR_NONE;
 }

@@ -17,8 +17,7 @@
 #ifndef __PERIPHERAL_INTERFACE_I2C_H__
 #define __PERIPHERAL_INTERFACE_I2C_H__
 
-int i2c_open(int bus, int *fd);
-int i2c_close(int fd);
-int i2c_set_address(int fd, int address);
+int peripheral_interface_i2c_open_file(int bus, int address, int *fd_out);
+int peripheral_interface_i2c_close(int fd);
 
 #endif /* __PERIPHERAL_INTERFACE_I2C_H__ */

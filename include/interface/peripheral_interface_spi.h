@@ -17,7 +17,7 @@
 #ifndef __PERIPHERAL_INTERFACE_SPI_H__
 #define __PERIPHERAL_INTERFACE_SPI_H__
 
-int spi_open(int bus, int cs, int *fd);
-int spi_close(int fd);
+int peripheral_interface_spi_open_file(int bus, int cs, int *fd_out);
+int peripheral_interface_spi_close(int fd);
 
 #endif /* __PERIPHERAL_INTERFACE_SPI_H__ */

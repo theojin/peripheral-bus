@@ -17,22 +17,8 @@
 #ifndef __PERIPHERAL_INTERFACE_UART_H__
 #define __PERIPHERAL_INTERFACE_UART_H__
 
-/**
-* @brief uart_open() initializes uart port.
-*
-* @param[in] port uart port
-* @param[in] file_hndl handle of uart port
-* @return On success, handle of uart_context is returned. On failure, NULL is returned.
-*/
-int uart_open(int port, int *file_hndl);
-
-/**
-* @brief uart_close() closes uart port.
-*
-* @param[in] file_hndl handle of uart_context
-* @return On success, 0 is returned. On failure, a negative value is returned.
-*/
-int uart_close(int file_hndl);
+int peripheral_interface_uart_open_file(int port, int *fd_out);
+int peripheral_interface_uart_close(int fd);
 
 #endif /* __PERIPHERAL_INTERFACE_UART_H__ */
 

@@ -19,49 +19,38 @@
 #include "peripheral_interface_i2c.h"
 #include "peripheral_interface_common.h"
 
-#define SYSFS_I2C_DIR "/dev/i2c"
 #define I2C_SLAVE	0x0703	/* Use this slave address */
 
-int i2c_open(int bus, int *fd)
+int peripheral_interface_i2c_open_file(int bus, int address, int *fd_out)
 {
-	int new_fd;
-	char i2c_dev[MAX_BUF_LEN] = {0,};
+	RETVM_IF(bus < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid i2c bus");
+	RETVM_IF(address < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid i2c address");
+	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for i2c");
 
-	_D("bus : %d", bus);
+	int ret;
+	int fd;
+	char path[MAX_BUF_LEN] = {0, };
 
-	snprintf(i2c_dev, MAX_BUF_LEN, SYSFS_I2C_DIR"-%d", bus);
-	new_fd = open(i2c_dev, O_RDWR);
-	IF_ERROR_RETURN(new_fd < 0);
+	snprintf(path, MAX_BUF_LEN, "/dev/i2c-%d", bus);
+	fd = open(path, O_RDWR);
+	IF_ERROR_RETURN(fd < 0);
 
-	_D("fd : %d", new_fd);
-	*fd = new_fd;
+	ret = ioctl(fd, I2C_SLAVE, address);
+	IF_ERROR_RETURN(ret != 0, close(fd));
 
-	return 0;
+	*fd_out = fd;
+
+	return PERIPHERAL_ERROR_NONE;
 }
 
-int i2c_close(int fd)
+int peripheral_interface_i2c_close(int fd)
 {
-	int status;
+	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for i2c");
 
-	_D("fd : %d", fd);
-	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
+	int ret;
 
-	status = close(fd);
-	IF_ERROR_RETURN(status != 0);
+	ret = close(fd);
+	IF_ERROR_RETURN(ret != 0);
 
-	return 0;
-}
-
-int i2c_set_address(int fd, int address)
-{
-	int status;
-
-	_D("fd : %d, slave address : 0x%x", fd, address);
-	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
-
-	status = ioctl(fd, I2C_SLAVE, address);
-	IF_ERROR_RETURN(status != 0, close(fd));
-	close(fd);
-
-	return 0;
+	return PERIPHERAL_ERROR_NONE;
 }

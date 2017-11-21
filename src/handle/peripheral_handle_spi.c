@@ -56,17 +56,13 @@ int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_da
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	pb_data_h spi_handle;
 	int ret = PERIPHERAL_ERROR_NONE;
-	int fd;
 
 	if (!__peripheral_bus_spi_is_available(bus, cs, pb_data)) {
 		_E("spi %d.%d is not available", bus, cs);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
-	if ((ret = spi_open(bus, cs, &fd)) < 0) {
-		_E("spi_open error (%d)", ret);
-		goto err_open;
-	}
+	// TODO : make fd list using the interface function
 
 	spi_handle = peripheral_bus_data_new(&pb_data->spi_list);
 	if (!spi_handle) {
@@ -77,7 +73,6 @@ int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_da
 
 	spi_handle->type = PERIPHERAL_BUS_TYPE_SPI;
 	spi_handle->list = &pb_data->spi_list;
-	spi_handle->dev.spi.fd = fd;
 	spi_handle->dev.spi.bus = bus;
 	spi_handle->dev.spi.cs = cs;
 
@@ -86,19 +81,12 @@ int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_da
 	return PERIPHERAL_ERROR_NONE;
 
 err_spi_data:
-	spi_close(fd);
-
-err_open:
 	return ret;
 }
 
 int peripheral_bus_spi_close(pb_data_h handle)
 {
-	peripheral_bus_spi_s *spi = &handle->dev.spi;
 	int ret = PERIPHERAL_ERROR_NONE;
-
-	if ((ret = spi_close(spi->fd)) < 0)
-		return ret;
 
 	if (peripheral_bus_data_free(handle) < 0) {
 		_E("Failed to free spi data");

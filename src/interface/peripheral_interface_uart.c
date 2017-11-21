@@ -23,46 +23,42 @@
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
 #endif
 
-char *sysfs_uart_path[] = {
-	"/dev/ttyS",
-	"/dev/ttyAMA",
-	"/dev/ttySAC",
-};
-
-int uart_open(int port, int *file_hndl)
+int peripheral_interface_uart_open_file(int port, int *fd_out)
 {
-	int i, fd;
-	char uart_dev[MAX_BUF_LEN] = {0};
+	RETVM_IF(port < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid uart port");
+	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for uart");
 
-	_D("port : %d", port);
+	static char *sysfs_uart_path[] = {
+		"/dev/ttyS",
+		"/dev/ttyAMA",
+		"/dev/ttySAC",
+	};
 
-	for (i = 0; i < ARRAY_SIZE(sysfs_uart_path); i++) {
-		snprintf(uart_dev, MAX_BUF_LEN, "%s%d", sysfs_uart_path[i], port);
-		if (access(uart_dev, F_OK) == 0)
+	int index;
+	int fd;
+	char path[MAX_BUF_LEN] = {0, };
+
+	for (index = 0; index < ARRAY_SIZE(sysfs_uart_path); index++) {
+		snprintf(path, MAX_BUF_LEN, "%s%d", sysfs_uart_path[index], port);
+		if (access(path, F_OK) == 0)
 			break;
 	}
 
-	_D("uart_dev : %s", uart_dev);
-	fd = open(uart_dev, O_RDWR | O_NOCTTY | O_NONBLOCK);
+	fd = open(path, O_RDWR | O_NOCTTY | O_NONBLOCK);
 	IF_ERROR_RETURN(fd < 0);
 
-	*file_hndl = fd;
-	return 0;
+	*fd_out = fd;
+
+	return PERIPHERAL_ERROR_NONE;
 }
 
-int uart_close(int file_hndl)
+int peripheral_interface_uart_close(int fd)
 {
-	int status;
+	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for uart");
+	int ret;
 
-	_D("file_hndl : %d", file_hndl);
+	ret = close(fd);
+	IF_ERROR_RETURN(ret != 0);
 
-	if (file_hndl < 0) {
-		_E("Invalid NULL parameter");
-		return -EINVAL;
-	}
-
-	status = close(file_hndl);
-	IF_ERROR_RETURN(status != 0);
-
-	return 0;
+	return PERIPHERAL_ERROR_NONE;
 }
