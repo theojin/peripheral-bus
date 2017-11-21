@@ -24,7 +24,6 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/gdbus)
 SET(PERIPHERAL-BUS "peripheral-bus")
 SET(SRCS
 	src/peripheral_bus.c
-	src/peripheral_bus_util.c
 	src/peripheral_bus_board.c
 	src/privilege_checker.c
 	src/gdbus/peripheral_io_gdbus.c
@@ -33,6 +32,7 @@ SET(SRCS
 	src/gdbus/peripheral_gdbus_pwm.c
 	src/gdbus/peripheral_gdbus_spi.c
 	src/gdbus/peripheral_gdbus_uart.c
+	src/handle/peripheral_handle_common.c
 	src/handle/peripheral_handle_pwm.c
 	src/handle/peripheral_handle_i2c.c
 	src/handle/peripheral_handle_gpio.c

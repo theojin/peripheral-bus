@@ -24,7 +24,7 @@
 #include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
 #include "peripheral_log.h"
-#include "peripheral_bus_util.h"
+#include "peripheral_handle_common.h"
 
 #define INITIAL_BUFFER_SIZE 128
 #define MAX_BUFFER_SIZE 8192

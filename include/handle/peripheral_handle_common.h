@@ -14,21 +14,14 @@
  * limitations under the License.
  */
 
-#ifndef __PERIPHERAL_UTIL_H__
-#define __PERIPHERAL_UTIL_H__
+#ifndef __PERIPHERAL_HANDLE_COMMON_H__
+#define __PERIPHERAL_HANDLE_COMMON_H__
 
-GVariant *peripheral_bus_build_variant_ay(uint8_t *data, int length);
+#include <gio/gio.h>
+
+#include "peripheral_bus.h"
+
 pb_data_h peripheral_bus_data_new(GList **plist);
 int peripheral_bus_data_free(pb_data_h handle);
 
-int peripheral_bus_get_client_info(
-		GDBusMethodInvocation *invocation,
-		peripheral_bus_s *pb_data,
-		pb_client_info_s *client_info);
-
-int peripheral_bus_handle_is_valid(
-		GDBusMethodInvocation *invocation,
-		pb_data_h handle,
-		GList *list);
-
-#endif /* __PERIPHERAL_UTIL_H__ */
+#endif /* __PERIPHERAL_HANDLE_COMMON_H__ */

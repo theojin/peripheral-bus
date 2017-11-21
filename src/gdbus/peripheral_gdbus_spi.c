@@ -20,7 +20,6 @@
 #include "peripheral_bus.h"
 #include "peripheral_handle_spi.h"
 #include "peripheral_log.h"
-#include "peripheral_bus_util.h"
 #include "peripheral_gdbus_spi.h"
 #include "privilege_checker.h"
 
