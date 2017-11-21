@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __PRIVILEGE_CHECKER_H__
-#define __PRIVILEGE_CHECKER_H__
+#ifndef __PERIPHERAL_PRIVILEGE_H__
+#define __PERIPHERAL_PRIVILEGE_H__
 
 #include <gio/gio.h>
 
@@ -23,4 +23,4 @@ void peripheral_privilege_init(void);
 void peripheral_privilege_deinit(void);
 int peripheral_privilege_check(GDBusMethodInvocation *invocation, GDBusConnection *connection);
 
-#endif /* __PRIVILEGE_CHECKER_H__ */
+#endif /* __PERIPHERAL_PRIVILEGE_H__ */

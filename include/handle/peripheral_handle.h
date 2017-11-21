@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __PERIPHERAL_BUS_H__
-#define __PERIPHERAL_BUS_H__
+#ifndef __PERIPHERAL_HANDLE_H__
+#define __PERIPHERAL_HANDLE_H__
 
 #include <gio/gio.h>
 
@@ -97,4 +97,4 @@ typedef struct {
 
 typedef peripheral_bus_data_s *pb_data_h;
 
-#endif /* __PERIPHERAL_BUS_H__ */
+#endif /* __PERIPHERAL_HANDLE_H__ */

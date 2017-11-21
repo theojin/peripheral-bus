@@ -54,4 +54,4 @@
 		} \
 	} while (0)
 
-#endif /* __PERIPHERAL_COMMON_H__ */
+#endif /* __PERIPHERAL_LOG_H__ */

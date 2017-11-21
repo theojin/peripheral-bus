@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __PERIPHERAL_BUS_BOARD_H__
-#define __PERIPHERAL_BUS_BOARD_H__
+#ifndef __PERIPHERAL_BOARD_H__
+#define __PERIPHERAL_BOARD_H__
 
 #define BOARD_DEVICE_TREE	"/proc/device-tree/model"
 #define BOARD_PINS_MAX	4
@@ -61,4 +61,4 @@ pb_board_dev_s *peripheral_bus_board_find_device(pb_board_dev_e dev_type, pb_boa
 pb_board_s *peripheral_bus_board_init(void);
 void peripheral_bus_board_deinit(pb_board_s *board);
 
-#endif /* __PERIPHERAL_BUS_BOARD_H__ */
+#endif /* __PERIPHERAL_BOARD_H__ */
