@@ -20,7 +20,7 @@
 
 #include <peripheral_io.h>
 
-#include "pwm.h"
+#include "peripheral_interface_pwm.h"
 #include "peripheral_bus.h"
 #include "peripheral_common.h"
 #include "peripheral_bus_util.h"

@@ -24,7 +24,7 @@
 #include <stdbool.h>
 #include <sys/ioctl.h>
 
-#include "uart.h"
+#include "peripheral_interface_uart.h"
 #include "peripheral_common.h"
 
 #define PATH_BUF_MAX 64

@@ -36,11 +36,11 @@ SET(SRCS
 	src/daemon/peripheral_bus_board.c
 	src/daemon/peripheral_io_gdbus.c
 	src/daemon/privilege_checker.c
-	src/interface/gpio.c
-	src/interface/i2c.c
-	src/interface/pwm.c
-	src/interface/uart.c
-	src/interface/spi.c)
+	src/interface/peripheral_interface_gpio.c
+	src/interface/peripheral_interface_i2c.c
+	src/interface/peripheral_interface_pwm.c
+	src/interface/peripheral_interface_uart.c
+	src/interface/peripheral_interface_spi.c)
 
 INCLUDE(FindPkgConfig)
 pkg_check_modules(pbus_pkgs REQUIRED ${dependents})

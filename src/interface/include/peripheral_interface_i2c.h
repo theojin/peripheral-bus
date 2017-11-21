@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-#ifndef __SPI_H__
-#define __SPI_H__
+#ifndef __PERIPHERAL_INTERFACE_I2C_H__
+#define __PERIPHERAL_INTERFACE_I2C_H__
 
-int spi_open(int bus, int cs, int *fd);
-int spi_close(int fd);
+#include <stdint.h>
 
-#endif /* __SPI_H__ */
+#define SYSFS_I2C_DIR "/dev/i2c"
+#define I2C_BUFFER_MAX 64
+
+#define I2C_SLAVE	0x0703	/* Use this slave address */
+#define I2C_SMBUS	0x0720	/* SMBus transfer */
+
+int i2c_open(int bus, int *fd);
+int i2c_close(int fd);
+int i2c_set_address(int fd, int address);
+
+#endif /* __PERIPHERAL_INTERFACE_I2C_H__ */

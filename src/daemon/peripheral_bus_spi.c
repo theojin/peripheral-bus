@@ -20,7 +20,7 @@
 
 #include <peripheral_io.h>
 
-#include "spi.h"
+#include "peripheral_interface_spi.h"
 #include "peripheral_bus.h"
 #include "peripheral_common.h"
 #include "peripheral_bus_util.h"

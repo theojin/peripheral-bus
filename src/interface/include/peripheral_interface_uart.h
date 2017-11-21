@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __UART_H__
-#define __UART_H__
+#ifndef __PERIPHERAL_INTERFACE_UART_H__
+#define __PERIPHERAL_INTERFACE_UART_H__
 
 #include <stdint.h>
 
@@ -44,5 +44,5 @@ int uart_close(int file_hndl);
 */
 int uart_flush(int file_hndl);
 
-#endif /* __UART_H__ */
+#endif /* __PERIPHERAL_INTERFACE_UART_H__ */
 

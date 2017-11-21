@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __PWM_H__
-#define __PWM_H__
+#ifndef __PERIPHERAL_INTERFACE_PWM_H__
+#define __PERIPHERAL_INTERFACE_PWM_H__
 
 /**
 * @brief pwm_open() init pwm pin.
@@ -35,4 +35,4 @@ int pwm_open(int chip, int pin);
 */
 int pwm_close(int chip, int pin);
 
-#endif /* __PWM_H__ */
+#endif /* __PERIPHERAL_INTERFACE_PWM_H__ */

@@ -21,25 +21,29 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <linux/spi/spidev.h>
 
-#include "i2c.h"
+#include "peripheral_interface_spi.h"
 #include "peripheral_common.h"
 
+#define SYSFS_SPI_DIR "/dev/spidev"
+#define SPI_BUFFER_MAX 64
 #define MAX_ERR_LEN 255
 
-int i2c_open(int bus, int *fd)
+int spi_open(int bus, int cs, int *fd)
 {
-	int new_fd;
-	char i2c_dev[I2C_BUFFER_MAX] = {0,};
+	int new_fd = 0;
+	char spi_dev[SPI_BUFFER_MAX] = {0,};
 
-	_D("bus : %d", bus);
+	_D("bus : %d, cs : %d", bus, cs);
 
-	snprintf(i2c_dev, sizeof(i2c_dev)-1, SYSFS_I2C_DIR"-%d", bus);
-	new_fd = open(i2c_dev, O_RDWR);
+	snprintf(spi_dev, sizeof(spi_dev)-1, SYSFS_SPI_DIR"%d.%d", bus, cs);
+
+	new_fd = open(spi_dev, O_RDWR);
 	if (new_fd < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Can't Open %s : %s", i2c_dev, errmsg);
+		_E("Can't Open %s, errmsg : %s", spi_dev, errmsg);
 		return -ENXIO;
 	}
 	_D("fd : %d", new_fd);
@@ -48,7 +52,7 @@ int i2c_open(int bus, int *fd)
 	return 0;
 }
 
-int i2c_close(int fd)
+int spi_close(int fd)
 {
 	int status;
 
@@ -61,24 +65,6 @@ int i2c_close(int fd)
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
 		_E("Failed to close fd : %d", fd);
 		return -EIO;
-	}
-
-	return 0;
-}
-
-int i2c_set_address(int fd, int address)
-{
-	int status;
-
-	_D("fd : %d, slave address : 0x%x", fd, address);
-	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
-
-	status = ioctl(fd, I2C_SLAVE, address);
-	if (status < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to set slave address(%x), fd : %d, errmsg : %s", address, fd, errmsg);
-		return status;
 	}
 
 	return 0;

@@ -16,70 +16,74 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <poll.h>
+#include <unistd.h>
+#include <stdbool.h>
 
-#include "gpio.h"
+#include "peripheral_interface_pwm.h"
 #include "peripheral_common.h"
 
-#define MAX_ERR_LEN 255
+#define SYSFS_PWM_PATH	"/sys/class/pwm"
 
-int gpio_open(int gpiopin)
+#define PATH_BUF_MAX	64
+#define PWM_BUF_MAX	16
+#define MAX_ERR_LEN	255
+
+int pwm_open(int chip, int pin)
 {
 	int fd, len, status;
-	char gpio_export[GPIO_BUFFER_MAX] = {0, };
+	char pwm_dev[PATH_BUF_MAX] = {0};
+	char pwm_buf[PWM_BUF_MAX] = {0};
 
-	_D("gpiopin : %d", gpiopin);
+	_D("chip : %d, pin : %d", chip, pin);
 
-	fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/export", chip);
+	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Can't Open /sys/class/gpio/export :%s\n", errmsg);
+		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
 		return -ENXIO;
 	}
 
-	len = snprintf(gpio_export, GPIO_BUFFER_MAX, "%d", gpiopin);
-	status = write(fd, gpio_export, len);
-
-	if (status != len) {
+	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", pin);
+	status = write(fd, pwm_buf, len);
+	if (status < 0) {
+		_E("Failed to export pwmchip%d, pwm%d", chip, pin);
 		close(fd);
-		_E("Error: gpio open error \n");
 		return -EIO;
 	}
-
 	close(fd);
 
 	return 0;
 }
 
-int gpio_close(int gpiopin)
+int pwm_close(int chip, int pin)
 {
 	int fd, len, status;
-	char gpio_unexport[GPIO_BUFFER_MAX] = {0, };
+	char pwm_dev[PATH_BUF_MAX] = {0};
+	char pwm_buf[PWM_BUF_MAX] = {0};
 
-	_D("gpiopin : %d", gpiopin);
+	_D("chip : %d, pin : %d", chip, pin);
 
-	fd = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
+	snprintf(pwm_dev, PATH_BUF_MAX, SYSFS_PWM_PATH "/pwmchip%d/unexport", chip);
+	fd = open(pwm_dev, O_WRONLY);
 	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Can't Open /sys/class/gpio/unexport %s\n", errmsg);
+		_E("Can't Open %s, errmsg : %s", pwm_dev, errmsg);
 		return -ENXIO;
 	}
 
-	len = snprintf(gpio_unexport, GPIO_BUFFER_MAX, "%d", gpiopin);
-	status = write(fd, gpio_unexport, len);
-
-	if (status != len) {
+	len = snprintf(pwm_buf, sizeof(pwm_buf), "%d", pin);
+	status = write(fd, pwm_buf, len);
+	if (status < 0) {
+		_E("Failed to unexport pwmchip%d, pwm%", chip, pin);
 		close(fd);
-		_E("Error: gpio close error \n");
 		return -EIO;
 	}
-
 	close(fd);
 
 	return 0;

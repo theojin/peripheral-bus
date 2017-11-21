@@ -20,7 +20,7 @@
 
 #include <peripheral_io.h>
 
-#include "uart.h"
+#include "peripheral_interface_uart.h"
 #include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
 #include "peripheral_common.h"

@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef __GPIO_H__
-#define __GPIO_H__
+#ifndef __PERIPHERAL_INTERFACE_SPI_H__
+#define __PERIPHERAL_INTERFACE_SPI_H__
 
-#define SYSFS_GPIO_DIR "/sys/class/gpio"
-#define GPIO_BUFFER_MAX 64
+int spi_open(int bus, int cs, int *fd);
+int spi_close(int fd);
 
-int gpio_open(int gpiopin);
-int gpio_close(int gpiopin);
-
-#endif/*__GPIO_H__*/
+#endif /* __PERIPHERAL_INTERFACE_SPI_H__ */

@@ -23,7 +23,7 @@
 
 #include <peripheral_io.h>
 
-#include "gpio.h"
+#include "peripheral_interface_gpio.h"
 #include "peripheral_bus.h"
 #include "peripheral_bus_gdbus_gpio.h"
 #include "peripheral_common.h"

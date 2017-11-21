@@ -20,52 +20,67 @@
 #include <string.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/ioctl.h>
-#include <linux/spi/spidev.h>
+#include <poll.h>
 
-#include "spi.h"
+#include "peripheral_interface_gpio.h"
 #include "peripheral_common.h"
 
-#define SYSFS_SPI_DIR "/dev/spidev"
-#define SPI_BUFFER_MAX 64
 #define MAX_ERR_LEN 255
 
-int spi_open(int bus, int cs, int *fd)
+int gpio_open(int gpiopin)
 {
-	int new_fd = 0;
-	char spi_dev[SPI_BUFFER_MAX] = {0,};
+	int fd, len, status;
+	char gpio_export[GPIO_BUFFER_MAX] = {0, };
 
-	_D("bus : %d, cs : %d", bus, cs);
+	_D("gpiopin : %d", gpiopin);
 
-	snprintf(spi_dev, sizeof(spi_dev)-1, SYSFS_SPI_DIR"%d.%d", bus, cs);
-
-	new_fd = open(spi_dev, O_RDWR);
-	if (new_fd < 0) {
+	fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
+	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Can't Open %s, errmsg : %s", spi_dev, errmsg);
+		_E("Can't Open /sys/class/gpio/export :%s\n", errmsg);
 		return -ENXIO;
 	}
-	_D("fd : %d", new_fd);
-	*fd = new_fd;
+
+	len = snprintf(gpio_export, GPIO_BUFFER_MAX, "%d", gpiopin);
+	status = write(fd, gpio_export, len);
+
+	if (status != len) {
+		close(fd);
+		_E("Error: gpio open error \n");
+		return -EIO;
+	}
+
+	close(fd);
 
 	return 0;
 }
 
-int spi_close(int fd)
+int gpio_close(int gpiopin)
 {
-	int status;
+	int fd, len, status;
+	char gpio_unexport[GPIO_BUFFER_MAX] = {0, };
 
-	_D("fd : %d", fd);
-	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
+	_D("gpiopin : %d", gpiopin);
 
-	status = close(fd);
-	if (status < 0) {
+	fd = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
+	if (fd < 0) {
 		char errmsg[MAX_ERR_LEN];
 		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to close fd : %d", fd);
+		_E("Can't Open /sys/class/gpio/unexport %s\n", errmsg);
+		return -ENXIO;
+	}
+
+	len = snprintf(gpio_unexport, GPIO_BUFFER_MAX, "%d", gpiopin);
+	status = write(fd, gpio_unexport, len);
+
+	if (status != len) {
+		close(fd);
+		_E("Error: gpio close error \n");
 		return -EIO;
 	}
+
+	close(fd);
 
 	return 0;
 }
