@@ -31,9 +31,8 @@ int gpio_open(int gpiopin)
 
 	len = snprintf(gpio_export, MAX_BUF_LEN, "%d", gpiopin);
 	status = write(fd, gpio_export, len);
-	CHECK_ERROR(status != len);
-
 	close(fd);
+	CHECK_ERROR(status != len);
 
 	return 0;
 }
@@ -50,9 +49,8 @@ int gpio_close(int gpiopin)
 
 	len = snprintf(gpio_unexport, MAX_BUF_LEN, "%d", gpiopin);
 	status = write(fd, gpio_unexport, len);
-	CHECK_ERROR(status != len);
-
 	close(fd);
+	CHECK_ERROR(status != len);
 
 	return 0;
 }

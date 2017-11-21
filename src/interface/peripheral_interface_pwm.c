@@ -33,9 +33,8 @@ int pwm_open(int chip, int pin)
 
 	len = snprintf(pwm_buf, MAX_BUF_LEN, "%d", pin);
 	status = write(fd, pwm_buf, len);
-	CHECK_ERROR(status != len);
-
 	close(fd);
+	CHECK_ERROR(status != len);
 
 	return 0;
 }
@@ -54,9 +53,8 @@ int pwm_close(int chip, int pin)
 
 	len = snprintf(pwm_buf, MAX_BUF_LEN, "%d", pin);
 	status = write(fd, pwm_buf, len);
-	CHECK_ERROR(status != len);
-
 	close(fd);
+	CHECK_ERROR(status != len);
 
 	return 0;
 }
