@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-#ifndef __PERIPHERAL_BUS_GDBUS_UART_H__
-#define __PERIPHERAL_BUS_GDBUS_UART_H__
+#ifndef __PERIPHERAL_GDBUS_SPI_H__
+#define __PERIPHERAL_GDBUS_SPI_H__
 
 #include "peripheral_io_gdbus.h"
 
-gboolean handle_uart_open(
-		PeripheralIoGdbusUart *uart,
+gboolean handle_spi_open(
+		PeripheralIoGdbusSpi *spi,
 		GDBusMethodInvocation *invocation,
 		GUnixFDList *fd_list,
-		gint port,
+		gint bus,
+		gint cs,
 		gpointer user_data);
 
-#endif /* __PERIPHERAL_BUS_GDBUS_UART_H__ */
+#endif /* __PERIPHERAL_GDBUS_SPI_H__ */

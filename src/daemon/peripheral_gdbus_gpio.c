@@ -22,7 +22,7 @@
 #include "peripheral_handle_gpio.h"
 #include "peripheral_log.h"
 #include "peripheral_bus_util.h"
-#include "peripheral_bus_gdbus_gpio.h"
+#include "peripheral_gdbus_gpio.h"
 
 static void __gpio_on_name_vanished(GDBusConnection *connection,
 		const gchar     *name,

@@ -21,7 +21,7 @@
 #include "peripheral_handle_pwm.h"
 #include "peripheral_log.h"
 #include "peripheral_bus_util.h"
-#include "peripheral_bus_gdbus_pwm.h"
+#include "peripheral_gdbus_pwm.h"
 
 static void __pwm_on_name_vanished(GDBusConnection *connection,
 		const gchar     *name,

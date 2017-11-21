@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef __PERIPHERAL_BUS_GDBUS_I2C_H__
-#define __PERIPHERAL_BUS_GDBUS_I2C_H__
+#ifndef __PERIPHERAL_GDBUS_I2C_H__
+#define __PERIPHERAL_GDBUS_I2C_H__
 
 #include "peripheral_io_gdbus.h"
 
@@ -27,4 +27,4 @@ gboolean handle_i2c_open(
 		gint address,
 		gpointer user_data);
 
-#endif /* __PERIPHERAL_BUS_GDBUS_I2C_H__ */
+#endif /* __PERIPHERAL_GDBUS_I2C_H__ */

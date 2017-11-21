@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-#ifndef __PERIPHERAL_BUS_GDBUS_PWM_H__
-#define __PERIPHERAL_BUS_GDBUS_PWM_H__
+#ifndef __PERIPHERAL_GDBUS_UART_H__
+#define __PERIPHERAL_GDBUS_UART_H__
 
 #include "peripheral_io_gdbus.h"
 
-gboolean handle_pwm_open(
-		PeripheralIoGdbusPwm *pwm,
+gboolean handle_uart_open(
+		PeripheralIoGdbusUart *uart,
 		GDBusMethodInvocation *invocation,
 		GUnixFDList *fd_list,
-		gint chip,
-		gint pin,
+		gint port,
 		gpointer user_data);
 
-#endif /* __PERIPHERAL_BUS_GDBUS_PWM_H__ */
+#endif /* __PERIPHERAL_GDBUS_UART_H__ */

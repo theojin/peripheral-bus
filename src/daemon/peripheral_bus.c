@@ -25,11 +25,11 @@
 #include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
 #include "peripheral_log.h"
-#include "peripheral_bus_gdbus_gpio.h"
-#include "peripheral_bus_gdbus_i2c.h"
-#include "peripheral_bus_gdbus_pwm.h"
-#include "peripheral_bus_gdbus_spi.h"
-#include "peripheral_bus_gdbus_uart.h"
+#include "peripheral_gdbus_gpio.h"
+#include "peripheral_gdbus_i2c.h"
+#include "peripheral_gdbus_pwm.h"
+#include "peripheral_gdbus_spi.h"
+#include "peripheral_gdbus_uart.h"
 
 #include "privilege_checker.h"
 
