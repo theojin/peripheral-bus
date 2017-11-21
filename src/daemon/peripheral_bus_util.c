@@ -24,7 +24,7 @@
 #include <cynara-session.h>
 
 #include "peripheral_bus.h"
-#include "peripheral_common.h"
+#include "peripheral_log.h"
 
 #include "privilege_checker.h"
 

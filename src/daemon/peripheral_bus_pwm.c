@@ -22,7 +22,7 @@
 
 #include "peripheral_interface_pwm.h"
 #include "peripheral_bus.h"
-#include "peripheral_common.h"
+#include "peripheral_log.h"
 #include "peripheral_bus_util.h"
 
 static bool peripheral_bus_pwm_is_available(int chip, int pin, peripheral_bus_s *pb_data)

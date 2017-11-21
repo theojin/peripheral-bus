@@ -23,7 +23,7 @@
 #include "peripheral_interface_uart.h"
 #include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
-#include "peripheral_common.h"
+#include "peripheral_log.h"
 #include "peripheral_bus_util.h"
 
 #define INITIAL_BUFFER_SIZE 128

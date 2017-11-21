@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef __PERIPHERAL_COMMON_H__
-#define __PERIPHERAL_COMMON_H__
+#ifndef __PERIPHERAL_LOG_H__
+#define __PERIPHERAL_LOG_H__
 
 #include <unistd.h>
 #include <dlog.h>

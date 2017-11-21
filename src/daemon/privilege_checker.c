@@ -27,7 +27,7 @@
 #include <cynara-session.h>
 
 #include "peripheral_bus.h"
-#include "peripheral_common.h"
+#include "peripheral_log.h"
 
 #define CACHE_SIZE  100
 

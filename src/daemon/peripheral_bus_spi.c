@@ -22,7 +22,7 @@
 
 #include "peripheral_interface_spi.h"
 #include "peripheral_bus.h"
-#include "peripheral_common.h"
+#include "peripheral_log.h"
 #include "peripheral_bus_util.h"
 
 static bool __peripheral_bus_spi_is_available(int bus, int cs, peripheral_bus_s *pb_data)

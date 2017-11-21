@@ -24,7 +24,7 @@
 #include <peripheral_io.h>
 
 #include "peripheral_bus_board.h"
-#include "peripheral_common.h"
+#include "peripheral_log.h"
 
 #define STR_BUF_MAX 255
 

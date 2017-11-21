@@ -19,7 +19,7 @@
 #include "peripheral_io_gdbus.h"
 #include "peripheral_bus.h"
 #include "peripheral_bus_i2c.h"
-#include "peripheral_common.h"
+#include "peripheral_log.h"
 #include "peripheral_bus_util.h"
 #include "peripheral_bus_gdbus_i2c.h"
 

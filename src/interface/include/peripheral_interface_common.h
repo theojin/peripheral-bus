@@ -23,7 +23,7 @@
 #include <fcntl.h>
 #include <peripheral_io.h>
 
-#include "peripheral_common.h"
+#include "peripheral_log.h"
 
 #define MAX_ERR_LEN 255
 #define MAX_BUF_LEN 64
