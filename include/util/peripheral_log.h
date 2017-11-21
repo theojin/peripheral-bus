@@ -16,7 +16,6 @@
 #ifndef __PERIPHERAL_LOG_H__
 #define __PERIPHERAL_LOG_H__
 
-// #include <unistd.h>
 #include <dlog.h>
 
 #undef LOG_TAG

@@ -19,8 +19,8 @@
 
 #include <gio/gio.h>
 
+#include "peripheral_board.h"
 #include "peripheral_io_gdbus.h"
-#include "peripheral_bus_board.h"
 
 typedef enum {
 	PERIPHERAL_BUS_TYPE_GPIO = 0,

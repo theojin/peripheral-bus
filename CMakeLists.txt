@@ -19,13 +19,12 @@ INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include/handle)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include/gdbus)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include/interface)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include/util)
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/src/gdbus)
 
 SET(PERIPHERAL-BUS "peripheral-bus")
 SET(SRCS
 	src/peripheral_bus.c
-	src/peripheral_bus_board.c
-	src/privilege_checker.c
 	src/gdbus/peripheral_io_gdbus.c
 	src/gdbus/peripheral_gdbus_gpio.c
 	src/gdbus/peripheral_gdbus_i2c.c
@@ -42,7 +41,9 @@ SET(SRCS
 	src/interface/peripheral_interface_i2c.c
 	src/interface/peripheral_interface_pwm.c
 	src/interface/peripheral_interface_uart.c
-	src/interface/peripheral_interface_spi.c)
+	src/interface/peripheral_interface_spi.c
+	src/util/peripheral_board.c
+	src/util/peripheral_privilege.c)
 
 INCLUDE(FindPkgConfig)
 pkg_check_modules(pbus_pkgs REQUIRED ${dependents})

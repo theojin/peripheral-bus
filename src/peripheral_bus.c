@@ -22,16 +22,15 @@
 
 #include <peripheral_io.h>
 
-#include "peripheral_io_gdbus.h"
-#include "peripheral_handle.h"
 #include "peripheral_log.h"
+#include "peripheral_privilege.h"
+#include "peripheral_handle.h"
+#include "peripheral_io_gdbus.h"
 #include "peripheral_gdbus_gpio.h"
 #include "peripheral_gdbus_i2c.h"
 #include "peripheral_gdbus_pwm.h"
 #include "peripheral_gdbus_spi.h"
 #include "peripheral_gdbus_uart.h"
-
-#include "privilege_checker.h"
 
 #define PERIPHERAL_GDBUS_GPIO_PATH	"/Org/Tizen/Peripheral_io/Gpio"
 #define PERIPHERAL_GDBUS_I2C_PATH	"/Org/Tizen/Peripheral_io/I2c"

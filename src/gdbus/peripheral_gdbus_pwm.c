@@ -16,12 +16,12 @@
 
 #include <peripheral_io.h>
 
+#include "peripheral_log.h"
+#include "peripheral_privilege.h"
 #include "peripheral_io_gdbus.h"
 #include "peripheral_handle.h"
 #include "peripheral_handle_pwm.h"
-#include "peripheral_log.h"
 #include "peripheral_gdbus_pwm.h"
-#include "privilege_checker.h"
 
 static void __pwm_on_name_vanished(GDBusConnection *connection,
 		const gchar     *name,

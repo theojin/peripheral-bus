@@ -18,7 +18,7 @@
 #include <cynara-client.h>
 #include <cynara-session.h>
 
-#include "privilege_checker.h"
+#include "peripheral_privilege.h"
 #include "peripheral_log.h"
 
 #define PERIPHERAL_PRIVILEGE "http://tizen.org/privilege/peripheralio"
