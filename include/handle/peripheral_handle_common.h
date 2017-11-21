@@ -19,7 +19,8 @@
 
 #include <gio/gio.h>
 
-#include "peripheral_bus.h"
+#include "peripheral_handle.h"
+#include "peripheral_log.h"
 
 pb_data_h peripheral_bus_data_new(GList **plist);
 int peripheral_bus_data_free(pb_data_h handle);

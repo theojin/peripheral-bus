@@ -24,8 +24,6 @@
 #include <peripheral_io.h>
 
 #include "peripheral_interface_gpio.h"
-#include "peripheral_bus.h"
-#include "peripheral_log.h"
 #include "peripheral_handle_common.h"
 
 static bool peripheral_bus_gpio_is_available(int pin, peripheral_bus_s *pb_data)

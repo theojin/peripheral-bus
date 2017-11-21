@@ -17,7 +17,7 @@
 #include <peripheral_io.h>
 
 #include "peripheral_io_gdbus.h"
-#include "peripheral_bus.h"
+#include "peripheral_handle.h"
 #include "peripheral_handle_uart.h"
 #include "peripheral_log.h"
 #include "peripheral_gdbus_uart.h"

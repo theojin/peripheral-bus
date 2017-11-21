@@ -21,8 +21,6 @@
 #include <peripheral_io.h>
 
 #include "peripheral_interface_i2c.h"
-#include "peripheral_bus.h"
-#include "peripheral_log.h"
 #include "peripheral_handle_common.h"
 
 #define INITIAL_BUFFER_SIZE 128

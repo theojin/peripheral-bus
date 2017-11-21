@@ -17,7 +17,6 @@
 #include <stdlib.h>
 
 #include "peripheral_handle_common.h"
-#include "peripheral_log.h"
 
 pb_data_h peripheral_bus_data_new(GList **plist)
 {
