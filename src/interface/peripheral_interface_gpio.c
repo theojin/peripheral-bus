@@ -14,42 +14,24 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <poll.h>
-
 #include "peripheral_interface_gpio.h"
-#include "peripheral_common.h"
+#include "peripheral_interface_common.h"
 
-#define MAX_ERR_LEN 255
+#define SYSFS_GPIO_DIR "/sys/class/gpio"
 
 int gpio_open(int gpiopin)
 {
 	int fd, len, status;
-	char gpio_export[GPIO_BUFFER_MAX] = {0, };
+	char gpio_export[MAX_BUF_LEN] = {0, };
 
 	_D("gpiopin : %d", gpiopin);
 
 	fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
-	if (fd < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Can't Open /sys/class/gpio/export :%s\n", errmsg);
-		return -ENXIO;
-	}
+	CHECK_ERROR(fd < 0);
 
-	len = snprintf(gpio_export, GPIO_BUFFER_MAX, "%d", gpiopin);
+	len = snprintf(gpio_export, MAX_BUF_LEN, "%d", gpiopin);
 	status = write(fd, gpio_export, len);
-
-	if (status != len) {
-		close(fd);
-		_E("Error: gpio open error \n");
-		return -EIO;
-	}
+	CHECK_ERROR(status != len);
 
 	close(fd);
 
@@ -59,26 +41,16 @@ int gpio_open(int gpiopin)
 int gpio_close(int gpiopin)
 {
 	int fd, len, status;
-	char gpio_unexport[GPIO_BUFFER_MAX] = {0, };
+	char gpio_unexport[MAX_BUF_LEN] = {0, };
 
 	_D("gpiopin : %d", gpiopin);
 
 	fd = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
-	if (fd < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Can't Open /sys/class/gpio/unexport %s\n", errmsg);
-		return -ENXIO;
-	}
+	CHECK_ERROR(fd < 0);
 
-	len = snprintf(gpio_unexport, GPIO_BUFFER_MAX, "%d", gpiopin);
+	len = snprintf(gpio_unexport, MAX_BUF_LEN, "%d", gpiopin);
 	status = write(fd, gpio_unexport, len);
-
-	if (status != len) {
-		close(fd);
-		_E("Error: gpio close error \n");
-		return -EIO;
-	}
+	CHECK_ERROR(status != len);
 
 	close(fd);
 

@@ -17,9 +17,6 @@
 #ifndef __PERIPHERAL_INTERFACE_GPIO_H__
 #define __PERIPHERAL_INTERFACE_GPIO_H__
 
-#define SYSFS_GPIO_DIR "/sys/class/gpio"
-#define GPIO_BUFFER_MAX 64
-
 int gpio_open(int gpiopin);
 int gpio_close(int gpiopin);
 

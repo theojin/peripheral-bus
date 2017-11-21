@@ -17,14 +17,6 @@
 #ifndef __PERIPHERAL_INTERFACE_I2C_H__
 #define __PERIPHERAL_INTERFACE_I2C_H__
 
-#include <stdint.h>
-
-#define SYSFS_I2C_DIR "/dev/i2c"
-#define I2C_BUFFER_MAX 64
-
-#define I2C_SLAVE	0x0703	/* Use this slave address */
-#define I2C_SMBUS	0x0720	/* SMBus transfer */
-
 int i2c_open(int bus, int *fd);
 int i2c_close(int fd);
 int i2c_set_address(int fd, int address);

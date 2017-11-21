@@ -17,8 +17,6 @@
 #ifndef __PERIPHERAL_INTERFACE_UART_H__
 #define __PERIPHERAL_INTERFACE_UART_H__
 
-#include <stdint.h>
-
 /**
 * @brief uart_open() initializes uart port.
 *
@@ -35,14 +33,6 @@ int uart_open(int port, int *file_hndl);
 * @return On success, 0 is returned. On failure, a negative value is returned.
 */
 int uart_close(int file_hndl);
-
-/**
-* @brief uart_flush() flushes uart buffer.
-*
-* @param[in] file_hndl handle of uart_context
-* @return On success, 0 is returned. On failure, a negative value is returned.
-*/
-int uart_flush(int file_hndl);
 
 #endif /* __PERIPHERAL_INTERFACE_UART_H__ */
 

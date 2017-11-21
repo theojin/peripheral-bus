@@ -14,25 +14,14 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <unistd.h>
 #include <termios.h>
-#include <stdbool.h>
-#include <sys/ioctl.h>
 
 #include "peripheral_interface_uart.h"
-#include "peripheral_common.h"
-
-#define PATH_BUF_MAX 64
+#include "peripheral_interface_common.h"
 
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
 #endif
-#define MAX_ERR_LEN 128
 
 char *sysfs_uart_path[] = {
 	"/dev/ttyS",
@@ -43,22 +32,20 @@ char *sysfs_uart_path[] = {
 int uart_open(int port, int *file_hndl)
 {
 	int i, fd;
-	char uart_dev[PATH_BUF_MAX] = {0};
+	char uart_dev[MAX_BUF_LEN] = {0};
 
 	_D("port : %d", port);
 
 	for (i = 0; i < ARRAY_SIZE(sysfs_uart_path); i++) {
-		snprintf(uart_dev, PATH_BUF_MAX, "%s%d", sysfs_uart_path[i], port);
+		snprintf(uart_dev, MAX_BUF_LEN, "%s%d", sysfs_uart_path[i], port);
 		if (access(uart_dev, F_OK) == 0)
 			break;
 	}
+
 	_D("uart_dev : %s", uart_dev);
-	if ((fd = open(uart_dev, O_RDWR | O_NOCTTY | O_NONBLOCK)) < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("can't open %s, errmsg : %s", uart_dev, errmsg);
-		return -ENXIO;
-	}
+	fd = open(uart_dev, O_RDWR | O_NOCTTY | O_NONBLOCK);
+	CHECK_ERROR(fd < 0);
+
 	*file_hndl = fd;
 	return 0;
 }
@@ -74,41 +61,11 @@ int uart_close(int file_hndl)
 		return -EINVAL;
 	}
 
-	status = uart_flush(file_hndl);
-	if (status < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to close fd : %d, errmsg : %s", file_hndl, errmsg);
-		return -EIO;
-	}
+	status = tcflush(file_hndl, TCIOFLUSH);
+	CHECK_ERROR(status != 0);
 
 	status = close(file_hndl);
-	if (status < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to close fd : %d, errmsg : %s", file_hndl, errmsg);
-		return -EIO;
-	}
-
-	return 0;
-}
-
-int uart_flush(int file_hndl)
-{
-	int ret;
-
-	if (!file_hndl) {
-		_E("Invalid NULL parameter");
-		return -EINVAL;
-	}
-
-	ret = tcflush(file_hndl, TCIOFLUSH);
-	if (ret < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("tcflush failed, errmsg : %s", errmsg);
-		return -1;
-	}
+	CHECK_ERROR(status != 0);
 
 	return 0;
 }

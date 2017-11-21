@@ -14,38 +14,23 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
-#include <linux/spi/spidev.h>
-
 #include "peripheral_interface_spi.h"
-#include "peripheral_common.h"
+#include "peripheral_interface_common.h"
 
 #define SYSFS_SPI_DIR "/dev/spidev"
-#define SPI_BUFFER_MAX 64
-#define MAX_ERR_LEN 255
 
 int spi_open(int bus, int cs, int *fd)
 {
 	int new_fd = 0;
-	char spi_dev[SPI_BUFFER_MAX] = {0,};
+	char spi_dev[MAX_BUF_LEN] = {0,};
 
 	_D("bus : %d, cs : %d", bus, cs);
 
-	snprintf(spi_dev, sizeof(spi_dev)-1, SYSFS_SPI_DIR"%d.%d", bus, cs);
+	snprintf(spi_dev, MAX_BUF_LEN, SYSFS_SPI_DIR"%d.%d", bus, cs);
 
 	new_fd = open(spi_dev, O_RDWR);
-	if (new_fd < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Can't Open %s, errmsg : %s", spi_dev, errmsg);
-		return -ENXIO;
-	}
+	CHECK_ERROR(new_fd < 0);
+
 	_D("fd : %d", new_fd);
 	*fd = new_fd;
 
@@ -60,12 +45,7 @@ int spi_close(int fd)
 	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
 	status = close(fd);
-	if (status < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to close fd : %d", fd);
-		return -EIO;
-	}
+	CHECK_ERROR(status != 0);
 
 	return 0;
 }

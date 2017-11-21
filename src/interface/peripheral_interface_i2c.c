@@ -14,34 +14,25 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <fcntl.h>
 #include <sys/ioctl.h>
 
 #include "peripheral_interface_i2c.h"
-#include "peripheral_common.h"
+#include "peripheral_interface_common.h"
 
-#define MAX_ERR_LEN 255
+#define SYSFS_I2C_DIR "/dev/i2c"
+#define I2C_SLAVE	0x0703	/* Use this slave address */
 
 int i2c_open(int bus, int *fd)
 {
 	int new_fd;
-	char i2c_dev[I2C_BUFFER_MAX] = {0,};
+	char i2c_dev[MAX_BUF_LEN] = {0,};
 
 	_D("bus : %d", bus);
 
-	snprintf(i2c_dev, sizeof(i2c_dev)-1, SYSFS_I2C_DIR"-%d", bus);
+	snprintf(i2c_dev, MAX_BUF_LEN, SYSFS_I2C_DIR"-%d", bus);
 	new_fd = open(i2c_dev, O_RDWR);
-	if (new_fd < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Can't Open %s : %s", i2c_dev, errmsg);
-		return -ENXIO;
-	}
+	CHECK_ERROR(new_fd < 0);
+
 	_D("fd : %d", new_fd);
 	*fd = new_fd;
 
@@ -56,12 +47,7 @@ int i2c_close(int fd)
 	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
 	status = close(fd);
-	if (status < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to close fd : %d", fd);
-		return -EIO;
-	}
+	CHECK_ERROR(status != 0);
 
 	return 0;
 }
@@ -74,12 +60,7 @@ int i2c_set_address(int fd, int address)
 	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
 	status = ioctl(fd, I2C_SLAVE, address);
-	if (status < 0) {
-		char errmsg[MAX_ERR_LEN];
-		strerror_r(errno, errmsg, MAX_ERR_LEN);
-		_E("Failed to set slave address(%x), fd : %d, errmsg : %s", address, fd, errmsg);
-		return status;
-	}
+	CHECK_ERROR(status != 0);
 
 	return 0;
 }
