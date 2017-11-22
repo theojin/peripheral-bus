@@ -31,7 +31,7 @@ int i2c_open(int bus, int *fd)
 
 	snprintf(i2c_dev, MAX_BUF_LEN, SYSFS_I2C_DIR"-%d", bus);
 	new_fd = open(i2c_dev, O_RDWR);
-	CHECK_ERROR(new_fd < 0);
+	IF_ERROR_RETURN(new_fd < 0);
 
 	_D("fd : %d", new_fd);
 	*fd = new_fd;
@@ -47,7 +47,7 @@ int i2c_close(int fd)
 	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
 	status = close(fd);
-	CHECK_ERROR(status != 0);
+	IF_ERROR_RETURN(status != 0);
 
 	return 0;
 }
@@ -60,7 +60,8 @@ int i2c_set_address(int fd, int address)
 	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
 	status = ioctl(fd, I2C_SLAVE, address);
-	CHECK_ERROR(status != 0);
+	IF_ERROR_RETURN(status != 0, close(fd));
+	close(fd);
 
 	return 0;
 }

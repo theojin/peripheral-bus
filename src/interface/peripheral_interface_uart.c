@@ -44,7 +44,7 @@ int uart_open(int port, int *file_hndl)
 
 	_D("uart_dev : %s", uart_dev);
 	fd = open(uart_dev, O_RDWR | O_NOCTTY | O_NONBLOCK);
-	CHECK_ERROR(fd < 0);
+	IF_ERROR_RETURN(fd < 0);
 
 	*file_hndl = fd;
 	return 0;
@@ -61,11 +61,8 @@ int uart_close(int file_hndl)
 		return -EINVAL;
 	}
 
-	status = tcflush(file_hndl, TCIOFLUSH);
-	CHECK_ERROR(status != 0);
-
 	status = close(file_hndl);
-	CHECK_ERROR(status != 0);
+	IF_ERROR_RETURN(status != 0);
 
 	return 0;
 }

@@ -29,7 +29,7 @@ int spi_open(int bus, int cs, int *fd)
 	snprintf(spi_dev, MAX_BUF_LEN, SYSFS_SPI_DIR"%d.%d", bus, cs);
 
 	new_fd = open(spi_dev, O_RDWR);
-	CHECK_ERROR(new_fd < 0);
+	IF_ERROR_RETURN(new_fd < 0);
 
 	_D("fd : %d", new_fd);
 	*fd = new_fd;
@@ -45,7 +45,7 @@ int spi_close(int fd)
 	RETVM_IF(fd < 0, -EINVAL, "Invalid fd");
 
 	status = close(fd);
-	CHECK_ERROR(status != 0);
+	IF_ERROR_RETURN(status != 0);
 
 	return 0;
 }

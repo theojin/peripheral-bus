@@ -27,12 +27,12 @@ int gpio_open(int gpiopin)
 	_D("gpiopin : %d", gpiopin);
 
 	fd = open(SYSFS_GPIO_DIR "/export", O_WRONLY);
-	CHECK_ERROR(fd < 0);
+	IF_ERROR_RETURN(fd < 0);
 
 	len = snprintf(gpio_export, MAX_BUF_LEN, "%d", gpiopin);
 	status = write(fd, gpio_export, len);
+	IF_ERROR_RETURN(status != len, close(fd));
 	close(fd);
-	CHECK_ERROR(status != len);
 
 	return 0;
 }
@@ -45,12 +45,12 @@ int gpio_close(int gpiopin)
 	_D("gpiopin : %d", gpiopin);
 
 	fd = open(SYSFS_GPIO_DIR "/unexport", O_WRONLY);
-	CHECK_ERROR(fd < 0);
+	IF_ERROR_RETURN(fd < 0);
 
 	len = snprintf(gpio_unexport, MAX_BUF_LEN, "%d", gpiopin);
 	status = write(fd, gpio_unexport, len);
+	IF_ERROR_RETURN(status != len, close(fd));
 	close(fd);
-	CHECK_ERROR(status != len);
 
 	return 0;
 }

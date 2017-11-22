@@ -29,12 +29,12 @@ int pwm_open(int chip, int pin)
 
 	snprintf(pwm_dev, MAX_BUF_LEN, SYSFS_PWM_PATH "/pwmchip%d/export", chip);
 	fd = open(pwm_dev, O_WRONLY);
-	CHECK_ERROR(fd < 0);
+	IF_ERROR_RETURN(fd < 0);
 
 	len = snprintf(pwm_buf, MAX_BUF_LEN, "%d", pin);
 	status = write(fd, pwm_buf, len);
+	IF_ERROR_RETURN(status != len, close(fd));
 	close(fd);
-	CHECK_ERROR(status != len);
 
 	return 0;
 }
@@ -49,12 +49,12 @@ int pwm_close(int chip, int pin)
 
 	snprintf(pwm_dev, MAX_BUF_LEN, SYSFS_PWM_PATH "/pwmchip%d/unexport", chip);
 	fd = open(pwm_dev, O_WRONLY);
-	CHECK_ERROR(fd < 0);
+	IF_ERROR_RETURN(fd < 0);
 
 	len = snprintf(pwm_buf, MAX_BUF_LEN, "%d", pin);
 	status = write(fd, pwm_buf, len);
+	IF_ERROR_RETURN(status != len, close(fd));
 	close(fd);
-	CHECK_ERROR(status != len);
 
 	return 0;
 }

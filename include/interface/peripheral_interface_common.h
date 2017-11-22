@@ -28,13 +28,15 @@
 #define MAX_ERR_LEN 255
 #define MAX_BUF_LEN 64
 
-#define CHECK_ERROR(expr) \
+#define IF_ERROR_RETURN(expr, func...) \
 	do { \
 		if (expr) { \
-			if (errno == EAGAIN) \
+			int temp = errno; \
+			func; \
+			if (temp == EAGAIN) \
 				return PERIPHERAL_ERROR_TRY_AGAIN; \
 			char errmsg[MAX_ERR_LEN]; \
-			strerror_r(errno, errmsg, sizeof(errmsg)); \
+			strerror_r(temp, errmsg, sizeof(errmsg)); \
 			_E("Failed the %s(%d) function. errmsg: %s", __FUNCTION__, __LINE__, errmsg); \
 			return PERIPHERAL_ERROR_IO_ERROR; \
 		} \
