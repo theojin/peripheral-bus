@@ -63,6 +63,8 @@ void peripheral_privilege_deinit(void)
 
 int peripheral_privilege_check(GDBusMethodInvocation *invocation, GDBusConnection *connection)
 {
+	RETVM_IF(!__cynara, -1, "Cynara does not initialized");
+
 	int ret;
 	int pid;
 	const char *sender;
@@ -85,6 +87,7 @@ int peripheral_privilege_check(GDBusMethodInvocation *invocation, GDBusConnectio
 
 	ret = cynara_check(__cynara, client, session, user, PERIPHERAL_PRIVILEGE);
 	if (ret != 0) {
+		_E("Failed to check privilege");
 		g_free(session);
 		g_free(client);
 		g_free(user);

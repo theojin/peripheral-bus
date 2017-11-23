@@ -23,9 +23,6 @@
 #include "peripheral_interface_uart.h"
 #include "peripheral_handle_common.h"
 
-#define INITIAL_BUFFER_SIZE 128
-#define MAX_BUFFER_SIZE 8192
-
 static bool __peripheral_handle_uart_is_creatable(int port, peripheral_info_s *info)
 {
 	pb_board_dev_s *uart = NULL;
@@ -54,45 +51,63 @@ static bool __peripheral_handle_uart_is_creatable(int port, peripheral_info_s *i
 	return true;
 }
 
-int peripheral_handle_uart_open(int port, peripheral_h *handle, gpointer user_data)
+int peripheral_handle_uart_destroy(peripheral_h handle)
 {
-	peripheral_info_s *info = (peripheral_info_s*)user_data;
-	peripheral_h uart_handle;
+	RETVM_IF(handle == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid uart handle");
+
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	if (!__peripheral_handle_uart_is_creatable(port, info)) {
+	ret = peripheral_interface_uart_fd_close(handle->type.uart.fd);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to uart close fd");
+
+	ret = peripheral_handle_free(handle);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to free uart handle");
+		return PERIPHERAL_ERROR_UNKNOWN;
+	}
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
+int peripheral_handle_uart_create(int port, peripheral_h *handle, gpointer user_data)
+{
+	RETVM_IF(port < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid uart port");
+	RETVM_IF(handle == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid uart handle");
+
+	int ret = PERIPHERAL_ERROR_NONE;
+
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
+
+	peripheral_h uart_handle = NULL;
+	bool is_handle_creatable = false;
+
+	is_handle_creatable = __peripheral_handle_uart_is_creatable(port, info);
+	if (is_handle_creatable == false) {
 		_E("uart %d is not available", port);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
-	// TODO : make fd list using the interface function
-
 	uart_handle = peripheral_handle_new(&info->uart_list);
-	if (!uart_handle) {
+	if (uart_handle == NULL) {
 		_E("peripheral_handle_new error");
-		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
-		goto err;
+		return PERIPHERAL_ERROR_OUT_OF_MEMORY;
 	}
 
 	uart_handle->list = &info->uart_list;
 	uart_handle->type.uart.port = port;
+	uart_handle->type.uart.fd = -1;
 
-	*handle = uart_handle;
-
-	return PERIPHERAL_ERROR_NONE;
-
-err:
-	return ret;
-}
-
-int peripheral_handle_uart_destroy(peripheral_h handle)
-{
-	int ret = PERIPHERAL_ERROR_NONE;
-
-	if (peripheral_handle_free(handle) < 0) {
-		_E("Failed to free uart data");
-		ret = PERIPHERAL_ERROR_UNKNOWN;
+	ret = peripheral_interface_uart_fd_open(port, &uart_handle->type.uart.fd);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to uart fd open");
+		goto out;
 	}
 
+	*handle = uart_handle;
+	return PERIPHERAL_ERROR_NONE;
+
+out:
+	peripheral_handle_uart_destroy(uart_handle);
 	return ret;
 }

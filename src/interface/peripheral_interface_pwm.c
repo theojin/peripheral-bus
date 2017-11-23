@@ -17,7 +17,7 @@
 #include "peripheral_interface_pwm.h"
 #include "peripheral_interface_common.h"
 
-int peripheral_interface_pwm_open(int chip, int pin)
+int peripheral_interface_pwm_export(int chip, int pin)
 {
 	RETVM_IF(chip < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm chip");
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm pin");
@@ -42,7 +42,7 @@ int peripheral_interface_pwm_open(int chip, int pin)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_pwm_close(int chip, int pin)
+int peripheral_interface_pwm_unexport(int chip, int pin)
 {
 	RETVM_IF(chip < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm chip");
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm pin");
@@ -69,7 +69,7 @@ int peripheral_interface_pwm_close(int chip, int pin)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_pwm_open_file_period(int chip, int pin, int *fd_out)
+int peripheral_interface_pwm_fd_period_open(int chip, int pin, int *fd_out)
 {
 	RETVM_IF(chip < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm chip");
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm pin");
@@ -87,7 +87,19 @@ int peripheral_interface_pwm_open_file_period(int chip, int pin, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_pwm_open_file_duty_cycle(int chip, int pin, int *fd_out)
+int peripheral_interface_pwm_fd_period_close(int fd)
+{
+	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for pwm period");
+
+	int ret;
+
+	ret = close(fd);
+	IF_ERROR_RETURN(ret != 0);
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
+int peripheral_interface_pwm_fd_duty_cycle_open(int chip, int pin, int *fd_out)
 {
 	RETVM_IF(chip < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm chip");
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm pin");
@@ -105,7 +117,19 @@ int peripheral_interface_pwm_open_file_duty_cycle(int chip, int pin, int *fd_out
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_pwm_open_file_polarity(int chip, int pin, int *fd_out)
+int peripheral_interface_pwm_fd_duty_cycle_close(int fd)
+{
+	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for pwm duty cycle");
+
+	int ret;
+
+	ret = close(fd);
+	IF_ERROR_RETURN(ret != 0);
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
+int peripheral_interface_pwm_fd_polarity_open(int chip, int pin, int *fd_out)
 {
 	RETVM_IF(chip < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm chip");
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm pin");
@@ -123,7 +147,19 @@ int peripheral_interface_pwm_open_file_polarity(int chip, int pin, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_pwm_open_file_enable(int chip, int pin, int *fd_out)
+int peripheral_interface_pwm_fd_polarity_close(int fd)
+{
+	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for pwm polarity");
+
+	int ret;
+
+	ret = close(fd);
+	IF_ERROR_RETURN(ret != 0);
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
+int peripheral_interface_pwm_fd_enable_open(int chip, int pin, int *fd_out)
 {
 	RETVM_IF(chip < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm chip");
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm pin");
@@ -137,6 +173,18 @@ int peripheral_interface_pwm_open_file_enable(int chip, int pin, int *fd_out)
 	IF_ERROR_RETURN(fd < 0);
 
 	*fd_out = fd;
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
+int peripheral_interface_pwm_fd_enable_close(int fd)
+{
+	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for pwm enable");
+
+	int ret;
+
+	ret = close(fd);
+	IF_ERROR_RETURN(ret != 0);
 
 	return PERIPHERAL_ERROR_NONE;
 }

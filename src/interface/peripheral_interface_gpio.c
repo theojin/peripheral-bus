@@ -84,7 +84,7 @@ out:
 	return ret;
 }
 
-int peripheral_interface_gpio_open(int pin)
+int peripheral_interface_gpio_export(int pin)
 {
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
 
@@ -112,7 +112,7 @@ int peripheral_interface_gpio_open(int pin)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_gpio_close(int pin)
+int peripheral_interface_gpio_unexport(int pin)
 {
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
 
@@ -134,7 +134,7 @@ int peripheral_interface_gpio_close(int pin)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_gpio_open_file_direction(int pin, int *fd_out)
+int peripheral_interface_gpio_fd_direction_open(int pin, int *fd_out)
 {
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
 	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for gpio direction");
@@ -151,7 +151,19 @@ int peripheral_interface_gpio_open_file_direction(int pin, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_gpio_open_file_edge(int pin, int *fd_out)
+int peripheral_interface_gpio_fd_direction_close(int fd)
+{
+	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for gpio direction");
+
+	int ret;
+
+	ret = close(fd);
+	IF_ERROR_RETURN(ret != 0);
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
+int peripheral_interface_gpio_fd_edge_open(int pin, int *fd_out)
 {
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
 	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for gpio edge");
@@ -168,7 +180,19 @@ int peripheral_interface_gpio_open_file_edge(int pin, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_gpio_open_file_value(int pin, int *fd_out)
+int peripheral_interface_gpio_fd_edge_close(int fd)
+{
+	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for gpio edge");
+
+	int ret;
+
+	ret = close(fd);
+	IF_ERROR_RETURN(ret != 0);
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
+int peripheral_interface_gpio_fd_value_open(int pin, int *fd_out)
 {
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
 	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for gpio value");
@@ -184,3 +208,16 @@ int peripheral_interface_gpio_open_file_value(int pin, int *fd_out)
 
 	return PERIPHERAL_ERROR_NONE;
 }
+
+int peripheral_interface_gpio_fd_value_close(int fd)
+{
+	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for gpio value");
+
+	int ret;
+
+	ret = close(fd);
+	IF_ERROR_RETURN(ret != 0);
+
+	return PERIPHERAL_ERROR_NONE;
+}
+

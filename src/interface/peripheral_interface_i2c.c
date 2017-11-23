@@ -21,7 +21,7 @@
 
 #define I2C_SLAVE	0x0703	/* Use this slave address */
 
-int peripheral_interface_i2c_open_file(int bus, int address, int *fd_out)
+int peripheral_interface_i2c_fd_open(int bus, int address, int *fd_out)
 {
 	RETVM_IF(bus < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid i2c bus");
 	RETVM_IF(address < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid i2c address");
@@ -43,7 +43,7 @@ int peripheral_interface_i2c_open_file(int bus, int address, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_i2c_close(int fd)
+int peripheral_interface_i2c_fd_close(int fd)
 {
 	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for i2c");
 

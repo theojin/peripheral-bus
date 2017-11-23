@@ -23,7 +23,7 @@
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
 #endif
 
-int peripheral_interface_uart_open_file(int port, int *fd_out)
+int peripheral_interface_uart_fd_open(int port, int *fd_out)
 {
 	RETVM_IF(port < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid uart port");
 	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for uart");
@@ -52,9 +52,9 @@ int peripheral_interface_uart_open_file(int port, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_uart_close(int fd)
+int peripheral_interface_uart_fd_close(int fd)
 {
-	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for uart");
+	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for uart");
 	int ret;
 
 	ret = close(fd);

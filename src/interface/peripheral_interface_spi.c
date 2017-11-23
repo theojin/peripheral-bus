@@ -17,7 +17,7 @@
 #include "peripheral_interface_spi.h"
 #include "peripheral_interface_common.h"
 
-int peripheral_interface_spi_open_file(int bus, int cs, int *fd_out)
+int peripheral_interface_spi_fd_open(int bus, int cs, int *fd_out)
 {
 	RETVM_IF(bus < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid spi bus");
 	RETVM_IF(cs < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid spi cs");
@@ -36,9 +36,9 @@ int peripheral_interface_spi_open_file(int bus, int cs, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_spi_close(int fd)
+int peripheral_interface_spi_fd_close(int fd)
 {
-	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for spi");
+	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for spi");
 
 	int ret;
 

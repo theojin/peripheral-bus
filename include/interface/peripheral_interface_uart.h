@@ -17,8 +17,8 @@
 #ifndef __PERIPHERAL_INTERFACE_UART_H__
 #define __PERIPHERAL_INTERFACE_UART_H__
 
-int peripheral_interface_uart_open_file(int port, int *fd_out);
-int peripheral_interface_uart_close(int fd);
+int peripheral_interface_uart_fd_open(int port, int *fd_out);
+int peripheral_interface_uart_fd_close(int fd);
 
 #endif /* __PERIPHERAL_INTERFACE_UART_H__ */
 

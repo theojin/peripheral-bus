@@ -17,7 +17,7 @@
 #ifndef __PERIPHERAL_HANDLE_UART_H__
 #define __PERIPHERAL_HANDLE_UART_H__
 
-int peripheral_handle_uart_open(int port, peripheral_h *handle, gpointer user_data);
+int peripheral_handle_uart_create(int port, peripheral_h *handle, gpointer user_data);
 int peripheral_handle_uart_destroy(peripheral_h handle);
 
 #endif /* __PERIPHERAL_HANDLE_UART_H__ */

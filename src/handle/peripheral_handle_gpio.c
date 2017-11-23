@@ -50,45 +50,95 @@ static bool __peripheral_handle_gpio_is_creatable(int pin, peripheral_info_s *in
 	return true;
 }
 
-int peripheral_handle_gpio_create(gint pin, peripheral_h *handle, gpointer user_data)
+int peripheral_handle_gpio_destroy(peripheral_h handle)
 {
-	peripheral_info_s *info = (peripheral_info_s*)user_data;
-	peripheral_h gpio_handle;
-	int ret;
+	RETVM_IF(handle == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio handle");
 
-	if (!__peripheral_handle_gpio_is_creatable(pin, info)) {
+	int ret = PERIPHERAL_ERROR_NONE;
+
+	ret = peripheral_interface_gpio_fd_direction_close(handle->type.gpio.fd_direction);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to gpio close direction fd");
+
+	ret = peripheral_interface_gpio_fd_edge_close(handle->type.gpio.fd_edge);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to gpio close edge fd");
+
+	peripheral_interface_gpio_fd_value_close(handle->type.gpio.fd_value);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to gpio close value fd");
+
+	ret = peripheral_interface_gpio_unexport(handle->type.gpio.pin);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to gpio unexport");
+
+	ret = peripheral_handle_free(handle);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to free gpio handle");
+		return PERIPHERAL_ERROR_UNKNOWN;
+	}
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
+int peripheral_handle_gpio_create(int pin, peripheral_h *handle, gpointer user_data)
+{
+	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
+	RETVM_IF(handle == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio handle");
+
+	int ret = PERIPHERAL_ERROR_NONE;
+
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
+
+	peripheral_h gpio_handle = NULL;
+	bool is_handle_creatable = false;
+
+	is_handle_creatable = __peripheral_handle_gpio_is_creatable(pin, info);
+	if (is_handle_creatable == false) {
 		_E("gpio %d is not available", pin);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
-	// TODO : make fd list using the interface function
-
 	gpio_handle = peripheral_handle_new(&info->gpio_list);
-	if (!gpio_handle) {
+	if (gpio_handle == NULL) {
 		_E("peripheral_handle_new error");
-		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
-		goto err;
+		return PERIPHERAL_ERROR_OUT_OF_MEMORY;
 	}
 
 	gpio_handle->list = &info->gpio_list;
 	gpio_handle->type.gpio.pin = pin;
+	gpio_handle->type.gpio.fd_direction = -1;
+	gpio_handle->type.gpio.fd_edge = -1;
+	gpio_handle->type.gpio.fd_value = -1;
 
-	*handle = gpio_handle;
-
-	return PERIPHERAL_ERROR_NONE;
-
-err:
-	return ret;
-}
-
-int peripheral_handle_gpio_destroy(peripheral_h handle)
-{
-	int ret = PERIPHERAL_ERROR_NONE;
-
-	if (peripheral_handle_free(handle) < 0) {
-		_E("Failed to free gpio data");
-		ret = PERIPHERAL_ERROR_UNKNOWN;
+	ret = peripheral_interface_gpio_export(pin);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to gpio export");
+		goto out;
 	}
 
-	return ret;;
+	ret = peripheral_interface_gpio_fd_direction_open(pin, &gpio_handle->type.gpio.fd_direction);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to gpio open direction fd");
+		goto out;
+	}
+
+	ret = peripheral_interface_gpio_fd_edge_open(pin, &gpio_handle->type.gpio.fd_edge);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to gpio open edge fd");
+		goto out;
+	}
+
+	ret = peripheral_interface_gpio_fd_value_open(pin, &gpio_handle->type.gpio.fd_value);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to gpio open value fd");
+		goto out;
+	}
+
+	*handle = gpio_handle;
+	return PERIPHERAL_ERROR_NONE;
+
+out:
+	peripheral_handle_gpio_destroy(gpio_handle);
+	return ret;
 }

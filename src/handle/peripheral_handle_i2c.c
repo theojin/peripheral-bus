@@ -23,9 +23,6 @@
 #include "peripheral_interface_i2c.h"
 #include "peripheral_handle_common.h"
 
-#define INITIAL_BUFFER_SIZE 128
-#define MAX_BUFFER_SIZE 8192
-
 static bool __peripheral_handle_i2c_is_creatable(int bus, int address, peripheral_info_s *info)
 {
 	pb_board_dev_s *i2c = NULL;
@@ -54,46 +51,65 @@ static bool __peripheral_handle_i2c_is_creatable(int bus, int address, periphera
 	return true;
 }
 
+int peripheral_handle_i2c_destroy(peripheral_h handle)
+{
+	RETVM_IF(handle == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid i2c handle");
+
+	int ret = PERIPHERAL_ERROR_NONE;
+
+	ret = peripheral_interface_i2c_fd_close(handle->type.i2c.fd);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to i2c close fd");
+
+	ret = peripheral_handle_free(handle);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to free i2c handle");
+		return PERIPHERAL_ERROR_UNKNOWN;
+	}
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
 int peripheral_handle_i2c_create(int bus, int address, peripheral_h *handle, gpointer user_data)
 {
-	peripheral_info_s *info = (peripheral_info_s*)user_data;
-	peripheral_h i2c_handle;
-	int ret;
+	RETVM_IF(bus < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid i2c bus");
+	RETVM_IF(address < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid i2c address");
+	RETVM_IF(handle == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid i2c handle");
 
-	if (!__peripheral_handle_i2c_is_creatable(bus, address, info)) {
+	int ret = PERIPHERAL_ERROR_NONE;
+
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
+
+	peripheral_h i2c_handle = NULL;
+	bool is_handle_creatable = false;
+
+	is_handle_creatable = __peripheral_handle_i2c_is_creatable(bus, address, info);
+	if (is_handle_creatable == false) {
 		_E("bus : %d, address : 0x%x is not available", bus, address);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
-	// TODO : make fd list using the interface function
-
 	i2c_handle = peripheral_handle_new(&info->i2c_list);
-	if (!i2c_handle) {
+	if (i2c_handle == NULL) {
 		_E("peripheral_handle_new error");
-		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
-		goto err;
+		return PERIPHERAL_ERROR_OUT_OF_MEMORY;
 	}
 
 	i2c_handle->list = &info->i2c_list;
 	i2c_handle->type.i2c.bus = bus;
 	i2c_handle->type.i2c.address = address;
+	i2c_handle->type.i2c.fd = -1;
 
-	*handle = i2c_handle;
-
-	return PERIPHERAL_ERROR_NONE;
-
-err:
-	return ret;
-}
-
-int peripheral_handle_i2c_destroy(peripheral_h handle)
-{
-	int ret = PERIPHERAL_ERROR_NONE;
-
-	if (peripheral_handle_free(handle) < 0) {
-		_E("Failed to free i2c data");
-		ret = PERIPHERAL_ERROR_UNKNOWN;
+	ret = peripheral_interface_i2c_fd_open(bus, address, &i2c_handle->type.i2c.fd);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to i2c fd open");
+		goto out;
 	}
 
+	*handle = i2c_handle;
+	return PERIPHERAL_ERROR_NONE;
+
+out:
+	peripheral_handle_i2c_destroy(i2c_handle);
 	return ret;
 }

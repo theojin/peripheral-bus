@@ -17,11 +17,19 @@
 #ifndef __PERIPHERAL_INTERFACE_PWM_H__
 #define __PERIPHERAL_INTERFACE_PWM_H__
 
-int peripheral_interface_pwm_open(int chip, int pin);
-int peripheral_interface_pwm_close(int chip, int pin);
-int peripheral_interface_pwm_open_file_period(int chip, int pin, int *fd_out);
-int peripheral_interface_pwm_open_file_duty_cycle(int chip, int pin, int *fd_out);
-int peripheral_interface_pwm_open_file_polarity(int chip, int pin, int *fd_out);
-int peripheral_interface_pwm_open_file_enable(int chip, int pin, int *fd_out);
+int peripheral_interface_pwm_export(int chip, int pin);
+int peripheral_interface_pwm_unexport(int chip, int pin);
+
+int peripheral_interface_pwm_fd_period_open(int chip, int pin, int *fd_out);
+int peripheral_interface_pwm_fd_period_close(int fd);
+
+int peripheral_interface_pwm_fd_duty_cycle_open(int chip, int pin, int *fd_out);
+int peripheral_interface_pwm_fd_duty_cycle_close(int fd);
+
+int peripheral_interface_pwm_fd_polarity_open(int chip, int pin, int *fd_out);
+int peripheral_interface_pwm_fd_polarity_close(int fd);
+
+int peripheral_interface_pwm_fd_enable_open(int chip, int pin, int *fd_out);
+int peripheral_interface_pwm_fd_enable_close(int fd);
 
 #endif /* __PERIPHERAL_INTERFACE_PWM_H__ */

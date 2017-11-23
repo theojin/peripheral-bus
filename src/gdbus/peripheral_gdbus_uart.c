@@ -54,7 +54,7 @@ gboolean handle_uart_open(
 		goto out;
 	}
 
-	if ((ret = peripheral_handle_uart_open(port, &uart_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+	if ((ret = peripheral_handle_uart_create(port, &uart_handle, user_data)) < PERIPHERAL_ERROR_NONE)
 		goto out;
 
 	uart_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,

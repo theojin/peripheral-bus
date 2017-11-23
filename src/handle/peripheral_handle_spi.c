@@ -51,46 +51,65 @@ static bool __peripheral_handle_spi_is_creatable(int bus, int cs, peripheral_inf
 	return true;
 }
 
-int peripheral_handle_spi_create(int bus, int cs, peripheral_h *handle, gpointer user_data)
+int peripheral_handle_spi_destroy(peripheral_h handle)
 {
-	peripheral_info_s *info = (peripheral_info_s*)user_data;
-	peripheral_h spi_handle;
+	RETVM_IF(handle == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid spi handle");
+
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	if (!__peripheral_handle_spi_is_creatable(bus, cs, info)) {
+	ret = peripheral_interface_spi_fd_close(handle->type.spi.fd);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to spi close fd");
+
+	ret = peripheral_handle_free(handle);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to free spi handle");
+		return PERIPHERAL_ERROR_UNKNOWN;
+	}
+
+	return PERIPHERAL_ERROR_NONE;
+}
+
+int peripheral_handle_spi_create(int bus, int cs, peripheral_h *handle, gpointer user_data)
+{
+	RETVM_IF(bus < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid spi bus");
+	RETVM_IF(cs < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid spi cs");
+	RETVM_IF(handle == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid spi handle");
+
+	int ret = PERIPHERAL_ERROR_NONE;
+
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
+
+	peripheral_h spi_handle = NULL;
+	bool is_handle_creatable = false;
+
+	is_handle_creatable = __peripheral_handle_spi_is_creatable(bus, cs, info);
+	if (is_handle_creatable == false) {
 		_E("spi %d.%d is not available", bus, cs);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
-	// TODO : make fd list using the interface function
-
 	spi_handle = peripheral_handle_new(&info->spi_list);
-	if (!spi_handle) {
+	if (spi_handle == NULL) {
 		_E("peripheral_handle_new error");
-		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
-		goto err_spi_data;
+		return PERIPHERAL_ERROR_OUT_OF_MEMORY;
 	}
 
 	spi_handle->list = &info->spi_list;
 	spi_handle->type.spi.bus = bus;
 	spi_handle->type.spi.cs = cs;
+	spi_handle->type.spi.fd = -1;
 
-	*handle = spi_handle;
-
-	return PERIPHERAL_ERROR_NONE;
-
-err_spi_data:
-	return ret;
-}
-
-int peripheral_handle_spi_destroy(peripheral_h handle)
-{
-	int ret = PERIPHERAL_ERROR_NONE;
-
-	if (peripheral_handle_free(handle) < 0) {
-		_E("Failed to free spi data");
-		ret = PERIPHERAL_ERROR_UNKNOWN;
+	ret = peripheral_interface_spi_fd_open(bus, cs, &spi_handle->type.spi.fd);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to spi fd open");
+		goto out;
 	}
 
+	*handle = spi_handle;
+	return PERIPHERAL_ERROR_NONE;
+
+out:
+	peripheral_handle_spi_destroy(spi_handle);
 	return ret;
 }
