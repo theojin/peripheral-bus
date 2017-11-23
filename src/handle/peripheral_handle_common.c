@@ -18,7 +18,7 @@
 
 #include "peripheral_handle_common.h"
 
-pb_data_h peripheral_bus_data_new(GList **plist)
+pb_data_h peripheral_handle_new(GList **plist)
 {
 	GList *list = *plist;
 	pb_data_h handle;
@@ -34,7 +34,7 @@ pb_data_h peripheral_bus_data_new(GList **plist)
 	return handle;
 }
 
-int peripheral_bus_data_free(pb_data_h handle)
+int peripheral_handle_free(pb_data_h handle)
 {
 	GList *list = *handle->list;
 	GList *link;

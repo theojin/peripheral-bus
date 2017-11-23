@@ -31,7 +31,7 @@ static void __spi_on_name_vanished(GDBusConnection *connection,
 	_D("appid [%s] vanished ", name);
 
 	g_bus_unwatch_name(spi_handle->watch_id);
-	peripheral_bus_spi_close(spi_handle);
+	peripheral_handle_spi_destroy(spi_handle);
 }
 
 gboolean handle_spi_open(
@@ -55,7 +55,7 @@ gboolean handle_spi_open(
 		goto out;
 	}
 
-	if ((ret = peripheral_bus_spi_open(bus, cs, &spi_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+	if ((ret = peripheral_handle_spi_create(bus, cs, &spi_handle, user_data)) < PERIPHERAL_ERROR_NONE)
 		goto out;
 
 	spi_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,

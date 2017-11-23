@@ -31,7 +31,7 @@ static void __pwm_on_name_vanished(GDBusConnection *connection,
 	_D("appid [%s] vanished ", name);
 
 	g_bus_unwatch_name(pwm_handle->watch_id);
-	peripheral_bus_pwm_close(pwm_handle);
+	peripheral_handle_pwm_destroy(pwm_handle);
 }
 
 gboolean handle_pwm_open(
@@ -55,7 +55,7 @@ gboolean handle_pwm_open(
 		goto out;
 	}
 
-	if ((ret = peripheral_bus_pwm_open(chip, pin, &pwm_handle, user_data)) <  PERIPHERAL_ERROR_NONE)
+	if ((ret = peripheral_handle_pwm_create(chip, pin, &pwm_handle, user_data)) <  PERIPHERAL_ERROR_NONE)
 		goto out;
 
 	pwm_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,

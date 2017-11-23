@@ -32,7 +32,7 @@ static void __gpio_on_name_vanished(GDBusConnection *connection,
 	_D("appid [%s] vanished ", name);
 
 	g_bus_unwatch_name(gpio_handle->watch_id);
-	peripheral_bus_gpio_close(gpio_handle);
+	peripheral_handle_gpio_destroy(gpio_handle);
 }
 
 gboolean handle_gpio_open(
@@ -55,7 +55,7 @@ gboolean handle_gpio_open(
 		goto out;
 	}
 
-	if ((ret = peripheral_bus_gpio_open(pin, &gpio_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+	if ((ret = peripheral_handle_gpio_create(pin, &gpio_handle, user_data)) < PERIPHERAL_ERROR_NONE)
 		goto out;
 
 	gpio_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,

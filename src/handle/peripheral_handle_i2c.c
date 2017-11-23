@@ -26,7 +26,7 @@
 #define INITIAL_BUFFER_SIZE 128
 #define MAX_BUFFER_SIZE 8192
 
-static bool peripheral_bus_i2c_is_available(int bus, int address, peripheral_bus_s *pb_data)
+static bool __peripheral_handle_i2c_is_creatable(int bus, int address, peripheral_bus_s *pb_data)
 {
 	pb_board_dev_s *i2c = NULL;
 	pb_data_h handle;
@@ -54,22 +54,22 @@ static bool peripheral_bus_i2c_is_available(int bus, int address, peripheral_bus
 	return true;
 }
 
-int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer user_data)
+int peripheral_handle_i2c_create(int bus, int address, pb_data_h *handle, gpointer user_data)
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	pb_data_h i2c_handle;
 	int ret;
 
-	if (!peripheral_bus_i2c_is_available(bus, address, pb_data)) {
+	if (!__peripheral_handle_i2c_is_creatable(bus, address, pb_data)) {
 		_E("bus : %d, address : 0x%x is not available", bus, address);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
 	// TODO : make fd list using the interface function
 
-	i2c_handle = peripheral_bus_data_new(&pb_data->i2c_list);
+	i2c_handle = peripheral_handle_new(&pb_data->i2c_list);
 	if (!i2c_handle) {
-		_E("peripheral_bus_data_new error");
+		_E("peripheral_handle_new error");
 		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto err;
 	}
@@ -87,11 +87,11 @@ err:
 	return ret;
 }
 
-int peripheral_bus_i2c_close(pb_data_h handle)
+int peripheral_handle_i2c_destroy(pb_data_h handle)
 {
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	if (peripheral_bus_data_free(handle) < 0) {
+	if (peripheral_handle_free(handle) < 0) {
 		_E("Failed to free i2c data");
 		ret = PERIPHERAL_ERROR_UNKNOWN;
 	}
