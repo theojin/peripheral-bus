@@ -35,7 +35,7 @@ static void __gpio_on_name_vanished(GDBusConnection *connection,
 	peripheral_handle_gpio_destroy(gpio_handle);
 }
 
-gboolean handle_gpio_open(
+gboolean peripheral_gdbus_gpio_open(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
 		GUnixFDList *fd_list,

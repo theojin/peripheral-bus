@@ -34,7 +34,7 @@ static void __i2c_on_name_vanished(GDBusConnection *connection,
 	peripheral_handle_i2c_destroy(i2c_handle);
 }
 
-gboolean handle_i2c_open(
+gboolean peripheral_gdbus_i2c_open(
 		PeripheralIoGdbusI2c *i2c,
 		GDBusMethodInvocation *invocation,
 		GUnixFDList *fd_list,

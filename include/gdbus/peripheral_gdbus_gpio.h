@@ -19,7 +19,7 @@
 
 #include "peripheral_io_gdbus.h"
 
-gboolean handle_gpio_open(
+gboolean peripheral_gdbus_gpio_open(
 		PeripheralIoGdbusGpio *gpio,
 		GDBusMethodInvocation *invocation,
 		GUnixFDList *fd_list,

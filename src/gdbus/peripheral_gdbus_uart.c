@@ -34,7 +34,7 @@ static void __uart_on_name_vanished(GDBusConnection *connection,
 	peripheral_handle_uart_destroy(uart_handle);
 }
 
-gboolean handle_uart_open(
+gboolean peripheral_gdbus_uart_open(
 		PeripheralIoGdbusUart *uart,
 		GDBusMethodInvocation *invocation,
 		GUnixFDList *fd_list,

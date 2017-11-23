@@ -19,7 +19,7 @@
 
 #include "peripheral_io_gdbus.h"
 
-gboolean handle_uart_open(
+gboolean peripheral_gdbus_uart_open(
 		PeripheralIoGdbusUart *uart,
 		GDBusMethodInvocation *invocation,
 		GUnixFDList *fd_list,

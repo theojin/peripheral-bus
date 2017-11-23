@@ -34,7 +34,7 @@ static void __spi_on_name_vanished(GDBusConnection *connection,
 	peripheral_handle_spi_destroy(spi_handle);
 }
 
-gboolean handle_spi_open(
+gboolean peripheral_gdbus_spi_open(
 		PeripheralIoGdbusSpi *spi,
 		GDBusMethodInvocation *invocation,
 		GUnixFDList *fd_list,

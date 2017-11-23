@@ -50,7 +50,7 @@ static gboolean __gpio_init(peripheral_info_s *info)
 	/* Register for method callbacks as signal callbacks */
 	g_signal_connect(info->gpio_skeleton,
 			"handle-open",
-			G_CALLBACK(handle_gpio_open),
+			G_CALLBACK(peripheral_gdbus_gpio_open),
 			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_GPIO_PATH);
@@ -81,7 +81,7 @@ static gboolean __i2c_init(peripheral_info_s *info)
 	info->i2c_skeleton = peripheral_io_gdbus_i2c_skeleton_new();
 	g_signal_connect(info->i2c_skeleton,
 			"handle-open",
-			G_CALLBACK(handle_i2c_open),
+			G_CALLBACK(peripheral_gdbus_i2c_open),
 			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_I2C_PATH);
@@ -112,7 +112,7 @@ static gboolean __pwm_init(peripheral_info_s *info)
 	info->pwm_skeleton = peripheral_io_gdbus_pwm_skeleton_new();
 	g_signal_connect(info->pwm_skeleton,
 			"handle-open",
-			G_CALLBACK(handle_pwm_open),
+			G_CALLBACK(peripheral_gdbus_pwm_open),
 			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_PWM_PATH);
@@ -143,7 +143,7 @@ static gboolean __uart_init(peripheral_info_s *info)
 	info->uart_skeleton = peripheral_io_gdbus_uart_skeleton_new();
 	g_signal_connect(info->uart_skeleton,
 			"handle-open",
-			G_CALLBACK(handle_uart_open),
+			G_CALLBACK(peripheral_gdbus_uart_open),
 			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_UART_PATH);
@@ -174,7 +174,7 @@ static gboolean __spi_init(peripheral_info_s *info)
 	info->spi_skeleton = peripheral_io_gdbus_spi_skeleton_new();
 	g_signal_connect(info->spi_skeleton,
 			"handle-open",
-			G_CALLBACK(handle_spi_open),
+			G_CALLBACK(peripheral_gdbus_spi_open),
 			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_SPI_PATH);

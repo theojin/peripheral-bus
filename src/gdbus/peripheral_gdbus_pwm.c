@@ -34,7 +34,7 @@ static void __pwm_on_name_vanished(GDBusConnection *connection,
 	peripheral_handle_pwm_destroy(pwm_handle);
 }
 
-gboolean handle_pwm_open(
+gboolean peripheral_gdbus_pwm_open(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
 		GUnixFDList *fd_list,

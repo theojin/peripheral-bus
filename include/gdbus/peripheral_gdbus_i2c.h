@@ -19,7 +19,7 @@
 
 #include "peripheral_io_gdbus.h"
 
-gboolean handle_i2c_open(
+gboolean peripheral_gdbus_i2c_open(
 		PeripheralIoGdbusI2c *i2c,
 		GDBusMethodInvocation *invocation,
 		GUnixFDList *fd_list,

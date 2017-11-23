@@ -19,7 +19,7 @@
 
 #include "peripheral_io_gdbus.h"
 
-gboolean handle_pwm_open(
+gboolean peripheral_gdbus_pwm_open(
 		PeripheralIoGdbusPwm *pwm,
 		GDBusMethodInvocation *invocation,
 		GUnixFDList *fd_list,
