@@ -23,7 +23,6 @@
 #include "peripheral_handle_i2c.h"
 #include "peripheral_gdbus_i2c.h"
 
-
 static void __i2c_on_name_vanished(GDBusConnection *connection,
 		const gchar     *name,
 		gpointer         user_data)

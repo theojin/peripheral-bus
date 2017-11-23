@@ -14,8 +14,75 @@
  * limitations under the License.
  */
 
+#include <libudev.h>
+#include <poll.h>
+
 #include "peripheral_interface_gpio.h"
 #include "peripheral_interface_common.h"
+
+static int __gpio_wait_for_udev(int pin)
+{
+	#define GPIO_NAME_LEN 8
+	struct udev *udev;
+	struct udev_monitor *monitor;
+	struct udev_device *dev;
+	struct pollfd pfd;
+	char gpio_name[GPIO_NAME_LEN];
+	int ret = -EIO;
+
+	udev = udev_new();
+	if (!udev) {
+		_E("Cannot create udev");
+		return ret;
+	}
+
+	monitor = udev_monitor_new_from_netlink(udev, "udev");
+	if (!monitor) {
+		_E("Cannot create udev monitor");
+		udev_unref(udev);
+		return ret;
+	}
+
+	ret = udev_monitor_filter_add_match_subsystem_devtype(monitor, "gpio", NULL);
+	if (ret < 0) {
+		_E("Failed to add monitor filter");
+		goto out;
+	}
+
+	ret = udev_monitor_enable_receiving(monitor);
+	if (ret < 0) {
+		_E("Failed to enable udev receiving");
+		goto out;
+	}
+
+	pfd.fd = udev_monitor_get_fd(monitor);
+	pfd.events = POLLIN;
+
+	snprintf(gpio_name, GPIO_NAME_LEN, "gpio%d", pin);
+
+	for (int cnt = 0; cnt < 10; cnt++) {
+		if (poll(&pfd, 1, 100) < 0) {
+			_E("Failed to watch udev monitor");
+			goto out;
+		}
+
+		dev = udev_monitor_receive_device(monitor);
+		if (dev) {
+			if (strcmp(udev_device_get_sysname(dev), gpio_name) == 0) {
+				_D("udev for %s is initialized", gpio_name);
+				ret = 0;
+				goto out;
+			}
+		}
+	}
+	_E("Time out");
+
+out:
+	udev_monitor_unref(monitor);
+	udev_unref(udev);
+
+	return ret;
+}
 
 int peripheral_interface_gpio_open(int pin)
 {
@@ -35,6 +102,12 @@ int peripheral_interface_gpio_open(int pin)
 
 	ret = close(fd);
 	IF_ERROR_RETURN(ret != 0);
+
+	ret = __gpio_wait_for_udev(pin);
+	if (ret < 0) {
+		_E("device nodes are not writable");
+		return PERIPHERAL_ERROR_IO_ERROR;
+	}
 
 	return PERIPHERAL_ERROR_NONE;
 }
