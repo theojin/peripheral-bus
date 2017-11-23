@@ -14,11 +14,6 @@
  * limitations under the License.
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <gio/gio.h>
-#include <peripheral_io.h>
-
 #include "peripheral_interface_gpio.h"
 #include "peripheral_handle_common.h"
 

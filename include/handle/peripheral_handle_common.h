@@ -17,7 +17,10 @@
 #ifndef __PERIPHERAL_HANDLE_COMMON_H__
 #define __PERIPHERAL_HANDLE_COMMON_H__
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <gio/gio.h>
+#include <peripheral_io.h>
 
 #include "peripheral_handle.h"
 #include "peripheral_log.h"
