@@ -17,7 +17,7 @@
 #ifndef __PERIPHERAL_HANDLE_GPIO_H__
 #define __PERIPHERAL_HANDLE_GPIO_H__
 
-int peripheral_handle_gpio_create(int pin, peripheral_h *handle, gpointer user_data);
+int peripheral_handle_gpio_create(gint pin, peripheral_h *handle, gpointer user_data);
 int peripheral_handle_gpio_destroy(peripheral_h handle);
 
 #endif /* __PERIPHERAL_HANDLE_GPIO_H__ */

@@ -15,6 +15,7 @@
  */
 
 #include <peripheral_io.h>
+#include <gio/gunixfdlist.h>
 
 #include "peripheral_log.h"
 #include "peripheral_privilege.h"
@@ -42,10 +43,10 @@ gboolean peripheral_gdbus_i2c_open(
 		gint address,
 		gpointer user_data)
 {
-	peripheral_info_s *info = (peripheral_info_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	peripheral_h i2c_handle = NULL;
+	int ret = PERIPHERAL_ERROR_NONE;
 
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
+	peripheral_h i2c_handle = NULL;
 	GUnixFDList *i2c_fd_list = NULL;
 
 	ret = peripheral_privilege_check(invocation, info->connection);
@@ -55,8 +56,21 @@ gboolean peripheral_gdbus_i2c_open(
 		goto out;
 	}
 
-	if ((ret = peripheral_handle_i2c_create(bus, address, &i2c_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+	i2c_fd_list = g_unix_fd_list_new();
+	if (i2c_fd_list == NULL) {
+		_E("Failed to create i2c fd list");
+		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto out;
+	}
+
+	ret = peripheral_handle_i2c_create(bus, address, &i2c_handle, user_data);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to create periphreal i2c handle");
+		goto out;
+	}
+
+	/* Do not change the order of the fd list */
+	g_unix_fd_list_append(i2c_fd_list, i2c_handle->type.i2c.fd, NULL);
 
 	i2c_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
 			g_dbus_method_invocation_get_sender(invocation),
@@ -68,6 +82,9 @@ gboolean peripheral_gdbus_i2c_open(
 
 out:
 	peripheral_io_gdbus_i2c_complete_open(i2c, invocation, i2c_fd_list, GPOINTER_TO_UINT(i2c_handle), ret);
+
+	if (i2c_fd_list != NULL)
+		g_object_unref(i2c_fd_list);
 
 	return true;
 }

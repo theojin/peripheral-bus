@@ -15,6 +15,7 @@
  */
 
 #include <peripheral_io.h>
+#include <gio/gunixfdlist.h>
 
 #include "peripheral_log.h"
 #include "peripheral_privilege.h"
@@ -42,10 +43,10 @@ gboolean peripheral_gdbus_spi_open(
 		gint cs,
 		gpointer user_data)
 {
-	peripheral_info_s *info = (peripheral_info_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	peripheral_h spi_handle = NULL;
+	int ret = PERIPHERAL_ERROR_NONE;
 
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
+	peripheral_h spi_handle = NULL;
 	GUnixFDList *spi_fd_list = NULL;
 
 	ret = peripheral_privilege_check(invocation, info->connection);
@@ -55,8 +56,21 @@ gboolean peripheral_gdbus_spi_open(
 		goto out;
 	}
 
-	if ((ret = peripheral_handle_spi_create(bus, cs, &spi_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+	spi_fd_list = g_unix_fd_list_new();
+	if (spi_fd_list == NULL) {
+		_E("Failed to create spi fd list");
+		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto out;
+	}
+
+	ret = peripheral_handle_spi_create(bus, cs, &spi_handle, user_data);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to create peripheral spi handle");
+		goto out;
+	}
+
+	/* Do not change the order of the fd list */
+	g_unix_fd_list_append(spi_fd_list, spi_handle->type.spi.fd, NULL);
 
 	spi_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
 			g_dbus_method_invocation_get_sender(invocation),
@@ -68,6 +82,9 @@ gboolean peripheral_gdbus_spi_open(
 
 out:
 	peripheral_io_gdbus_spi_complete_open(spi, invocation, spi_fd_list, GPOINTER_TO_UINT(spi_handle), ret);
+
+	if (spi_fd_list != NULL)
+		g_object_unref(spi_fd_list);
 
 	return true;
 }

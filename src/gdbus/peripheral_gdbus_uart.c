@@ -15,6 +15,7 @@
  */
 
 #include <peripheral_io.h>
+#include <gio/gunixfdlist.h>
 
 #include "peripheral_log.h"
 #include "peripheral_privilege.h"
@@ -41,10 +42,10 @@ gboolean peripheral_gdbus_uart_open(
 		gint port,
 		gpointer user_data)
 {
-	peripheral_info_s *info = (peripheral_info_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	peripheral_h uart_handle = NULL;
+	int ret = PERIPHERAL_ERROR_NONE;
 
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
+	peripheral_h uart_handle = NULL;
 	GUnixFDList *uart_fd_list = NULL;
 
 	ret = peripheral_privilege_check(invocation, info->connection);
@@ -54,8 +55,21 @@ gboolean peripheral_gdbus_uart_open(
 		goto out;
 	}
 
-	if ((ret = peripheral_handle_uart_create(port, &uart_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+	uart_fd_list = g_unix_fd_list_new();
+	if (uart_fd_list == NULL) {
+		_E("Failed to create uart fd list");
+		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto out;
+	}
+
+	ret = peripheral_handle_uart_create(port, &uart_handle, user_data);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to create peripheral uart handle");
+		goto out;
+	}
+
+	/* Do not change the order of the fd list */
+	g_unix_fd_list_append(uart_fd_list, uart_handle->type.uart.fd, NULL);
 
 	uart_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
 			g_dbus_method_invocation_get_sender(invocation),
@@ -67,6 +81,9 @@ gboolean peripheral_gdbus_uart_open(
 
 out:
 	peripheral_io_gdbus_uart_complete_open(uart, invocation, uart_fd_list, GPOINTER_TO_UINT(uart_handle), ret);
+
+	if (uart_fd_list != NULL)
+		g_object_unref(uart_fd_list);
 
 	return true;
 }

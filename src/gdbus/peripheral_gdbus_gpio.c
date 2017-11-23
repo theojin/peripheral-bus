@@ -42,10 +42,10 @@ gboolean peripheral_gdbus_gpio_open(
 		gint pin,
 		gpointer user_data)
 {
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
+	int ret = PERIPHERAL_ERROR_NONE;
+
 	peripheral_info_s *info = (peripheral_info_s*)user_data;
 	peripheral_h gpio_handle = NULL;
-
 	GUnixFDList *gpio_fd_list = NULL;
 
 	ret = peripheral_privilege_check(invocation, info->connection);
@@ -55,8 +55,23 @@ gboolean peripheral_gdbus_gpio_open(
 		goto out;
 	}
 
-	if ((ret = peripheral_handle_gpio_create(pin, &gpio_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+	gpio_fd_list = g_unix_fd_list_new();
+	if (gpio_fd_list == NULL) {
+		_E("Failed to create gpio fd list");
+		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto out;
+	}
+
+	ret = peripheral_handle_gpio_create(pin, &gpio_handle, user_data);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to create peripheral gpio handle");
+		goto out;
+	}
+
+	/* Do not change the order of the fd list */
+	g_unix_fd_list_append(gpio_fd_list, gpio_handle->type.gpio.fd_direction, NULL);
+	g_unix_fd_list_append(gpio_fd_list, gpio_handle->type.gpio.fd_edge, NULL);
+	g_unix_fd_list_append(gpio_fd_list, gpio_handle->type.gpio.fd_value, NULL);
 
 	gpio_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
 			g_dbus_method_invocation_get_sender(invocation),
@@ -68,6 +83,9 @@ gboolean peripheral_gdbus_gpio_open(
 
 out:
 	peripheral_io_gdbus_gpio_complete_open(gpio, invocation, gpio_fd_list, GPOINTER_TO_UINT(gpio_handle), ret);
+
+	if (gpio_fd_list != NULL)
+		g_object_unref(gpio_fd_list);
 
 	return true;
 }

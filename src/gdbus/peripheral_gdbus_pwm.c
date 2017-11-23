@@ -15,6 +15,7 @@
  */
 
 #include <peripheral_io.h>
+#include <gio/gunixfdlist.h>
 
 #include "peripheral_log.h"
 #include "peripheral_privilege.h"
@@ -42,10 +43,10 @@ gboolean peripheral_gdbus_pwm_open(
 		gint pin,
 		gpointer user_data)
 {
-	peripheral_info_s *info = (peripheral_info_s*)user_data;
-	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	peripheral_h pwm_handle = NULL;
+	int ret = PERIPHERAL_ERROR_NONE;
 
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
+	peripheral_h pwm_handle = NULL;
 	GUnixFDList *pwm_fd_list = NULL;
 
 	ret = peripheral_privilege_check(invocation, info->connection);
@@ -55,8 +56,24 @@ gboolean peripheral_gdbus_pwm_open(
 		goto out;
 	}
 
-	if ((ret = peripheral_handle_pwm_create(chip, pin, &pwm_handle, user_data)) <  PERIPHERAL_ERROR_NONE)
+	pwm_fd_list = g_unix_fd_list_new();
+	if (pwm_fd_list == NULL) {
+		_E("Failed to create pwm fd list");
+		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto out;
+	}
+
+	ret = peripheral_handle_pwm_create(chip, pin, &pwm_handle, user_data);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to create peripheral pwm handle");
+		goto out;
+	}
+
+	/* Do not change the order of the fd list */
+	g_unix_fd_list_append(pwm_fd_list, pwm_handle->type.pwm.fd_period, NULL);
+	g_unix_fd_list_append(pwm_fd_list, pwm_handle->type.pwm.fd_duty_cycle, NULL);
+	g_unix_fd_list_append(pwm_fd_list, pwm_handle->type.pwm.fd_polarity, NULL);
+	g_unix_fd_list_append(pwm_fd_list, pwm_handle->type.pwm.fd_enable, NULL);
 
 	pwm_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
 			g_dbus_method_invocation_get_sender(invocation),
@@ -68,6 +85,9 @@ gboolean peripheral_gdbus_pwm_open(
 
 out:
 	peripheral_io_gdbus_pwm_complete_open(pwm, invocation, pwm_fd_list, GPOINTER_TO_UINT(pwm_handle), ret);
+
+	if (pwm_fd_list != NULL)
+		g_object_unref(pwm_fd_list);
 
 	return true;
 }
