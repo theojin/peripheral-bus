@@ -17,7 +17,7 @@
 #ifndef __PERIPHERAL_HANDLE_SPI_H__
 #define __PERIPHERAL_HANDLE_SPI_H__
 
-int peripheral_handle_spi_create(int bus, int cs, pb_data_h *handle, gpointer user_data);
-int peripheral_handle_spi_destroy(pb_data_h handle);
+int peripheral_handle_spi_create(int bus, int cs, peripheral_h *handle, gpointer user_data);
+int peripheral_handle_spi_destroy(peripheral_h handle);
 
 #endif /* __PERIPHERAL_HANDLE_SPI_H__ */

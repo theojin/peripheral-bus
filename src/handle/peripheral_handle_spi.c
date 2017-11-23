@@ -23,25 +23,25 @@
 #include "peripheral_interface_spi.h"
 #include "peripheral_handle_common.h"
 
-static bool __peripheral_handle_spi_is_creatable(int bus, int cs, peripheral_bus_s *pb_data)
+static bool __peripheral_handle_spi_is_creatable(int bus, int cs, peripheral_info_s *info)
 {
 	pb_board_dev_s *spi = NULL;
-	pb_data_h handle;
+	peripheral_h handle;
 	GList *link;
 
-	RETV_IF(pb_data == NULL, false);
-	RETV_IF(pb_data->board == NULL, false);
+	RETV_IF(info == NULL, false);
+	RETV_IF(info->board == NULL, false);
 
-	spi = peripheral_bus_board_find_device(PB_BOARD_DEV_SPI, pb_data->board, bus, cs);
+	spi = peripheral_bus_board_find_device(PB_BOARD_DEV_SPI, info->board, bus, cs);
 	if (spi == NULL) {
 		_E("Not supported SPI bus : %d, cs : %d", bus, cs);
 		return false;
 	}
 
-	link = pb_data->spi_list;
+	link = info->spi_list;
 	while (link) {
-		handle = (pb_data_h)link->data;
-		if (handle->dev.spi.bus == bus && handle->dev.spi.cs == cs) {
+		handle = (peripheral_h)link->data;
+		if (handle->type.spi.bus == bus && handle->type.spi.cs == cs) {
 			_E("Resource is in use, bus : %d, cs : %d", bus, cs);
 			return false;
 		}
@@ -51,30 +51,29 @@ static bool __peripheral_handle_spi_is_creatable(int bus, int cs, peripheral_bus
 	return true;
 }
 
-int peripheral_handle_spi_create(int bus, int cs, pb_data_h *handle, gpointer user_data)
+int peripheral_handle_spi_create(int bus, int cs, peripheral_h *handle, gpointer user_data)
 {
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	pb_data_h spi_handle;
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
+	peripheral_h spi_handle;
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	if (!__peripheral_handle_spi_is_creatable(bus, cs, pb_data)) {
+	if (!__peripheral_handle_spi_is_creatable(bus, cs, info)) {
 		_E("spi %d.%d is not available", bus, cs);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
 	// TODO : make fd list using the interface function
 
-	spi_handle = peripheral_handle_new(&pb_data->spi_list);
+	spi_handle = peripheral_handle_new(&info->spi_list);
 	if (!spi_handle) {
 		_E("peripheral_handle_new error");
 		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto err_spi_data;
 	}
 
-	spi_handle->type = PERIPHERAL_BUS_TYPE_SPI;
-	spi_handle->list = &pb_data->spi_list;
-	spi_handle->dev.spi.bus = bus;
-	spi_handle->dev.spi.cs = cs;
+	spi_handle->list = &info->spi_list;
+	spi_handle->type.spi.bus = bus;
+	spi_handle->type.spi.cs = cs;
 
 	*handle = spi_handle;
 
@@ -84,7 +83,7 @@ err_spi_data:
 	return ret;
 }
 
-int peripheral_handle_spi_destroy(pb_data_h handle)
+int peripheral_handle_spi_destroy(peripheral_h handle)
 {
 	int ret = PERIPHERAL_ERROR_NONE;
 

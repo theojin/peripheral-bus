@@ -26,25 +26,25 @@
 #define INITIAL_BUFFER_SIZE 128
 #define MAX_BUFFER_SIZE 8192
 
-static bool __peripheral_handle_i2c_is_creatable(int bus, int address, peripheral_bus_s *pb_data)
+static bool __peripheral_handle_i2c_is_creatable(int bus, int address, peripheral_info_s *info)
 {
 	pb_board_dev_s *i2c = NULL;
-	pb_data_h handle;
+	peripheral_h handle;
 	GList *link;
 
-	RETV_IF(pb_data == NULL, false);
-	RETV_IF(pb_data->board == NULL, false);
+	RETV_IF(info == NULL, false);
+	RETV_IF(info->board == NULL, false);
 
-	i2c = peripheral_bus_board_find_device(PB_BOARD_DEV_I2C, pb_data->board, bus);
+	i2c = peripheral_bus_board_find_device(PB_BOARD_DEV_I2C, info->board, bus);
 	if (i2c == NULL) {
 		_E("Not supported I2C bus : %d", bus);
 		return false;
 	}
 
-	link = pb_data->i2c_list;
+	link = info->i2c_list;
 	while (link) {
-		handle = (pb_data_h)link->data;
-		if (handle->dev.i2c.bus == bus && handle->dev.i2c.address == address) {
+		handle = (peripheral_h)link->data;
+		if (handle->type.i2c.bus == bus && handle->type.i2c.address == address) {
 			_E("Resource is in use, bus : %d, address : %d", bus, address);
 			return false;
 		}
@@ -54,30 +54,29 @@ static bool __peripheral_handle_i2c_is_creatable(int bus, int address, periphera
 	return true;
 }
 
-int peripheral_handle_i2c_create(int bus, int address, pb_data_h *handle, gpointer user_data)
+int peripheral_handle_i2c_create(int bus, int address, peripheral_h *handle, gpointer user_data)
 {
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	pb_data_h i2c_handle;
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
+	peripheral_h i2c_handle;
 	int ret;
 
-	if (!__peripheral_handle_i2c_is_creatable(bus, address, pb_data)) {
+	if (!__peripheral_handle_i2c_is_creatable(bus, address, info)) {
 		_E("bus : %d, address : 0x%x is not available", bus, address);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
 	// TODO : make fd list using the interface function
 
-	i2c_handle = peripheral_handle_new(&pb_data->i2c_list);
+	i2c_handle = peripheral_handle_new(&info->i2c_list);
 	if (!i2c_handle) {
 		_E("peripheral_handle_new error");
 		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto err;
 	}
 
-	i2c_handle->type = PERIPHERAL_BUS_TYPE_I2C;
-	i2c_handle->list = &pb_data->i2c_list;
-	i2c_handle->dev.i2c.bus = bus;
-	i2c_handle->dev.i2c.address = address;
+	i2c_handle->list = &info->i2c_list;
+	i2c_handle->type.i2c.bus = bus;
+	i2c_handle->type.i2c.address = address;
 
 	*handle = i2c_handle;
 
@@ -87,7 +86,7 @@ err:
 	return ret;
 }
 
-int peripheral_handle_i2c_destroy(pb_data_h handle)
+int peripheral_handle_i2c_destroy(peripheral_h handle)
 {
 	int ret = PERIPHERAL_ERROR_NONE;
 
