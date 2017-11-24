@@ -31,7 +31,7 @@ static void __i2c_on_name_vanished(GDBusConnection *connection,
 	_D("appid [%s] vanished ", name);
 
 	g_bus_unwatch_name(i2c_handle->watch_id);
-	peripheral_bus_i2c_close(i2c_handle);
+	peripheral_handle_i2c_destroy(i2c_handle);
 }
 
 gboolean handle_i2c_open(
@@ -55,7 +55,7 @@ gboolean handle_i2c_open(
 		goto out;
 	}
 
-	if ((ret = peripheral_bus_i2c_open(bus, address, &i2c_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+	if ((ret = peripheral_handle_i2c_create(bus, address, &i2c_handle, user_data)) < PERIPHERAL_ERROR_NONE)
 		goto out;
 
 	i2c_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,

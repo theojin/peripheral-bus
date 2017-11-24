@@ -22,7 +22,7 @@
 #include "peripheral_interface_gpio.h"
 #include "peripheral_handle_common.h"
 
-static bool peripheral_bus_gpio_is_available(int pin, peripheral_bus_s *pb_data)
+static bool __peripheral_handle_gpio_is_creatable(int pin, peripheral_bus_s *pb_data)
 {
 	pb_board_dev_s *gpio = NULL;
 	pb_data_h handle;
@@ -50,22 +50,22 @@ static bool peripheral_bus_gpio_is_available(int pin, peripheral_bus_s *pb_data)
 	return true;
 }
 
-int peripheral_bus_gpio_open(gint pin, pb_data_h *handle, gpointer user_data)
+int peripheral_handle_gpio_create(gint pin, pb_data_h *handle, gpointer user_data)
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	pb_data_h gpio_handle;
 	int ret;
 
-	if (!peripheral_bus_gpio_is_available(pin, pb_data)) {
+	if (!__peripheral_handle_gpio_is_creatable(pin, pb_data)) {
 		_E("gpio %d is not available", pin);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
 	// TODO : make fd list using the interface function
 
-	gpio_handle = peripheral_bus_data_new(&pb_data->gpio_list);
+	gpio_handle = peripheral_handle_new(&pb_data->gpio_list);
 	if (!gpio_handle) {
-		_E("peripheral_bus_data_new error");
+		_E("peripheral_handle_new error");
 		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto err;
 	}
@@ -82,11 +82,11 @@ err:
 	return ret;
 }
 
-int peripheral_bus_gpio_close(pb_data_h handle)
+int peripheral_handle_gpio_destroy(pb_data_h handle)
 {
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	if (peripheral_bus_data_free(handle) < 0) {
+	if (peripheral_handle_free(handle) < 0) {
 		_E("Failed to free gpio data");
 		ret = PERIPHERAL_ERROR_UNKNOWN;
 	}

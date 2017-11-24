@@ -17,7 +17,7 @@
 #ifndef __PERIPHERAL_HANDLE_I2C_H__
 #define __PERIPHERAL_HANDLE_I2C_H__
 
-int peripheral_bus_i2c_open(int bus, int address, pb_data_h *handle, gpointer user_data);
-int peripheral_bus_i2c_close(pb_data_h handle);
+int peripheral_handle_i2c_create(int bus, int address, pb_data_h *handle, gpointer user_data);
+int peripheral_handle_i2c_destroy(pb_data_h handle);
 
 #endif /* __PERIPHERAL_HANDLE_I2C_H__ */

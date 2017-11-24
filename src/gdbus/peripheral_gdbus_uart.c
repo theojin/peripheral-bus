@@ -31,7 +31,7 @@ static void __uart_on_name_vanished(GDBusConnection *connection,
 	_D("appid [%s] vanished ", name);
 
 	g_bus_unwatch_name(uart_handle->watch_id);
-	peripheral_bus_uart_close(uart_handle);
+	peripheral_handle_uart_destroy(uart_handle);
 }
 
 gboolean handle_uart_open(
@@ -54,7 +54,7 @@ gboolean handle_uart_open(
 		goto out;
 	}
 
-	if ((ret = peripheral_bus_uart_open(port, &uart_handle, user_data)) < PERIPHERAL_ERROR_NONE)
+	if ((ret = peripheral_handle_uart_open(port, &uart_handle, user_data)) < PERIPHERAL_ERROR_NONE)
 		goto out;
 
 	uart_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,

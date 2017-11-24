@@ -23,7 +23,7 @@
 #include "peripheral_interface_pwm.h"
 #include "peripheral_handle_common.h"
 
-static bool peripheral_bus_pwm_is_available(int chip, int pin, peripheral_bus_s *pb_data)
+static bool __peripheral_handle_pwm_is_creatable(int chip, int pin, peripheral_bus_s *pb_data)
 {
 	pb_board_dev_s *pwm = NULL;
 	pb_data_h handle;
@@ -51,22 +51,22 @@ static bool peripheral_bus_pwm_is_available(int chip, int pin, peripheral_bus_s 
 	return true;
 }
 
-int peripheral_bus_pwm_open(int chip, int pin, pb_data_h *handle, gpointer user_data)
+int peripheral_handle_pwm_create(int chip, int pin, pb_data_h *handle, gpointer user_data)
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	pb_data_h pwm_handle;
 	int ret;
 
-	if (!peripheral_bus_pwm_is_available(chip, pin, pb_data)) {
+	if (!__peripheral_handle_pwm_is_creatable(chip, pin, pb_data)) {
 		_E("pwm %d.%d is not available", chip, pin);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
 	// TODO : make fd list using the interface function
 
-	pwm_handle = peripheral_bus_data_new(&pb_data->pwm_list);
+	pwm_handle = peripheral_handle_new(&pb_data->pwm_list);
 	if (!pwm_handle) {
-		_E("peripheral_bus_data_new error");
+		_E("peripheral_handle_new error");
 		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto err;
 	}
@@ -83,11 +83,11 @@ err:
 	return ret;
 }
 
-int peripheral_bus_pwm_close(pb_data_h handle)
+int peripheral_handle_pwm_destroy(pb_data_h handle)
 {
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	if (peripheral_bus_data_free(handle) < 0) {
+	if (peripheral_handle_free(handle) < 0) {
 		_E("Failed to free i2c data");
 		ret = PERIPHERAL_ERROR_UNKNOWN;
 	}

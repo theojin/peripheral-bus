@@ -23,7 +23,7 @@
 #include "peripheral_interface_spi.h"
 #include "peripheral_handle_common.h"
 
-static bool __peripheral_bus_spi_is_available(int bus, int cs, peripheral_bus_s *pb_data)
+static bool __peripheral_handle_spi_is_creatable(int bus, int cs, peripheral_bus_s *pb_data)
 {
 	pb_board_dev_s *spi = NULL;
 	pb_data_h handle;
@@ -51,22 +51,22 @@ static bool __peripheral_bus_spi_is_available(int bus, int cs, peripheral_bus_s 
 	return true;
 }
 
-int peripheral_bus_spi_open(int bus, int cs, pb_data_h *handle, gpointer user_data)
+int peripheral_handle_spi_create(int bus, int cs, pb_data_h *handle, gpointer user_data)
 {
 	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
 	pb_data_h spi_handle;
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	if (!__peripheral_bus_spi_is_available(bus, cs, pb_data)) {
+	if (!__peripheral_handle_spi_is_creatable(bus, cs, pb_data)) {
 		_E("spi %d.%d is not available", bus, cs);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
 	// TODO : make fd list using the interface function
 
-	spi_handle = peripheral_bus_data_new(&pb_data->spi_list);
+	spi_handle = peripheral_handle_new(&pb_data->spi_list);
 	if (!spi_handle) {
-		_E("peripheral_bus_data_new error");
+		_E("peripheral_handle_new error");
 		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto err_spi_data;
 	}
@@ -84,11 +84,11 @@ err_spi_data:
 	return ret;
 }
 
-int peripheral_bus_spi_close(pb_data_h handle)
+int peripheral_handle_spi_destroy(pb_data_h handle)
 {
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	if (peripheral_bus_data_free(handle) < 0) {
+	if (peripheral_handle_free(handle) < 0) {
 		_E("Failed to free spi data");
 		ret = PERIPHERAL_ERROR_UNKNOWN;
 	}
