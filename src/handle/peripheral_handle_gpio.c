@@ -22,25 +22,25 @@
 #include "peripheral_interface_gpio.h"
 #include "peripheral_handle_common.h"
 
-static bool __peripheral_handle_gpio_is_creatable(int pin, peripheral_bus_s *pb_data)
+static bool __peripheral_handle_gpio_is_creatable(int pin, peripheral_info_s *info)
 {
 	pb_board_dev_s *gpio = NULL;
-	pb_data_h handle;
+	peripheral_h handle;
 	GList *link;
 
-	RETV_IF(pb_data == NULL, false);
-	RETV_IF(pb_data->board == NULL, false);
+	RETV_IF(info == NULL, false);
+	RETV_IF(info->board == NULL, false);
 
-	gpio = peripheral_bus_board_find_device(PB_BOARD_DEV_GPIO, pb_data->board, pin);
+	gpio = peripheral_bus_board_find_device(PB_BOARD_DEV_GPIO, info->board, pin);
 	if (gpio == NULL) {
 		_E("Not supported GPIO pin : %d", pin);
 		return false;
 	}
 
-	link = pb_data->gpio_list;
+	link = info->gpio_list;
 	while (link) {
-		handle = (pb_data_h)link->data;
-		if (handle->dev.gpio.pin == pin) {
+		handle = (peripheral_h)link->data;
+		if (handle->type.gpio.pin == pin) {
 			_E("gpio %d is busy", pin);
 			return false;
 		}
@@ -50,29 +50,28 @@ static bool __peripheral_handle_gpio_is_creatable(int pin, peripheral_bus_s *pb_
 	return true;
 }
 
-int peripheral_handle_gpio_create(gint pin, pb_data_h *handle, gpointer user_data)
+int peripheral_handle_gpio_create(gint pin, peripheral_h *handle, gpointer user_data)
 {
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	pb_data_h gpio_handle;
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
+	peripheral_h gpio_handle;
 	int ret;
 
-	if (!__peripheral_handle_gpio_is_creatable(pin, pb_data)) {
+	if (!__peripheral_handle_gpio_is_creatable(pin, info)) {
 		_E("gpio %d is not available", pin);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
 	// TODO : make fd list using the interface function
 
-	gpio_handle = peripheral_handle_new(&pb_data->gpio_list);
+	gpio_handle = peripheral_handle_new(&info->gpio_list);
 	if (!gpio_handle) {
 		_E("peripheral_handle_new error");
 		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto err;
 	}
 
-	gpio_handle->type = PERIPHERAL_BUS_TYPE_GPIO;
-	gpio_handle->list = &pb_data->gpio_list;
-	gpio_handle->dev.gpio.pin = pin;
+	gpio_handle->list = &info->gpio_list;
+	gpio_handle->type.gpio.pin = pin;
 
 	*handle = gpio_handle;
 
@@ -82,7 +81,7 @@ err:
 	return ret;
 }
 
-int peripheral_handle_gpio_destroy(pb_data_h handle)
+int peripheral_handle_gpio_destroy(peripheral_h handle)
 {
 	int ret = PERIPHERAL_ERROR_NONE;
 

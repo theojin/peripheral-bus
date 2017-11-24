@@ -18,14 +18,14 @@
 
 #include "peripheral_handle_common.h"
 
-pb_data_h peripheral_handle_new(GList **plist)
+peripheral_h peripheral_handle_new(GList **plist)
 {
 	GList *list = *plist;
-	pb_data_h handle;
+	peripheral_h handle;
 
-	handle = (pb_data_h)calloc(1, sizeof(peripheral_bus_data_s));
+	handle = (peripheral_h)calloc(1, sizeof(peripheral_handle_s));
 	if (handle == NULL) {
-		_E("failed to allocate peripheral_bus_data_s");
+		_E("failed to allocate peripheral_handle_s");
 		return NULL;
 	}
 
@@ -34,7 +34,7 @@ pb_data_h peripheral_handle_new(GList **plist)
 	return handle;
 }
 
-int peripheral_handle_free(pb_data_h handle)
+int peripheral_handle_free(peripheral_h handle)
 {
 	GList *list = *handle->list;
 	GList *link;

@@ -39,29 +39,29 @@
 #define PERIPHERAL_GDBUS_SPI_PATH	"/Org/Tizen/Peripheral_io/Spi"
 #define PERIPHERAL_GDBUS_NAME		"org.tizen.peripheral_io"
 
-static gboolean __gpio_init(peripheral_bus_s *pb_data)
+static gboolean __gpio_init(peripheral_info_s *info)
 {
 	GDBusObjectManagerServer *manager;
 	gboolean ret = FALSE;
 	GError *error = NULL;
 
 	/* Add interface to default object path */
-	pb_data->gpio_skeleton = peripheral_io_gdbus_gpio_skeleton_new();
+	info->gpio_skeleton = peripheral_io_gdbus_gpio_skeleton_new();
 	/* Register for method callbacks as signal callbacks */
-	g_signal_connect(pb_data->gpio_skeleton,
+	g_signal_connect(info->gpio_skeleton,
 			"handle-open",
 			G_CALLBACK(handle_gpio_open),
-			pb_data);
+			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_GPIO_PATH);
 
 	/* Set connection to 'manager' */
-	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
+	g_dbus_object_manager_server_set_connection(manager, info->connection);
 
 	/* Export 'manager' interface on peripheral-io DBUS */
 	ret = g_dbus_interface_skeleton_export(
-		G_DBUS_INTERFACE_SKELETON(pb_data->gpio_skeleton),
-		pb_data->connection, PERIPHERAL_GDBUS_GPIO_PATH, &error);
+		G_DBUS_INTERFACE_SKELETON(info->gpio_skeleton),
+		info->connection, PERIPHERAL_GDBUS_GPIO_PATH, &error);
 
 	if (ret == FALSE) {
 		_E("Can not skeleton_export %s", error->message);
@@ -71,28 +71,28 @@ static gboolean __gpio_init(peripheral_bus_s *pb_data)
 	return true;
 }
 
-static gboolean __i2c_init(peripheral_bus_s *pb_data)
+static gboolean __i2c_init(peripheral_info_s *info)
 {
 	GDBusObjectManagerServer *manager;
 	gboolean ret = FALSE;
 	GError *error = NULL;
 
 	/* Add interface to default object path */
-	pb_data->i2c_skeleton = peripheral_io_gdbus_i2c_skeleton_new();
-	g_signal_connect(pb_data->i2c_skeleton,
+	info->i2c_skeleton = peripheral_io_gdbus_i2c_skeleton_new();
+	g_signal_connect(info->i2c_skeleton,
 			"handle-open",
 			G_CALLBACK(handle_i2c_open),
-			pb_data);
+			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_I2C_PATH);
 
 	/* Set connection to 'manager' */
-	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
+	g_dbus_object_manager_server_set_connection(manager, info->connection);
 
 	/* Export 'manager' interface on peripheral-io DBUS */
 	ret = g_dbus_interface_skeleton_export(
-		G_DBUS_INTERFACE_SKELETON(pb_data->i2c_skeleton),
-		pb_data->connection, PERIPHERAL_GDBUS_I2C_PATH, &error);
+		G_DBUS_INTERFACE_SKELETON(info->i2c_skeleton),
+		info->connection, PERIPHERAL_GDBUS_I2C_PATH, &error);
 
 	if (ret == FALSE) {
 		_E("Can not skeleton_export %s", error->message);
@@ -102,28 +102,28 @@ static gboolean __i2c_init(peripheral_bus_s *pb_data)
 	return true;
 }
 
-static gboolean __pwm_init(peripheral_bus_s *pb_data)
+static gboolean __pwm_init(peripheral_info_s *info)
 {
 	GDBusObjectManagerServer *manager;
 	gboolean ret = FALSE;
 	GError *error = NULL;
 
 	/* Add interface to default object path */
-	pb_data->pwm_skeleton = peripheral_io_gdbus_pwm_skeleton_new();
-	g_signal_connect(pb_data->pwm_skeleton,
+	info->pwm_skeleton = peripheral_io_gdbus_pwm_skeleton_new();
+	g_signal_connect(info->pwm_skeleton,
 			"handle-open",
 			G_CALLBACK(handle_pwm_open),
-			pb_data);
+			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_PWM_PATH);
 
 	/* Set connection to 'manager' */
-	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
+	g_dbus_object_manager_server_set_connection(manager, info->connection);
 
 	/* Export 'manager' interface on peripheral-io DBUS */
 	ret = g_dbus_interface_skeleton_export(
-		G_DBUS_INTERFACE_SKELETON(pb_data->pwm_skeleton),
-		pb_data->connection, PERIPHERAL_GDBUS_PWM_PATH, &error);
+		G_DBUS_INTERFACE_SKELETON(info->pwm_skeleton),
+		info->connection, PERIPHERAL_GDBUS_PWM_PATH, &error);
 
 	if (ret == FALSE) {
 		_E("Can not skeleton_export %s", error->message);
@@ -133,28 +133,28 @@ static gboolean __pwm_init(peripheral_bus_s *pb_data)
 	return true;
 }
 
-static gboolean __uart_init(peripheral_bus_s *pb_data)
+static gboolean __uart_init(peripheral_info_s *info)
 {
 	GDBusObjectManagerServer *manager;
 	gboolean ret = FALSE;
 	GError *error = NULL;
 
 	/* Add interface to default object path */
-	pb_data->uart_skeleton = peripheral_io_gdbus_uart_skeleton_new();
-	g_signal_connect(pb_data->uart_skeleton,
+	info->uart_skeleton = peripheral_io_gdbus_uart_skeleton_new();
+	g_signal_connect(info->uart_skeleton,
 			"handle-open",
 			G_CALLBACK(handle_uart_open),
-			pb_data);
+			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_UART_PATH);
 
 	/* Set connection to 'manager' */
-	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
+	g_dbus_object_manager_server_set_connection(manager, info->connection);
 
 	/* Export 'manager' interface on peripheral-io DBUS */
 	ret = g_dbus_interface_skeleton_export(
-		G_DBUS_INTERFACE_SKELETON(pb_data->uart_skeleton),
-		pb_data->connection, PERIPHERAL_GDBUS_UART_PATH, &error);
+		G_DBUS_INTERFACE_SKELETON(info->uart_skeleton),
+		info->connection, PERIPHERAL_GDBUS_UART_PATH, &error);
 
 	if (ret == FALSE) {
 		_E("Can not skeleton_export %s", error->message);
@@ -164,28 +164,28 @@ static gboolean __uart_init(peripheral_bus_s *pb_data)
 	return true;
 }
 
-static gboolean __spi_init(peripheral_bus_s *pb_data)
+static gboolean __spi_init(peripheral_info_s *info)
 {
 	GDBusObjectManagerServer *manager;
 	gboolean ret = FALSE;
 	GError *error = NULL;
 
 	/* Add interface to default object path */
-	pb_data->spi_skeleton = peripheral_io_gdbus_spi_skeleton_new();
-	g_signal_connect(pb_data->spi_skeleton,
+	info->spi_skeleton = peripheral_io_gdbus_spi_skeleton_new();
+	g_signal_connect(info->spi_skeleton,
 			"handle-open",
 			G_CALLBACK(handle_spi_open),
-			pb_data);
+			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_SPI_PATH);
 
 	/* Set connection to 'manager' */
-	g_dbus_object_manager_server_set_connection(manager, pb_data->connection);
+	g_dbus_object_manager_server_set_connection(manager, info->connection);
 
 	/* Export 'manager' interface on peripheral-io DBUS */
 	ret = g_dbus_interface_skeleton_export(
-		G_DBUS_INTERFACE_SKELETON(pb_data->spi_skeleton),
-		pb_data->connection, PERIPHERAL_GDBUS_SPI_PATH, &error);
+		G_DBUS_INTERFACE_SKELETON(info->spi_skeleton),
+		info->connection, PERIPHERAL_GDBUS_SPI_PATH, &error);
 
 	if (ret == FALSE) {
 		_E("Can not skeleton_export %s", error->message);
@@ -199,23 +199,23 @@ static void on_bus_acquired(GDBusConnection *connection,
 							const gchar *name,
 							gpointer user_data)
 {
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
 
-	pb_data->connection = connection;
+	info->connection = connection;
 
-	if (__gpio_init(pb_data) == FALSE)
+	if (__gpio_init(info) == FALSE)
 		_E("Can not signal connect");
 
-	if (__i2c_init(pb_data) == FALSE)
+	if (__i2c_init(info) == FALSE)
 		_E("Can not signal connect");
 
-	if (__pwm_init(pb_data) == FALSE)
+	if (__pwm_init(info) == FALSE)
 		_E("Can not signal connect");
 
-	if (__uart_init(pb_data) == FALSE)
+	if (__uart_init(info) == FALSE)
 		_E("Can not signal connect");
 
-	if (__spi_init(pb_data) == FALSE)
+	if (__spi_init(info) == FALSE)
 		_E("Can not signal connect");
 }
 
@@ -242,16 +242,16 @@ int main(int argc, char *argv[])
 {
 	GMainLoop *loop;
 	guint owner_id = 0;
-	peripheral_bus_s *pb_data;
+	peripheral_info_s *info;
 
-	pb_data = (peripheral_bus_s*)calloc(1, sizeof(peripheral_bus_s));
-	if (pb_data == NULL) {
-		_E("failed to allocate peripheral_bus_s");
+	info = (peripheral_info_s*)calloc(1, sizeof(peripheral_info_s));
+	if (info == NULL) {
+		_E("failed to allocate peripheral_info_s");
 		return -1;
 	}
 
-	pb_data->board = peripheral_bus_board_init();
-	if (pb_data->board == NULL) {
+	info->board = peripheral_bus_board_init();
+	if (info->board == NULL) {
 		_E("failed to init board");
 		return -1;
 	}
@@ -263,11 +263,11 @@ int main(int argc, char *argv[])
 							  on_bus_acquired,
 							  on_name_acquired,
 							  on_name_lost,
-							  pb_data,
+							  info,
 							  NULL);
 	if (!owner_id) {
 		_E("g_bus_own_name_error");
-		free(pb_data);
+		free(info);
 		return -1;
 	}
 
@@ -282,9 +282,9 @@ int main(int argc, char *argv[])
 
 	peripheral_privilege_deinit();
 
-	if (pb_data) {
-		peripheral_bus_board_deinit(pb_data->board);
-		free(pb_data);
+	if (info) {
+		peripheral_bus_board_deinit(info->board);
+		free(info);
 	}
 
 	if (loop != NULL)

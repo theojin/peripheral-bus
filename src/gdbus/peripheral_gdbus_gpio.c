@@ -28,7 +28,7 @@ static void __gpio_on_name_vanished(GDBusConnection *connection,
 		const gchar     *name,
 		gpointer         user_data)
 {
-	pb_data_h gpio_handle = (pb_data_h)user_data;
+	peripheral_h gpio_handle = (peripheral_h)user_data;
 	_D("appid [%s] vanished ", name);
 
 	g_bus_unwatch_name(gpio_handle->watch_id);
@@ -43,12 +43,12 @@ gboolean handle_gpio_open(
 		gpointer user_data)
 {
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	pb_data_h gpio_handle = NULL;
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
+	peripheral_h gpio_handle = NULL;
 
 	GUnixFDList *gpio_fd_list = NULL;
 
-	ret = peripheral_privilege_check(invocation, pb_data->connection);
+	ret = peripheral_privilege_check(invocation, info->connection);
 	if (ret != 0) {
 		_E("Permission denied.");
 		ret = PERIPHERAL_ERROR_PERMISSION_DENIED;

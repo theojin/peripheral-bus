@@ -22,14 +22,6 @@
 #include "peripheral_board.h"
 #include "peripheral_io_gdbus.h"
 
-typedef enum {
-	PERIPHERAL_BUS_TYPE_GPIO = 0,
-	PERIPHERAL_BUS_TYPE_I2C,
-	PERIPHERAL_BUS_TYPE_PWM,
-	PERIPHERAL_BUS_TYPE_UART,
-	PERIPHERAL_BUS_TYPE_SPI,
-} peripheral_bus_type_e;
-
 typedef struct {
 	pb_board_s *board;
 	/* devices */
@@ -39,62 +31,52 @@ typedef struct {
 	GList *uart_list;
 	GList *spi_list;
 	/* gdbus variable */
-	guint reg_id;
 	GDBusConnection *connection;
 	PeripheralIoGdbusGpio *gpio_skeleton;
 	PeripheralIoGdbusI2c *i2c_skeleton;
 	PeripheralIoGdbusPwm *pwm_skeleton;
 	PeripheralIoGdbusUart *uart_skeleton;
 	PeripheralIoGdbusSpi *spi_skeleton;
-} peripheral_bus_s;
-
-typedef struct {
-	char *id;
-	pid_t pid;
-	pid_t pgid;
-} pb_client_info_s;
+} peripheral_info_s;
 
 typedef struct {
 	int pin;
-} peripheral_bus_gpio_s;
+} peripheral_handle_gpio_s;
 
 typedef struct {
 	int bus;
 	int address;
 	int fd;
-} peripheral_bus_i2c_s;
+} peripheral_handle_i2c_s;
 
 typedef struct {
 	int chip;
 	int pin;
-} peripheral_bus_pwm_s;
+} peripheral_handle_pwm_s;
 
 typedef struct {
 	int port;
 	int fd;
-} peripheral_bus_uart_s;
+} peripheral_handle_uart_s;
 
 typedef struct {
 	int bus;
 	int cs;
 	int fd;
-} peripheral_bus_spi_s;
+} peripheral_handle_spi_s;
 
 typedef struct {
-	peripheral_bus_type_e type;
 	uint watch_id;
 	GList **list;
-	/* client info */
-	pb_client_info_s client_info;
 	union {
-		peripheral_bus_gpio_s gpio;
-		peripheral_bus_i2c_s i2c;
-		peripheral_bus_pwm_s pwm;
-		peripheral_bus_uart_s uart;
-		peripheral_bus_spi_s spi;
-	} dev;
-} peripheral_bus_data_s;
+		peripheral_handle_gpio_s gpio;
+		peripheral_handle_i2c_s i2c;
+		peripheral_handle_pwm_s pwm;
+		peripheral_handle_uart_s uart;
+		peripheral_handle_spi_s spi;
+	} type;
+} peripheral_handle_s;
 
-typedef peripheral_bus_data_s *pb_data_h;
+typedef peripheral_handle_s *peripheral_h;
 
 #endif /* __PERIPHERAL_HANDLE_H__ */

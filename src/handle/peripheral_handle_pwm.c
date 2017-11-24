@@ -23,25 +23,25 @@
 #include "peripheral_interface_pwm.h"
 #include "peripheral_handle_common.h"
 
-static bool __peripheral_handle_pwm_is_creatable(int chip, int pin, peripheral_bus_s *pb_data)
+static bool __peripheral_handle_pwm_is_creatable(int chip, int pin, peripheral_info_s *info)
 {
 	pb_board_dev_s *pwm = NULL;
-	pb_data_h handle;
+	peripheral_h handle;
 	GList *link;
 
-	RETV_IF(pb_data == NULL, false);
-	RETV_IF(pb_data->board == NULL, false);
+	RETV_IF(info == NULL, false);
+	RETV_IF(info->board == NULL, false);
 
-	pwm = peripheral_bus_board_find_device(PB_BOARD_DEV_PWM, pb_data->board, chip, pin);
+	pwm = peripheral_bus_board_find_device(PB_BOARD_DEV_PWM, info->board, chip, pin);
 	if (pwm == NULL) {
 		_E("Not supported PWM chip : %d, pin : %d", chip, pin);
 		return false;
 	}
 
-	link = pb_data->pwm_list;
+	link = info->pwm_list;
 	while (link) {
-		handle = (pb_data_h)link->data;
-		if (handle->dev.pwm.chip == chip && handle->dev.pwm.pin == pin) {
+		handle = (peripheral_h)link->data;
+		if (handle->type.pwm.chip == chip && handle->type.pwm.pin == pin) {
 			_E("Resource is in use, chip : %d, pin : %d", chip, pin);
 			return false;
 		}
@@ -51,30 +51,29 @@ static bool __peripheral_handle_pwm_is_creatable(int chip, int pin, peripheral_b
 	return true;
 }
 
-int peripheral_handle_pwm_create(int chip, int pin, pb_data_h *handle, gpointer user_data)
+int peripheral_handle_pwm_create(int chip, int pin, peripheral_h *handle, gpointer user_data)
 {
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
-	pb_data_h pwm_handle;
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
+	peripheral_h pwm_handle;
 	int ret;
 
-	if (!__peripheral_handle_pwm_is_creatable(chip, pin, pb_data)) {
+	if (!__peripheral_handle_pwm_is_creatable(chip, pin, info)) {
 		_E("pwm %d.%d is not available", chip, pin);
 		return PERIPHERAL_ERROR_RESOURCE_BUSY;
 	}
 
 	// TODO : make fd list using the interface function
 
-	pwm_handle = peripheral_handle_new(&pb_data->pwm_list);
+	pwm_handle = peripheral_handle_new(&info->pwm_list);
 	if (!pwm_handle) {
 		_E("peripheral_handle_new error");
 		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto err;
 	}
 
-	pwm_handle->type = PERIPHERAL_BUS_TYPE_PWM;
-	pwm_handle->list = &pb_data->pwm_list;
-	pwm_handle->dev.pwm.chip = chip;
-	pwm_handle->dev.pwm.pin = pin;
+	pwm_handle->list = &info->pwm_list;
+	pwm_handle->type.pwm.chip = chip;
+	pwm_handle->type.pwm.pin = pin;
 	*handle = pwm_handle;
 
 	return PERIPHERAL_ERROR_NONE;
@@ -83,7 +82,7 @@ err:
 	return ret;
 }
 
-int peripheral_handle_pwm_destroy(pb_data_h handle)
+int peripheral_handle_pwm_destroy(peripheral_h handle)
 {
 	int ret = PERIPHERAL_ERROR_NONE;
 

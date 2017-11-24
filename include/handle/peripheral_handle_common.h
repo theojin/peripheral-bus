@@ -22,7 +22,7 @@
 #include "peripheral_handle.h"
 #include "peripheral_log.h"
 
-pb_data_h peripheral_handle_new(GList **plist);
-int peripheral_handle_free(pb_data_h handle);
+peripheral_h peripheral_handle_new(GList **plist);
+int peripheral_handle_free(peripheral_h handle);
 
 #endif /* __PERIPHERAL_HANDLE_COMMON_H__ */

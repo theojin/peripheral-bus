@@ -27,7 +27,7 @@ static void __uart_on_name_vanished(GDBusConnection *connection,
 		const gchar     *name,
 		gpointer         user_data)
 {
-	pb_data_h uart_handle = (pb_data_h)user_data;
+	peripheral_h uart_handle = (peripheral_h)user_data;
 	_D("appid [%s] vanished ", name);
 
 	g_bus_unwatch_name(uart_handle->watch_id);
@@ -41,13 +41,13 @@ gboolean handle_uart_open(
 		gint port,
 		gpointer user_data)
 {
-	peripheral_bus_s *pb_data = (peripheral_bus_s*)user_data;
+	peripheral_info_s *info = (peripheral_info_s*)user_data;
 	peripheral_error_e ret = PERIPHERAL_ERROR_NONE;
-	pb_data_h uart_handle = NULL;
+	peripheral_h uart_handle = NULL;
 
 	GUnixFDList *uart_fd_list = NULL;
 
-	ret = peripheral_privilege_check(invocation, pb_data->connection);
+	ret = peripheral_privilege_check(invocation, info->connection);
 	if (ret != 0) {
 		_E("Permission denied.");
 		ret = PERIPHERAL_ERROR_PERMISSION_DENIED;
