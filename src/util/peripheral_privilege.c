@@ -86,7 +86,7 @@ int peripheral_privilege_check(GDBusMethodInvocation *invocation, GDBusConnectio
 	}
 
 	ret = cynara_check(__cynara, client, session, user, PERIPHERAL_PRIVILEGE);
-	if (ret != 0) {
+	if (ret != CYNARA_API_ACCESS_ALLOWED) {
 		_E("Failed to check privilege");
 		g_free(session);
 		g_free(client);
