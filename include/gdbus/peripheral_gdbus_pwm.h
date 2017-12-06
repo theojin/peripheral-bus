@@ -27,4 +27,10 @@ gboolean peripheral_gdbus_pwm_open(
 		gint pin,
 		gpointer user_data);
 
+gboolean peripheral_gdbus_pwm_close(
+		PeripheralIoGdbusPwm *pwm,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data);
+
 #endif /* __PERIPHERAL_GDBUS_PWM_H__ */

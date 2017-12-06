@@ -91,3 +91,21 @@ out:
 
 	return true;
 }
+
+gboolean peripheral_gdbus_pwm_close(
+		PeripheralIoGdbusPwm *pwm,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	int ret = PERIPHERAL_ERROR_NONE;
+
+	peripheral_h pwm_handle = GUINT_TO_POINTER(handle);
+
+	g_bus_unwatch_name(pwm_handle->watch_id);
+	ret = peripheral_handle_pwm_destroy(pwm_handle);
+
+	peripheral_io_gdbus_pwm_complete_close(pwm, invocation, ret);
+
+	return true;
+}

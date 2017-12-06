@@ -26,4 +26,10 @@ gboolean peripheral_gdbus_uart_open(
 		gint port,
 		gpointer user_data);
 
+gboolean peripheral_gdbus_uart_close(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data);
+
 #endif /* __PERIPHERAL_GDBUS_UART_H__ */

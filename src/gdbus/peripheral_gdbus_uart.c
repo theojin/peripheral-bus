@@ -87,3 +87,21 @@ out:
 
 	return true;
 }
+
+gboolean peripheral_gdbus_uart_close(
+		PeripheralIoGdbusUart *uart,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	int ret = PERIPHERAL_ERROR_NONE;
+
+	peripheral_h uart_handle = GUINT_TO_POINTER(handle);
+
+	g_bus_unwatch_name(uart_handle->watch_id);
+	ret = peripheral_handle_uart_destroy(uart_handle);
+
+	peripheral_io_gdbus_uart_complete_close(uart, invocation, ret);
+
+	return true;
+}

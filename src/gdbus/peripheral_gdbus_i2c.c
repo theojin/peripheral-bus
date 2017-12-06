@@ -88,3 +88,21 @@ out:
 
 	return true;
 }
+
+gboolean peripheral_gdbus_i2c_close(
+		PeripheralIoGdbusI2c *i2c,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	int ret = PERIPHERAL_ERROR_NONE;
+
+	peripheral_h i2c_handle = GUINT_TO_POINTER(handle);
+
+	g_bus_unwatch_name(i2c_handle->watch_id);
+	ret = peripheral_handle_i2c_destroy(i2c_handle);
+
+	peripheral_io_gdbus_i2c_complete_close(i2c, invocation, ret);
+
+	return true;
+}

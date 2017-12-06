@@ -89,3 +89,20 @@ out:
 	return true;
 }
 
+gboolean peripheral_gdbus_spi_close(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	int ret = PERIPHERAL_ERROR_NONE;
+
+	peripheral_h spi_handle = GUINT_TO_POINTER(handle);
+
+	g_bus_unwatch_name(spi_handle->watch_id);
+	ret = peripheral_handle_spi_destroy(spi_handle);
+
+	peripheral_io_gdbus_spi_complete_close(spi, invocation, ret);
+
+	return true;
+}
