@@ -89,3 +89,21 @@ out:
 
 	return true;
 }
+
+gboolean peripheral_gdbus_gpio_close(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data)
+{
+	int ret = PERIPHERAL_ERROR_NONE;
+
+	peripheral_h gpio_handle = GUINT_TO_POINTER(handle);
+
+	g_bus_unwatch_name(gpio_handle->watch_id);
+	ret = peripheral_handle_gpio_destroy(gpio_handle);
+
+	peripheral_io_gdbus_gpio_complete_close(gpio, invocation, ret);
+
+	return true;
+}

@@ -26,4 +26,10 @@ gboolean peripheral_gdbus_gpio_open(
 		gint pin,
 		gpointer user_data);
 
+gboolean peripheral_gdbus_gpio_close(
+		PeripheralIoGdbusGpio *gpio,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data);
+
 #endif /* __PERIPHERAL_GDBUS_GPIO_H__ */

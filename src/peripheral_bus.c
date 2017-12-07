@@ -52,6 +52,10 @@ static gboolean __gpio_init(peripheral_info_s *info)
 			"handle-open",
 			G_CALLBACK(peripheral_gdbus_gpio_open),
 			info);
+	g_signal_connect(info->gpio_skeleton,
+			"handle-close",
+			G_CALLBACK(peripheral_gdbus_gpio_close),
+			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_GPIO_PATH);
 
@@ -82,6 +86,10 @@ static gboolean __i2c_init(peripheral_info_s *info)
 	g_signal_connect(info->i2c_skeleton,
 			"handle-open",
 			G_CALLBACK(peripheral_gdbus_i2c_open),
+			info);
+	g_signal_connect(info->i2c_skeleton,
+			"handle-close",
+			G_CALLBACK(peripheral_gdbus_i2c_close),
 			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_I2C_PATH);
@@ -114,6 +122,10 @@ static gboolean __pwm_init(peripheral_info_s *info)
 			"handle-open",
 			G_CALLBACK(peripheral_gdbus_pwm_open),
 			info);
+	g_signal_connect(info->pwm_skeleton,
+			"handle-close",
+			G_CALLBACK(peripheral_gdbus_pwm_close),
+			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_PWM_PATH);
 
@@ -145,6 +157,10 @@ static gboolean __uart_init(peripheral_info_s *info)
 			"handle-open",
 			G_CALLBACK(peripheral_gdbus_uart_open),
 			info);
+	g_signal_connect(info->uart_skeleton,
+			"handle-close",
+			G_CALLBACK(peripheral_gdbus_uart_close),
+			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_UART_PATH);
 
@@ -175,6 +191,10 @@ static gboolean __spi_init(peripheral_info_s *info)
 	g_signal_connect(info->spi_skeleton,
 			"handle-open",
 			G_CALLBACK(peripheral_gdbus_spi_open),
+			info);
+	g_signal_connect(info->spi_skeleton,
+			"handle-close",
+			G_CALLBACK(peripheral_gdbus_spi_close),
 			info);
 
 	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_SPI_PATH);

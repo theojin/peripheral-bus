@@ -27,4 +27,10 @@ gboolean peripheral_gdbus_i2c_open(
 		gint address,
 		gpointer user_data);
 
+gboolean peripheral_gdbus_i2c_close(
+		PeripheralIoGdbusI2c *i2c,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data);
+
 #endif /* __PERIPHERAL_GDBUS_I2C_H__ */

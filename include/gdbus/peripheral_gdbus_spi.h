@@ -27,4 +27,10 @@ gboolean peripheral_gdbus_spi_open(
 		gint cs,
 		gpointer user_data);
 
+gboolean peripheral_gdbus_spi_close(
+		PeripheralIoGdbusSpi *spi,
+		GDBusMethodInvocation *invocation,
+		gint handle,
+		gpointer user_data);
+
 #endif /* __PERIPHERAL_GDBUS_SPI_H__ */
