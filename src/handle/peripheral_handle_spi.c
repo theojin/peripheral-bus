@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "peripheral_interface_spi.h"
 #include "peripheral_handle_common.h"
 
 static bool __peripheral_handle_spi_is_creatable(int bus, int cs, peripheral_info_s *info)
@@ -51,17 +50,11 @@ int peripheral_handle_spi_destroy(peripheral_h handle)
 
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	ret = peripheral_interface_spi_fd_close(handle->type.spi.fd);
-	if (ret != PERIPHERAL_ERROR_NONE)
-		_E("Failed to spi close fd");
-
 	ret = peripheral_handle_free(handle);
-	if (ret != PERIPHERAL_ERROR_NONE) {
+	if (ret != PERIPHERAL_ERROR_NONE)
 		_E("Failed to free spi handle");
-		return PERIPHERAL_ERROR_UNKNOWN;
-	}
 
-	return PERIPHERAL_ERROR_NONE;
+	return ret;
 }
 
 int peripheral_handle_spi_create(int bus, int cs, peripheral_h *handle, gpointer user_data)
@@ -69,8 +62,6 @@ int peripheral_handle_spi_create(int bus, int cs, peripheral_h *handle, gpointer
 	RETVM_IF(bus < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid spi bus");
 	RETVM_IF(cs < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid spi cs");
 	RETVM_IF(handle == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid spi handle");
-
-	int ret = PERIPHERAL_ERROR_NONE;
 
 	peripheral_info_s *info = (peripheral_info_s*)user_data;
 
@@ -92,18 +83,8 @@ int peripheral_handle_spi_create(int bus, int cs, peripheral_h *handle, gpointer
 	spi_handle->list = &info->spi_list;
 	spi_handle->type.spi.bus = bus;
 	spi_handle->type.spi.cs = cs;
-	spi_handle->type.spi.fd = -1;
-
-	ret = peripheral_interface_spi_fd_open(bus, cs, &spi_handle->type.spi.fd);
-	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to spi fd open");
-		goto out;
-	}
 
 	*handle = spi_handle;
-	return PERIPHERAL_ERROR_NONE;
 
-out:
-	peripheral_handle_spi_destroy(spi_handle);
-	return ret;
+	return PERIPHERAL_ERROR_NONE;
 }

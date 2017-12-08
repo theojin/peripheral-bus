@@ -17,8 +17,10 @@
 #ifndef __PERIPHERAL_INTERFACE_UART_H__
 #define __PERIPHERAL_INTERFACE_UART_H__
 
-int peripheral_interface_uart_fd_open(int port, int *fd_out);
-int peripheral_interface_uart_fd_close(int fd);
+#include <gio/gunixfdlist.h>
+
+int peripheral_interface_uart_fd_list_create(int port, GUnixFDList **list_out);
+void peripheral_interface_uart_fd_list_destroy(GUnixFDList *list);
 
 #endif /* __PERIPHERAL_INTERFACE_UART_H__ */
 

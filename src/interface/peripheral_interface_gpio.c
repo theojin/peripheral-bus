@@ -134,7 +134,7 @@ int peripheral_interface_gpio_unexport(int pin)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_gpio_fd_direction_open(int pin, int *fd_out)
+static int __peripheral_interface_gpio_fd_direction_open(int pin, int *fd_out)
 {
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
 	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for gpio direction");
@@ -151,19 +151,7 @@ int peripheral_interface_gpio_fd_direction_open(int pin, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_gpio_fd_direction_close(int fd)
-{
-	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for gpio direction");
-
-	int ret;
-
-	ret = close(fd);
-	IF_ERROR_RETURN(ret != 0);
-
-	return PERIPHERAL_ERROR_NONE;
-}
-
-int peripheral_interface_gpio_fd_edge_open(int pin, int *fd_out)
+static int __peripheral_interface_gpio_fd_edge_open(int pin, int *fd_out)
 {
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
 	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for gpio edge");
@@ -180,19 +168,7 @@ int peripheral_interface_gpio_fd_edge_open(int pin, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_gpio_fd_edge_close(int fd)
-{
-	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for gpio edge");
-
-	int ret;
-
-	ret = close(fd);
-	IF_ERROR_RETURN(ret != 0);
-
-	return PERIPHERAL_ERROR_NONE;
-}
-
-int peripheral_interface_gpio_fd_value_open(int pin, int *fd_out)
+static int __peripheral_interface_gpio_fd_value_open(int pin, int *fd_out)
 {
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
 	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for gpio value");
@@ -209,15 +185,59 @@ int peripheral_interface_gpio_fd_value_open(int pin, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_gpio_fd_value_close(int fd)
+int peripheral_interface_gpio_fd_list_create(int pin, GUnixFDList **list_out)
 {
-	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for gpio value");
+	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
 
 	int ret;
 
-	ret = close(fd);
-	IF_ERROR_RETURN(ret != 0);
+	GUnixFDList *list = NULL;
+	int fd_direction = -1;
+	int fd_edge = -1;
+	int fd_value = -1;
 
-	return PERIPHERAL_ERROR_NONE;
+	ret = __peripheral_interface_gpio_fd_direction_open(pin, &fd_direction);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to open gpio direction fd");
+		goto out;
+	}
+
+	ret = __peripheral_interface_gpio_fd_edge_open(pin, &fd_edge);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to open gpio edge fd");
+		goto out;
+	}
+
+	ret = __peripheral_interface_gpio_fd_value_open(pin, &fd_value);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to open gpio value fd");
+		goto out;
+	}
+
+	list = g_unix_fd_list_new();
+	if (list == NULL) {
+		_E("Failed to create gpio fd list");
+		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
+		goto out;
+	}
+
+	/* Do not change the order of the fd list */
+	g_unix_fd_list_append(list, fd_direction, NULL);
+	g_unix_fd_list_append(list, fd_edge, NULL);
+	g_unix_fd_list_append(list, fd_value, NULL);
+
+	*list_out = list;
+
+out:
+	close(fd_direction);
+	close(fd_edge);
+	close(fd_value);
+
+	return ret;
 }
 
+void peripheral_interface_gpio_fd_list_destroy(GUnixFDList *list)
+{
+	if (list != NULL)
+		g_object_unref(list); // file descriptors in list is closed in hear.
+}

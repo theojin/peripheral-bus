@@ -17,16 +17,12 @@
 #ifndef __PERIPHERAL_INTERFACE_GPIO_H__
 #define __PERIPHERAL_INTERFACE_GPIO_H__
 
+#include <gio/gunixfdlist.h>
+
 int peripheral_interface_gpio_export(int pin);
 int peripheral_interface_gpio_unexport(int pin);
 
-int peripheral_interface_gpio_fd_direction_open(int pin, int *fd_out);
-int peripheral_interface_gpio_fd_direction_close(int fd);
-
-int peripheral_interface_gpio_fd_edge_open(int pin, int *fd_out);
-int peripheral_interface_gpio_fd_edge_close(int fd);
-
-int peripheral_interface_gpio_fd_value_open(int pin, int *fd_out);
-int peripheral_interface_gpio_fd_value_close(int fd);
+int peripheral_interface_gpio_fd_list_create(int pin, GUnixFDList **list_out);
+void peripheral_interface_gpio_fd_list_destroy(GUnixFDList *list);
 
 #endif /*__PERIPHERAL_INTERFACE_GPIO_H__*/

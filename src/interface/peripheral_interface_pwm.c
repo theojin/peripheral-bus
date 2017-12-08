@@ -69,7 +69,7 @@ int peripheral_interface_pwm_unexport(int chip, int pin)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_pwm_fd_period_open(int chip, int pin, int *fd_out)
+static int __peripheral_interface_pwm_fd_period_open(int chip, int pin, int *fd_out)
 {
 	RETVM_IF(chip < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm chip");
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm pin");
@@ -87,19 +87,7 @@ int peripheral_interface_pwm_fd_period_open(int chip, int pin, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_pwm_fd_period_close(int fd)
-{
-	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for pwm period");
-
-	int ret;
-
-	ret = close(fd);
-	IF_ERROR_RETURN(ret != 0);
-
-	return PERIPHERAL_ERROR_NONE;
-}
-
-int peripheral_interface_pwm_fd_duty_cycle_open(int chip, int pin, int *fd_out)
+static int __peripheral_interface_pwm_fd_duty_cycle_open(int chip, int pin, int *fd_out)
 {
 	RETVM_IF(chip < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm chip");
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm pin");
@@ -117,19 +105,7 @@ int peripheral_interface_pwm_fd_duty_cycle_open(int chip, int pin, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_pwm_fd_duty_cycle_close(int fd)
-{
-	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for pwm duty cycle");
-
-	int ret;
-
-	ret = close(fd);
-	IF_ERROR_RETURN(ret != 0);
-
-	return PERIPHERAL_ERROR_NONE;
-}
-
-int peripheral_interface_pwm_fd_polarity_open(int chip, int pin, int *fd_out)
+static int __peripheral_interface_pwm_fd_polarity_open(int chip, int pin, int *fd_out)
 {
 	RETVM_IF(chip < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm chip");
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm pin");
@@ -147,19 +123,7 @@ int peripheral_interface_pwm_fd_polarity_open(int chip, int pin, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_pwm_fd_polarity_close(int fd)
-{
-	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for pwm polarity");
-
-	int ret;
-
-	ret = close(fd);
-	IF_ERROR_RETURN(ret != 0);
-
-	return PERIPHERAL_ERROR_NONE;
-}
-
-int peripheral_interface_pwm_fd_enable_open(int chip, int pin, int *fd_out)
+static int __peripheral_interface_pwm_fd_enable_open(int chip, int pin, int *fd_out)
 {
 	RETVM_IF(chip < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm chip");
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm pin");
@@ -177,14 +141,69 @@ int peripheral_interface_pwm_fd_enable_open(int chip, int pin, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_pwm_fd_enable_close(int fd)
+int peripheral_interface_pwm_fd_list_create(int chip, int pin, GUnixFDList **list_out)
 {
-	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for pwm enable");
+	RETVM_IF(chip < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm chip");
+	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm pin");
 
 	int ret;
 
-	ret = close(fd);
-	IF_ERROR_RETURN(ret != 0);
+	GUnixFDList *list = NULL;
+	int fd_period = -1;
+	int fd_duty_cycle = -1;
+	int fd_polarity = -1;
+	int fd_enable = -1;
 
-	return PERIPHERAL_ERROR_NONE;
+	ret = __peripheral_interface_pwm_fd_period_open(chip, pin, &fd_period);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to open pwm period fd");
+		goto out;
+	}
+
+	ret = __peripheral_interface_pwm_fd_duty_cycle_open(chip, pin, &fd_duty_cycle);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to open pwm duty cycle fd");
+		goto out;
+	}
+
+	ret = __peripheral_interface_pwm_fd_polarity_open(chip, pin, &fd_polarity);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to open pwm polarity fd");
+		goto out;
+	}
+
+	ret = __peripheral_interface_pwm_fd_enable_open(chip, pin, &fd_enable);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to open pwm enable fd");
+		goto out;
+	}
+
+	list = g_unix_fd_list_new();
+	if (list == NULL) {
+		_E("Failed to create pwm fd list");
+		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
+		goto out;
+	}
+
+	/* Do not change the order of the fd list */
+	g_unix_fd_list_append(list, fd_period, NULL);
+	g_unix_fd_list_append(list, fd_duty_cycle, NULL);
+	g_unix_fd_list_append(list, fd_polarity, NULL);
+	g_unix_fd_list_append(list, fd_enable, NULL);
+
+	*list_out = list;
+
+out:
+	close(fd_period);
+	close(fd_duty_cycle);
+	close(fd_polarity);
+	close(fd_enable);
+
+	return ret;
+}
+
+void peripheral_interface_pwm_fd_list_destroy(GUnixFDList *list)
+{
+	if (list != NULL)
+		g_object_unref(list); // file descriptors in list is closed in hear.
 }

@@ -23,7 +23,7 @@
 #define ARRAY_SIZE(x) (sizeof(x)/sizeof((x)[0]))
 #endif
 
-int peripheral_interface_uart_fd_open(int port, int *fd_out)
+static int __peripheral_interface_uart_fd_open(int port, int *fd_out)
 {
 	RETVM_IF(port < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid uart port");
 	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for uart");
@@ -52,13 +52,41 @@ int peripheral_interface_uart_fd_open(int port, int *fd_out)
 	return PERIPHERAL_ERROR_NONE;
 }
 
-int peripheral_interface_uart_fd_close(int fd)
+int peripheral_interface_uart_fd_list_create(int port, GUnixFDList **list_out)
 {
-	RETVM_IF(fd < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd for uart");
+	RETVM_IF(port < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid uart port");
+
 	int ret;
 
-	ret = close(fd);
-	IF_ERROR_RETURN(ret != 0);
+	GUnixFDList *list = NULL;
+	int fd = -1;
 
-	return PERIPHERAL_ERROR_NONE;
+
+	ret = __peripheral_interface_uart_fd_open(port, &fd);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to open uart fd");
+	}
+
+	list = g_unix_fd_list_new();
+	if (list == NULL) {
+		_E("Failed to create uart fd list");
+		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
+		goto out;
+	}
+
+	/* Do not change the order of the fd list */
+	g_unix_fd_list_append(list, fd, NULL);
+
+	*list_out = list;
+
+out:
+	close(fd);
+
+	return ret;
+}
+
+void peripheral_interface_uart_fd_list_destroy(GUnixFDList *list)
+{
+	if (list != NULL)
+		g_object_unref(list);
 }

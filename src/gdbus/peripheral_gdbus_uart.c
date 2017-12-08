@@ -22,17 +22,23 @@
 #include "peripheral_io_gdbus.h"
 #include "peripheral_handle.h"
 #include "peripheral_handle_uart.h"
+#include "peripheral_interface_uart.h"
 #include "peripheral_gdbus_uart.h"
 
 static void __uart_on_name_vanished(GDBusConnection *connection,
-		const gchar     *name,
-		gpointer         user_data)
+		const gchar *name,
+		gpointer user_data)
 {
+	int ret = PERIPHERAL_ERROR_NONE;
+
 	peripheral_h uart_handle = (peripheral_h)user_data;
 	_D("appid [%s] vanished ", name);
 
 	g_bus_unwatch_name(uart_handle->watch_id);
-	peripheral_handle_uart_destroy(uart_handle);
+
+	ret = peripheral_handle_uart_destroy(uart_handle);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to destroy uart handle");
 }
 
 gboolean peripheral_gdbus_uart_open(
@@ -55,10 +61,9 @@ gboolean peripheral_gdbus_uart_open(
 		goto out;
 	}
 
-	uart_fd_list = g_unix_fd_list_new();
-	if (uart_fd_list == NULL) {
+	ret = peripheral_interface_uart_fd_list_create(port, &uart_fd_list);
+	if (ret != PERIPHERAL_ERROR_NONE) {
 		_E("Failed to create uart fd list");
-		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto out;
 	}
 
@@ -67,9 +72,6 @@ gboolean peripheral_gdbus_uart_open(
 		_E("Failed to create peripheral uart handle");
 		goto out;
 	}
-
-	/* Do not change the order of the fd list */
-	g_unix_fd_list_append(uart_fd_list, uart_handle->type.uart.fd, NULL);
 
 	uart_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
 			g_dbus_method_invocation_get_sender(invocation),
@@ -81,9 +83,7 @@ gboolean peripheral_gdbus_uart_open(
 
 out:
 	peripheral_io_gdbus_uart_complete_open(uart, invocation, uart_fd_list, GPOINTER_TO_UINT(uart_handle), ret);
-
-	if (uart_fd_list != NULL)
-		g_object_unref(uart_fd_list);
+	peripheral_interface_uart_fd_list_destroy(uart_fd_list);
 
 	return true;
 }
@@ -99,7 +99,10 @@ gboolean peripheral_gdbus_uart_close(
 	peripheral_h uart_handle = GUINT_TO_POINTER(handle);
 
 	g_bus_unwatch_name(uart_handle->watch_id);
+
 	ret = peripheral_handle_uart_destroy(uart_handle);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to destroy uart handle");
 
 	peripheral_io_gdbus_uart_complete_close(uart, invocation, ret);
 

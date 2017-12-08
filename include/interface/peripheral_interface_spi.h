@@ -17,7 +17,9 @@
 #ifndef __PERIPHERAL_INTERFACE_SPI_H__
 #define __PERIPHERAL_INTERFACE_SPI_H__
 
-int peripheral_interface_spi_fd_open(int bus, int cs, int *fd_out);
-int peripheral_interface_spi_fd_close(int fd);
+#include <gio/gunixfdlist.h>
+
+int peripheral_interface_spi_fd_list_create(int bus, int cs, GUnixFDList **list_out);
+void peripheral_interface_spi_fd_list_destroy(GUnixFDList *list);
 
 #endif /* __PERIPHERAL_INTERFACE_SPI_H__ */

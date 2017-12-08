@@ -22,17 +22,27 @@
 #include "peripheral_io_gdbus.h"
 #include "peripheral_handle.h"
 #include "peripheral_handle_gpio.h"
+#include "peripheral_interface_gpio.h"
 #include "peripheral_gdbus_gpio.h"
 
 static void __gpio_on_name_vanished(GDBusConnection *connection,
-		const gchar     *name,
-		gpointer         user_data)
+		const gchar *name,
+		gpointer user_data)
 {
+	int ret = PERIPHERAL_ERROR_NONE;
+
 	peripheral_h gpio_handle = (peripheral_h)user_data;
 	_D("appid [%s] vanished ", name);
 
 	g_bus_unwatch_name(gpio_handle->watch_id);
-	peripheral_handle_gpio_destroy(gpio_handle);
+
+	ret = peripheral_interface_gpio_unexport(gpio_handle->type.gpio.pin);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to unexport gpio");
+
+	ret = peripheral_handle_gpio_destroy(gpio_handle);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to destroy gpio handle");
 }
 
 gboolean peripheral_gdbus_gpio_open(
@@ -55,23 +65,25 @@ gboolean peripheral_gdbus_gpio_open(
 		goto out;
 	}
 
-	gpio_fd_list = g_unix_fd_list_new();
-	if (gpio_fd_list == NULL) {
+	ret = peripheral_interface_gpio_export(pin);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to export gpio");
+		goto out;
+	}
+
+	ret = peripheral_interface_gpio_fd_list_create(pin, &gpio_fd_list);
+	if (ret != PERIPHERAL_ERROR_NONE) {
 		_E("Failed to create gpio fd list");
-		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
+		peripheral_interface_gpio_unexport(pin);
 		goto out;
 	}
 
 	ret = peripheral_handle_gpio_create(pin, &gpio_handle, user_data);
 	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to create peripheral gpio handle");
+		_E("Failed to create gpio handle");
+		peripheral_interface_gpio_unexport(pin);
 		goto out;
 	}
-
-	/* Do not change the order of the fd list */
-	g_unix_fd_list_append(gpio_fd_list, gpio_handle->type.gpio.fd_direction, NULL);
-	g_unix_fd_list_append(gpio_fd_list, gpio_handle->type.gpio.fd_edge, NULL);
-	g_unix_fd_list_append(gpio_fd_list, gpio_handle->type.gpio.fd_value, NULL);
 
 	gpio_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
 			g_dbus_method_invocation_get_sender(invocation),
@@ -83,9 +95,7 @@ gboolean peripheral_gdbus_gpio_open(
 
 out:
 	peripheral_io_gdbus_gpio_complete_open(gpio, invocation, gpio_fd_list, GPOINTER_TO_UINT(gpio_handle), ret);
-
-	if (gpio_fd_list != NULL)
-		g_object_unref(gpio_fd_list);
+	peripheral_interface_gpio_fd_list_destroy(gpio_fd_list);
 
 	return true;
 }
@@ -101,7 +111,14 @@ gboolean peripheral_gdbus_gpio_close(
 	peripheral_h gpio_handle = GUINT_TO_POINTER(handle);
 
 	g_bus_unwatch_name(gpio_handle->watch_id);
+
+	ret = peripheral_interface_gpio_unexport(gpio_handle->type.gpio.pin);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to gpio unexport");
+
 	ret = peripheral_handle_gpio_destroy(gpio_handle);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to destroy gpio handle");
 
 	peripheral_io_gdbus_gpio_complete_close(gpio, invocation, ret);
 

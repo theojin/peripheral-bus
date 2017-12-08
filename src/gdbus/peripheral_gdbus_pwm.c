@@ -22,17 +22,27 @@
 #include "peripheral_io_gdbus.h"
 #include "peripheral_handle.h"
 #include "peripheral_handle_pwm.h"
+#include "peripheral_interface_pwm.h"
 #include "peripheral_gdbus_pwm.h"
 
 static void __pwm_on_name_vanished(GDBusConnection *connection,
-		const gchar     *name,
-		gpointer         user_data)
+		const gchar *name,
+		gpointer user_data)
 {
+	int ret = PERIPHERAL_ERROR_NONE;
+
 	peripheral_h pwm_handle = (peripheral_h)user_data;
 	_D("appid [%s] vanished ", name);
 
 	g_bus_unwatch_name(pwm_handle->watch_id);
-	peripheral_handle_pwm_destroy(pwm_handle);
+
+	ret = peripheral_interface_pwm_unexport(pwm_handle->type.pwm.chip, pwm_handle->type.pwm.pin);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to unexport pwm");
+
+	ret = peripheral_handle_pwm_destroy(pwm_handle);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to destroy pwm handle");
 }
 
 gboolean peripheral_gdbus_pwm_open(
@@ -56,24 +66,25 @@ gboolean peripheral_gdbus_pwm_open(
 		goto out;
 	}
 
-	pwm_fd_list = g_unix_fd_list_new();
-	if (pwm_fd_list == NULL) {
+	ret = peripheral_interface_pwm_export(chip, pin);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to export pwm");
+		goto out;
+	}
+
+	ret = peripheral_interface_pwm_fd_list_create(chip, pin, &pwm_fd_list);
+	if (ret != PERIPHERAL_ERROR_NONE) {
 		_E("Failed to create pwm fd list");
-		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
+		peripheral_interface_pwm_unexport(chip, pin);
 		goto out;
 	}
 
 	ret = peripheral_handle_pwm_create(chip, pin, &pwm_handle, user_data);
 	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to create peripheral pwm handle");
+		_E("Failed to create pwm handle");
+		peripheral_interface_pwm_unexport(chip, pin);
 		goto out;
 	}
-
-	/* Do not change the order of the fd list */
-	g_unix_fd_list_append(pwm_fd_list, pwm_handle->type.pwm.fd_period, NULL);
-	g_unix_fd_list_append(pwm_fd_list, pwm_handle->type.pwm.fd_duty_cycle, NULL);
-	g_unix_fd_list_append(pwm_fd_list, pwm_handle->type.pwm.fd_polarity, NULL);
-	g_unix_fd_list_append(pwm_fd_list, pwm_handle->type.pwm.fd_enable, NULL);
 
 	pwm_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
 			g_dbus_method_invocation_get_sender(invocation),
@@ -85,9 +96,7 @@ gboolean peripheral_gdbus_pwm_open(
 
 out:
 	peripheral_io_gdbus_pwm_complete_open(pwm, invocation, pwm_fd_list, GPOINTER_TO_UINT(pwm_handle), ret);
-
-	if (pwm_fd_list != NULL)
-		g_object_unref(pwm_fd_list);
+	peripheral_interface_pwm_fd_list_destroy(pwm_fd_list);
 
 	return true;
 }
@@ -103,7 +112,14 @@ gboolean peripheral_gdbus_pwm_close(
 	peripheral_h pwm_handle = GUINT_TO_POINTER(handle);
 
 	g_bus_unwatch_name(pwm_handle->watch_id);
+
+	ret = peripheral_interface_pwm_unexport(pwm_handle->type.pwm.chip, pwm_handle->type.pwm.pin);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to unexport pwm");
+
 	ret = peripheral_handle_pwm_destroy(pwm_handle);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to destroy pwm handle");
 
 	peripheral_io_gdbus_pwm_complete_close(pwm, invocation, ret);
 

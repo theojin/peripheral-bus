@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "peripheral_interface_i2c.h"
 #include "peripheral_handle_common.h"
 
 static bool __peripheral_handle_i2c_is_creatable(int bus, int address, peripheral_info_s *info)
@@ -51,17 +50,11 @@ int peripheral_handle_i2c_destroy(peripheral_h handle)
 
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	ret = peripheral_interface_i2c_fd_close(handle->type.i2c.fd);
-	if (ret != PERIPHERAL_ERROR_NONE)
-		_E("Failed to i2c close fd");
-
 	ret = peripheral_handle_free(handle);
-	if (ret != PERIPHERAL_ERROR_NONE) {
+	if (ret != PERIPHERAL_ERROR_NONE)
 		_E("Failed to free i2c handle");
-		return PERIPHERAL_ERROR_UNKNOWN;
-	}
 
-	return PERIPHERAL_ERROR_NONE;
+	return ret;
 }
 
 int peripheral_handle_i2c_create(int bus, int address, peripheral_h *handle, gpointer user_data)
@@ -69,8 +62,6 @@ int peripheral_handle_i2c_create(int bus, int address, peripheral_h *handle, gpo
 	RETVM_IF(bus < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid i2c bus");
 	RETVM_IF(address < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid i2c address");
 	RETVM_IF(handle == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid i2c handle");
-
-	int ret = PERIPHERAL_ERROR_NONE;
 
 	peripheral_info_s *info = (peripheral_info_s*)user_data;
 
@@ -92,18 +83,8 @@ int peripheral_handle_i2c_create(int bus, int address, peripheral_h *handle, gpo
 	i2c_handle->list = &info->i2c_list;
 	i2c_handle->type.i2c.bus = bus;
 	i2c_handle->type.i2c.address = address;
-	i2c_handle->type.i2c.fd = -1;
-
-	ret = peripheral_interface_i2c_fd_open(bus, address, &i2c_handle->type.i2c.fd);
-	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to i2c fd open");
-		goto out;
-	}
 
 	*handle = i2c_handle;
-	return PERIPHERAL_ERROR_NONE;
 
-out:
-	peripheral_handle_i2c_destroy(i2c_handle);
-	return ret;
+	return PERIPHERAL_ERROR_NONE;
 }

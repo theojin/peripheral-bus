@@ -41,35 +41,25 @@ typedef struct {
 
 typedef struct {
 	int pin;
-	int fd_direction;
-	int fd_edge;
-	int fd_value;
 } peripheral_handle_gpio_s;
 
 typedef struct {
 	int bus;
 	int address;
-	int fd;
 } peripheral_handle_i2c_s;
 
 typedef struct {
 	int chip;
 	int pin;
-	int fd_period;
-	int fd_duty_cycle;
-	int fd_polarity;
-	int fd_enable;
 } peripheral_handle_pwm_s;
 
 typedef struct {
 	int port;
-	int fd;
 } peripheral_handle_uart_s;
 
 typedef struct {
 	int bus;
 	int cs;
-	int fd;
 } peripheral_handle_spi_s;
 
 typedef struct {

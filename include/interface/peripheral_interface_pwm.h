@@ -17,19 +17,12 @@
 #ifndef __PERIPHERAL_INTERFACE_PWM_H__
 #define __PERIPHERAL_INTERFACE_PWM_H__
 
+#include <gio/gunixfdlist.h>
+
 int peripheral_interface_pwm_export(int chip, int pin);
 int peripheral_interface_pwm_unexport(int chip, int pin);
 
-int peripheral_interface_pwm_fd_period_open(int chip, int pin, int *fd_out);
-int peripheral_interface_pwm_fd_period_close(int fd);
-
-int peripheral_interface_pwm_fd_duty_cycle_open(int chip, int pin, int *fd_out);
-int peripheral_interface_pwm_fd_duty_cycle_close(int fd);
-
-int peripheral_interface_pwm_fd_polarity_open(int chip, int pin, int *fd_out);
-int peripheral_interface_pwm_fd_polarity_close(int fd);
-
-int peripheral_interface_pwm_fd_enable_open(int chip, int pin, int *fd_out);
-int peripheral_interface_pwm_fd_enable_close(int fd);
+int peripheral_interface_pwm_fd_list_create(int chip, int pin, GUnixFDList **list_out);
+void peripheral_interface_pwm_fd_list_destroy(GUnixFDList *list);
 
 #endif /* __PERIPHERAL_INTERFACE_PWM_H__ */

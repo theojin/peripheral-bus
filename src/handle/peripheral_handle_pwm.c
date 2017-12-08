@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "peripheral_interface_pwm.h"
 #include "peripheral_handle_common.h"
 
 static bool __peripheral_handle_pwm_is_creatable(int chip, int pin, peripheral_info_s *info)
@@ -51,33 +50,11 @@ int peripheral_handle_pwm_destroy(peripheral_h handle)
 
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	ret = peripheral_interface_pwm_fd_period_close(handle->type.pwm.fd_period);
-	if (ret != PERIPHERAL_ERROR_NONE)
-		_E("Failed to pwm close period fd");
-
-	ret = peripheral_interface_pwm_fd_duty_cycle_close(handle->type.pwm.fd_duty_cycle);
-	if (ret != PERIPHERAL_ERROR_NONE)
-		_E("Failed to pwm close duty cycle fd");
-
-	ret = peripheral_interface_pwm_fd_polarity_close(handle->type.pwm.fd_polarity);
-	if (ret != PERIPHERAL_ERROR_NONE)
-		_E("Failed to pwm close polarity fd");
-
-	ret = peripheral_interface_pwm_fd_enable_close(handle->type.pwm.fd_enable);
-	if (ret != PERIPHERAL_ERROR_NONE)
-		_E("Failed to pwm close enable fd");
-
-	ret = peripheral_interface_pwm_unexport(handle->type.pwm.chip, handle->type.pwm.pin);
-	if (ret != PERIPHERAL_ERROR_NONE)
-		_E("Failed to pwm unexport");
-
 	ret = peripheral_handle_free(handle);
-	if (ret != PERIPHERAL_ERROR_NONE) {
+	if (ret != PERIPHERAL_ERROR_NONE)
 		_E("Failed to free pwm handle");
-		return PERIPHERAL_ERROR_UNKNOWN;
-	}
 
-	return PERIPHERAL_ERROR_NONE;
+	return ret;
 }
 
 int peripheral_handle_pwm_create(int chip, int pin, peripheral_h *handle, gpointer user_data)
@@ -85,8 +62,6 @@ int peripheral_handle_pwm_create(int chip, int pin, peripheral_h *handle, gpoint
 	RETVM_IF(chip < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm chip");
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm pin");
 	RETVM_IF(handle == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid pwm handle");
-
-	int ret = PERIPHERAL_ERROR_NONE;
 
 	peripheral_info_s *info = (peripheral_info_s*)user_data;
 
@@ -102,52 +77,14 @@ int peripheral_handle_pwm_create(int chip, int pin, peripheral_h *handle, gpoint
 	pwm_handle = peripheral_handle_new(&info->pwm_list);
 	if (pwm_handle == NULL) {
 		_E("peripheral_handle_new error");
-		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
-		goto out;
+		return PERIPHERAL_ERROR_OUT_OF_MEMORY;
 	}
 
 	pwm_handle->list = &info->pwm_list;
 	pwm_handle->type.pwm.chip = chip;
 	pwm_handle->type.pwm.pin = pin;
-	pwm_handle->type.pwm.fd_period = -1;
-	pwm_handle->type.pwm.fd_duty_cycle = -1;
-	pwm_handle->type.pwm.fd_polarity = -1;
-	pwm_handle->type.pwm.fd_enable = -1;
-
-	ret = peripheral_interface_pwm_export(chip, pin);
-	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to pwm export");
-		goto out;
-	}
-
-	ret = peripheral_interface_pwm_fd_period_open(chip, pin, &pwm_handle->type.pwm.fd_period);
-	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to pwm open period fd");
-		goto out;
-	}
-
-	ret = peripheral_interface_pwm_fd_duty_cycle_open(chip, pin, &pwm_handle->type.pwm.fd_duty_cycle);
-	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to pwm open duty cycle fd");
-		goto out;
-	}
-
-	ret = peripheral_interface_pwm_fd_polarity_open(chip, pin, &pwm_handle->type.pwm.fd_polarity);
-	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to pwm open polarity fd");
-		goto out;
-	}
-
-	ret = peripheral_interface_pwm_fd_enable_open(chip, pin, &pwm_handle->type.pwm.fd_enable);
-	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to pwm open enable fd");
-		goto out;
-	}
 
 	*handle = pwm_handle;
-	return PERIPHERAL_ERROR_NONE;
 
-out:
-	peripheral_handle_pwm_destroy(pwm_handle);
-	return ret;
+	return PERIPHERAL_ERROR_NONE;
 }

@@ -17,7 +17,9 @@
 #ifndef __PERIPHERAL_INTERFACE_I2C_H__
 #define __PERIPHERAL_INTERFACE_I2C_H__
 
-int peripheral_interface_i2c_fd_open(int bus, int address, int *fd_out);
-int peripheral_interface_i2c_fd_close(int fd);
+#include <gio/gunixfdlist.h>
+
+int peripheral_interface_i2c_fd_list_create(int bus, int address, GUnixFDList **list_out);
+void peripheral_interface_i2c_fd_list_destroy(GUnixFDList *list);
 
 #endif /* __PERIPHERAL_INTERFACE_I2C_H__ */

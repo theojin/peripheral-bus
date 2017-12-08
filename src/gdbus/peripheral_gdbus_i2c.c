@@ -22,17 +22,23 @@
 #include "peripheral_io_gdbus.h"
 #include "peripheral_handle.h"
 #include "peripheral_handle_i2c.h"
+#include "peripheral_interface_i2c.h"
 #include "peripheral_gdbus_i2c.h"
 
 static void __i2c_on_name_vanished(GDBusConnection *connection,
-		const gchar     *name,
-		gpointer         user_data)
+		const gchar *name,
+		gpointer user_data)
 {
+	int ret = PERIPHERAL_ERROR_NONE;
+
 	peripheral_h i2c_handle = (peripheral_h)user_data;
 	_D("appid [%s] vanished ", name);
 
 	g_bus_unwatch_name(i2c_handle->watch_id);
-	peripheral_handle_i2c_destroy(i2c_handle);
+
+	ret = peripheral_handle_i2c_destroy(i2c_handle);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to destroy i2c handle");
 }
 
 gboolean peripheral_gdbus_i2c_open(
@@ -56,21 +62,17 @@ gboolean peripheral_gdbus_i2c_open(
 		goto out;
 	}
 
-	i2c_fd_list = g_unix_fd_list_new();
-	if (i2c_fd_list == NULL) {
+	ret = peripheral_interface_i2c_fd_list_create(bus, address, &i2c_fd_list);
+	if (ret != PERIPHERAL_ERROR_NONE) {
 		_E("Failed to create i2c fd list");
-		ret = PERIPHERAL_ERROR_OUT_OF_MEMORY;
 		goto out;
 	}
 
 	ret = peripheral_handle_i2c_create(bus, address, &i2c_handle, user_data);
 	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to create periphreal i2c handle");
+		_E("Failed to create i2c handle");
 		goto out;
 	}
-
-	/* Do not change the order of the fd list */
-	g_unix_fd_list_append(i2c_fd_list, i2c_handle->type.i2c.fd, NULL);
 
 	i2c_handle->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM,
 			g_dbus_method_invocation_get_sender(invocation),
@@ -82,9 +84,7 @@ gboolean peripheral_gdbus_i2c_open(
 
 out:
 	peripheral_io_gdbus_i2c_complete_open(i2c, invocation, i2c_fd_list, GPOINTER_TO_UINT(i2c_handle), ret);
-
-	if (i2c_fd_list != NULL)
-		g_object_unref(i2c_fd_list);
+	peripheral_interface_i2c_fd_list_destroy(i2c_fd_list);
 
 	return true;
 }
@@ -100,7 +100,10 @@ gboolean peripheral_gdbus_i2c_close(
 	peripheral_h i2c_handle = GUINT_TO_POINTER(handle);
 
 	g_bus_unwatch_name(i2c_handle->watch_id);
+
 	ret = peripheral_handle_i2c_destroy(i2c_handle);
+	if (ret != PERIPHERAL_ERROR_NONE)
+		_E("Failed to destroy i2c handle");
 
 	peripheral_io_gdbus_i2c_complete_close(i2c, invocation, ret);
 

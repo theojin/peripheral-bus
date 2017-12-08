@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "peripheral_interface_uart.h"
 #include "peripheral_handle_common.h"
 
 static bool __peripheral_handle_uart_is_creatable(int port, peripheral_info_s *info)
@@ -51,25 +50,17 @@ int peripheral_handle_uart_destroy(peripheral_h handle)
 
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	ret = peripheral_interface_uart_fd_close(handle->type.uart.fd);
-	if (ret != PERIPHERAL_ERROR_NONE)
-		_E("Failed to uart close fd");
-
 	ret = peripheral_handle_free(handle);
-	if (ret != PERIPHERAL_ERROR_NONE) {
+	if (ret != PERIPHERAL_ERROR_NONE)
 		_E("Failed to free uart handle");
-		return PERIPHERAL_ERROR_UNKNOWN;
-	}
 
-	return PERIPHERAL_ERROR_NONE;
+	return ret;
 }
 
 int peripheral_handle_uart_create(int port, peripheral_h *handle, gpointer user_data)
 {
 	RETVM_IF(port < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid uart port");
 	RETVM_IF(handle == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid uart handle");
-
-	int ret = PERIPHERAL_ERROR_NONE;
 
 	peripheral_info_s *info = (peripheral_info_s*)user_data;
 
@@ -90,18 +81,8 @@ int peripheral_handle_uart_create(int port, peripheral_h *handle, gpointer user_
 
 	uart_handle->list = &info->uart_list;
 	uart_handle->type.uart.port = port;
-	uart_handle->type.uart.fd = -1;
-
-	ret = peripheral_interface_uart_fd_open(port, &uart_handle->type.uart.fd);
-	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to uart fd open");
-		goto out;
-	}
 
 	*handle = uart_handle;
-	return PERIPHERAL_ERROR_NONE;
 
-out:
-	peripheral_handle_uart_destroy(uart_handle);
-	return ret;
+	return PERIPHERAL_ERROR_NONE;
 }

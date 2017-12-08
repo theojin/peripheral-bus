@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include "peripheral_interface_gpio.h"
 #include "peripheral_handle_common.h"
 
 static bool __peripheral_handle_gpio_is_creatable(int pin, peripheral_info_s *info)
@@ -51,37 +50,17 @@ int peripheral_handle_gpio_destroy(peripheral_h handle)
 
 	int ret = PERIPHERAL_ERROR_NONE;
 
-	ret = peripheral_interface_gpio_fd_direction_close(handle->type.gpio.fd_direction);
-	if (ret != PERIPHERAL_ERROR_NONE)
-		_E("Failed to gpio close direction fd");
-
-	ret = peripheral_interface_gpio_fd_edge_close(handle->type.gpio.fd_edge);
-	if (ret != PERIPHERAL_ERROR_NONE)
-		_E("Failed to gpio close edge fd");
-
-	peripheral_interface_gpio_fd_value_close(handle->type.gpio.fd_value);
-	if (ret != PERIPHERAL_ERROR_NONE)
-		_E("Failed to gpio close value fd");
-
-	ret = peripheral_interface_gpio_unexport(handle->type.gpio.pin);
-	if (ret != PERIPHERAL_ERROR_NONE)
-		_E("Failed to gpio unexport");
-
 	ret = peripheral_handle_free(handle);
-	if (ret != PERIPHERAL_ERROR_NONE) {
+	if (ret != PERIPHERAL_ERROR_NONE)
 		_E("Failed to free gpio handle");
-		return PERIPHERAL_ERROR_UNKNOWN;
-	}
 
-	return PERIPHERAL_ERROR_NONE;
+	return ret;
 }
 
 int peripheral_handle_gpio_create(int pin, peripheral_h *handle, gpointer user_data)
 {
 	RETVM_IF(pin < 0, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio pin");
 	RETVM_IF(handle == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid gpio handle");
-
-	int ret = PERIPHERAL_ERROR_NONE;
 
 	peripheral_info_s *info = (peripheral_info_s*)user_data;
 
@@ -102,38 +81,8 @@ int peripheral_handle_gpio_create(int pin, peripheral_h *handle, gpointer user_d
 
 	gpio_handle->list = &info->gpio_list;
 	gpio_handle->type.gpio.pin = pin;
-	gpio_handle->type.gpio.fd_direction = -1;
-	gpio_handle->type.gpio.fd_edge = -1;
-	gpio_handle->type.gpio.fd_value = -1;
-
-	ret = peripheral_interface_gpio_export(pin);
-	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to gpio export");
-		goto out;
-	}
-
-	ret = peripheral_interface_gpio_fd_direction_open(pin, &gpio_handle->type.gpio.fd_direction);
-	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to gpio open direction fd");
-		goto out;
-	}
-
-	ret = peripheral_interface_gpio_fd_edge_open(pin, &gpio_handle->type.gpio.fd_edge);
-	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to gpio open edge fd");
-		goto out;
-	}
-
-	ret = peripheral_interface_gpio_fd_value_open(pin, &gpio_handle->type.gpio.fd_value);
-	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to gpio open value fd");
-		goto out;
-	}
 
 	*handle = gpio_handle;
-	return PERIPHERAL_ERROR_NONE;
 
-out:
-	peripheral_handle_gpio_destroy(gpio_handle);
-	return ret;
+	return PERIPHERAL_ERROR_NONE;
 }
