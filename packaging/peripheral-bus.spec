@@ -8,7 +8,7 @@ Source0:    %{name}-%{version}.tar.gz
 Source1:    %{name}.manifest
 Source2:    %{name}.service
 Source3:    %{name}.tmpfiles.conf
-Source4:    90-gpio.rules
+Source4:    90-peripheral-io.rules
 BuildRequires:  cmake
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(gio-2.0)
@@ -58,6 +58,6 @@ cp %{_builddir}/%{name}-%{version}/data/*.ini %{buildroot}/etc/%{name}
 %{_bindir}/%{name}
 %{_unitdir}/%{name}.service
 %{_tmpfilesdir}/%{name}.conf
-/usr/lib/udev/rules.d/90-gpio.rules
+/usr/lib/udev/rules.d/90-peripheral-io.rules
 %{_unitdir}/multi-user.target.wants/%{name}.service
 /etc/peripheral-bus/*.ini

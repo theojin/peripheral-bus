@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <stdlib.h>
 #include "peripheral_interface_pwm.h"
 #include "peripheral_interface_common.h"
 
@@ -39,6 +40,34 @@ int peripheral_interface_pwm_export(int chip, int pin)
 	ret = close(fd);
 	IF_ERROR_RETURN(ret != 0);
 
+	snprintf(buf, MAX_BUF_LEN, "chsmack -a \"*\" /sys/class/pwm/pwmchip%d/pwm%d/period", chip, pin);
+	ret = system(buf);
+	if (ret != 0) {
+		_E("Failed to change period security label to read/write.");
+		return PERIPHERAL_ERROR_IO_ERROR;
+	}
+
+	snprintf(buf, MAX_BUF_LEN, "chsmack -a \"*\" /sys/class/pwm/pwmchip%d/pwm%d/duty_cycle", chip, pin);
+	ret = system(buf);
+	if (ret != 0) {
+		_E("Failed to change duty_cycle security label to read/write.");
+		return PERIPHERAL_ERROR_IO_ERROR;
+	}
+
+	snprintf(buf, MAX_BUF_LEN, "chsmack -a \"*\" /sys/class/pwm/pwmchip%d/pwm%d/polarity", chip, pin);
+	ret = system(buf);
+	if (ret != 0) {
+		_E("Failed to change polarity security label to read/write.");
+		return PERIPHERAL_ERROR_IO_ERROR;
+	}
+
+	snprintf(buf, MAX_BUF_LEN, "chsmack -a \"*\" /sys/class/pwm/pwmchip%d/pwm%d/enable", chip, pin);
+	ret = system(buf);
+	if (ret != 0) {
+		_E("Failed to change enable security label to read/write.");
+		return PERIPHERAL_ERROR_IO_ERROR;
+	}
+
 	return PERIPHERAL_ERROR_NONE;
 }
 
@@ -52,8 +81,6 @@ int peripheral_interface_pwm_unexport(int chip, int pin)
 	int length;
 	char path[MAX_BUF_LEN] = {0};
 	char buf[MAX_BUF_LEN] = {0};
-
-	_D("chip : %d, pin : %d", chip, pin);
 
 	snprintf(path, MAX_BUF_LEN, "/sys/class/pwm/pwmchip%d/unexport", chip);
 	fd = open(path, O_WRONLY);

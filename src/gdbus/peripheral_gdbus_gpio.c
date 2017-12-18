@@ -65,9 +65,16 @@ gboolean peripheral_gdbus_gpio_open(
 		goto out;
 	}
 
+	ret = peripheral_handle_gpio_create(pin, &gpio_handle, user_data);
+	if (ret != PERIPHERAL_ERROR_NONE) {
+		_E("Failed to create gpio handle");
+		goto out;
+	}
+
 	ret = peripheral_interface_gpio_export(pin);
 	if (ret != PERIPHERAL_ERROR_NONE) {
 		_E("Failed to export gpio");
+		peripheral_handle_gpio_destroy(gpio_handle);
 		goto out;
 	}
 
@@ -75,13 +82,7 @@ gboolean peripheral_gdbus_gpio_open(
 	if (ret != PERIPHERAL_ERROR_NONE) {
 		_E("Failed to create gpio fd list");
 		peripheral_interface_gpio_unexport(pin);
-		goto out;
-	}
-
-	ret = peripheral_handle_gpio_create(pin, &gpio_handle, user_data);
-	if (ret != PERIPHERAL_ERROR_NONE) {
-		_E("Failed to create gpio handle");
-		peripheral_interface_gpio_unexport(pin);
+		peripheral_handle_gpio_destroy(gpio_handle);
 		goto out;
 	}
 
