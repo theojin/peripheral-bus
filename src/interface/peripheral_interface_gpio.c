@@ -229,9 +229,14 @@ int peripheral_interface_gpio_fd_list_create(int pin, GUnixFDList **list_out)
 	*list_out = list;
 
 out:
-	close(fd_direction);
-	close(fd_edge);
-	close(fd_value);
+	if (fd_direction >= 0)
+		close(fd_direction);
+
+	if (fd_edge >= 0)
+		close(fd_edge);
+
+	if (fd_value >= 0)
+		close(fd_value);
 
 	return ret;
 }

@@ -221,10 +221,17 @@ int peripheral_interface_pwm_fd_list_create(int chip, int pin, GUnixFDList **lis
 	*list_out = list;
 
 out:
-	close(fd_period);
-	close(fd_duty_cycle);
-	close(fd_polarity);
-	close(fd_enable);
+	if (fd_period >= 0)
+		close(fd_period);
+
+	if (fd_duty_cycle >= 0)
+		close(fd_duty_cycle);
+
+	if (fd_polarity >= 0)
+		close(fd_polarity);
+
+	if (fd_enable >= 0)
+		close(fd_enable);
 
 	return ret;
 }

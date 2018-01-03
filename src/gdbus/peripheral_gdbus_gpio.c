@@ -75,6 +75,7 @@ gboolean peripheral_gdbus_gpio_open(
 	if (ret != PERIPHERAL_ERROR_NONE) {
 		_E("Failed to export gpio");
 		peripheral_handle_gpio_destroy(gpio_handle);
+		gpio_handle = NULL;
 		goto out;
 	}
 
@@ -83,6 +84,7 @@ gboolean peripheral_gdbus_gpio_open(
 		_E("Failed to create gpio fd list");
 		peripheral_interface_gpio_unexport(pin);
 		peripheral_handle_gpio_destroy(gpio_handle);
+		gpio_handle = NULL;
 		goto out;
 	}
 
