@@ -55,7 +55,8 @@ static int peripheral_bus_board_get_device_type(char *string)
 		return PB_BOARD_DEV_UART;
 	else if (0 == strncmp(string, "spi", strlen("spi")))
 		return PB_BOARD_DEV_SPI;
-
+	else if (0 == strncmp(string, "adc", strlen("adc")))
+		return PB_BOARD_DEV_ADC;
 	return -1;
 }
 
@@ -76,6 +77,9 @@ static void peripheral_bus_board_ini_parse_key(pb_board_dev_e type, char *string
 		break;
 	case PB_BOARD_DEV_SPI:
 		sscanf(string, "%*50[^0-9]%d.%d", &args[0], &args[1]);
+		break;
+	case PB_BOARD_DEV_ADC:
+		sscanf(string, "%*50[^0-9]%d%*50[^0-9]%d", &args[0], &args[1]);
 		break;
 	default:
 		break;
@@ -237,7 +241,7 @@ pb_board_dev_s *peripheral_bus_board_find_device(pb_board_dev_e dev_type, pb_boa
 	RETV_IF(board == NULL, false);
 
 	args[0] = arg;
-	if (dev_type == PB_BOARD_DEV_PWM || dev_type == PB_BOARD_DEV_SPI) {
+	if (dev_type == PB_BOARD_DEV_PWM || dev_type == PB_BOARD_DEV_SPI || dev_type == PB_BOARD_DEV_ADC) {
 		va_start(ap, arg);
 		args[1] = va_arg(ap, int);
 		va_end(ap);

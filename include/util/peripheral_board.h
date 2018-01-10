@@ -35,6 +35,7 @@ typedef enum {
 	PB_BOARD_DEV_PWM,
 	PB_BOARD_DEV_UART,
 	PB_BOARD_DEV_SPI,
+	PB_BOARD_DEV_ADC,
 	PB_BOARD_DEV_MAX,
 } pb_board_dev_e;
 

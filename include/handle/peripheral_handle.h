@@ -30,6 +30,7 @@ typedef struct {
 	GList *pwm_list;
 	GList *uart_list;
 	GList *spi_list;
+	GList *adc_list;
 	/* gdbus variable */
 	GDBusConnection *connection;
 	PeripheralIoGdbusGpio *gpio_skeleton;
@@ -37,6 +38,7 @@ typedef struct {
 	PeripheralIoGdbusPwm *pwm_skeleton;
 	PeripheralIoGdbusUart *uart_skeleton;
 	PeripheralIoGdbusSpi *spi_skeleton;
+	PeripheralIoGdbusAdc *adc_skeleton;
 } peripheral_info_s;
 
 typedef struct {
@@ -63,6 +65,11 @@ typedef struct {
 } peripheral_handle_spi_s;
 
 typedef struct {
+	int device;
+	int channel;
+} peripehral_handle_adc_s;
+
+typedef struct {
 	uint watch_id;
 	GList **list;
 	union {
@@ -71,6 +78,7 @@ typedef struct {
 		peripheral_handle_pwm_s pwm;
 		peripheral_handle_uart_s uart;
 		peripheral_handle_spi_s spi;
+		peripehral_handle_adc_s adc;
 	} type;
 } peripheral_handle_s;
 
