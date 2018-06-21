@@ -26,6 +26,7 @@ typedef enum {
 	PB_BOARD_ARTIK530,
 	PB_BOARD_ARTIK520,
 	PB_BOARD_RP3_B,
+	PB_BOARD_EAGLEYE,
 	PB_BOARD_UNKNOWN,
 } pb_board_type_e;
 
