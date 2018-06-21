@@ -9,7 +9,6 @@ Source1:    %{name}.manifest
 Source2:    %{name}.service
 Source3:    %{name}.tmpfiles.conf
 Source4:    90-peripheral-io.rules
-Source5:    org.tizen.peripheral_io.conf
 BuildRequires:  cmake
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(gio-2.0)
@@ -48,15 +47,12 @@ install -m 0644 %SOURCE3 %{buildroot}%{_tmpfilesdir}/%{name}.conf
 mkdir -p %{buildroot}%{_udevrulesdir}
 install -m 0644 %SOURCE4 %{buildroot}%{_udevrulesdir}
 %install_service multi-user.target.wants peripheral-bus.service
-mkdir -p %{buildroot}%{_sysconfdir}/dbus-1/system.d
-install -m 0644 %{SOURCE5} %{buildroot}%{_sysconfdir}/dbus-1/system.d/
 
 mkdir -p %{buildroot}/etc/peripheral-bus
 cp %{_builddir}/%{name}-%{version}/data/*.ini %{buildroot}/etc/%{name}
 
 %files
 %manifest %{name}.manifest
-%config %{_sysconfdir}/dbus-1/system.d/*
 %defattr(-,root,root,-)
 %license LICENSE.APLv2
 %{_bindir}/%{name}
