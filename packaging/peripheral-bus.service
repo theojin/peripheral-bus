@@ -1,6 +1,7 @@
 [Unit]
 Description=Peripheral Service Daemon
 Requires=dbus.service
+ConditionPathExists=/proc/device-tree/model
 After=systemd-tmpfiles-setup.service
 
 [Service]
