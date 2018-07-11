@@ -68,9 +68,9 @@ int peripheral_privilege_check(GDBusMethodInvocation *invocation, GDBusConnectio
 	int ret;
 	int pid;
 	const char *sender;
-	char *session;
-	char *client;
-	char *user;
+	char *session = NULL;
+	char *client = NULL;
+	char *user = NULL;
 
 	sender = g_dbus_method_invocation_get_sender(invocation);
 
