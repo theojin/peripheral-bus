@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2017-2018 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,6 +34,7 @@ typedef enum {
 	PB_BOARD_DEV_GPIO = 0,
 	PB_BOARD_DEV_I2C,
 	PB_BOARD_DEV_PWM,
+	PB_BOARD_DEV_ADC,
 	PB_BOARD_DEV_UART,
 	PB_BOARD_DEV_SPI,
 	PB_BOARD_DEV_MAX,

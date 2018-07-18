@@ -29,10 +29,12 @@ SET(SRCS
 	src/gdbus/peripheral_gdbus_gpio.c
 	src/gdbus/peripheral_gdbus_i2c.c
 	src/gdbus/peripheral_gdbus_pwm.c
+	src/gdbus/peripheral_gdbus_adc.c
 	src/gdbus/peripheral_gdbus_spi.c
 	src/gdbus/peripheral_gdbus_uart.c
 	src/handle/peripheral_handle_common.c
 	src/handle/peripheral_handle_pwm.c
+	src/handle/peripheral_handle_adc.c
 	src/handle/peripheral_handle_i2c.c
 	src/handle/peripheral_handle_gpio.c
 	src/handle/peripheral_handle_uart.c
@@ -40,6 +42,7 @@ SET(SRCS
 	src/interface/peripheral_interface_gpio.c
 	src/interface/peripheral_interface_i2c.c
 	src/interface/peripheral_interface_pwm.c
+	src/interface/peripheral_interface_adc.c
 	src/interface/peripheral_interface_uart.c
 	src/interface/peripheral_interface_spi.c
 	src/util/peripheral_board.c

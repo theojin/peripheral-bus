@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2016-2018 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,14 @@
 #include "peripheral_gdbus_gpio.h"
 #include "peripheral_gdbus_i2c.h"
 #include "peripheral_gdbus_pwm.h"
+#include "peripheral_gdbus_adc.h"
 #include "peripheral_gdbus_spi.h"
 #include "peripheral_gdbus_uart.h"
 
 #define PERIPHERAL_GDBUS_GPIO_PATH	"/Org/Tizen/Peripheral_io/Gpio"
 #define PERIPHERAL_GDBUS_I2C_PATH	"/Org/Tizen/Peripheral_io/I2c"
 #define PERIPHERAL_GDBUS_PWM_PATH	"/Org/Tizen/Peripheral_io/Pwm"
+#define PERIPHERAL_GDBUS_ADC_PATH	"/Org/Tizen/Peripheral_io/Adc"
 #define PERIPHERAL_GDBUS_UART_PATH	"/Org/Tizen/Peripheral_io/Uart"
 #define PERIPHERAL_GDBUS_SPI_PATH	"/Org/Tizen/Peripheral_io/Spi"
 #define PERIPHERAL_GDBUS_NAME		"org.tizen.peripheral_io"
@@ -145,6 +147,41 @@ static gboolean __pwm_init(peripheral_info_s *info)
 	return true;
 }
 
+static gboolean __adc_init(peripheral_info_s *info)
+{
+	GDBusObjectManagerServer *manager;
+	gboolean ret = FALSE;
+	GError *error = NULL;
+
+	/* Add interface to default object path */
+	info->adc_skeleton = peripheral_io_gdbus_adc_skeleton_new();
+	g_signal_connect(info->adc_skeleton,
+			"handle-open",
+			G_CALLBACK(peripheral_gdbus_adc_open),
+			info);
+	g_signal_connect(info->adc_skeleton,
+			"handle-close",
+			G_CALLBACK(peripheral_gdbus_adc_close),
+			info);
+
+	manager = g_dbus_object_manager_server_new(PERIPHERAL_GDBUS_ADC_PATH);
+
+	/* Set connection to 'manager' */
+	g_dbus_object_manager_server_set_connection(manager, info->connection);
+
+	/* Export 'manager' interface on peripheral-io DBUS */
+	ret = g_dbus_interface_skeleton_export(
+		G_DBUS_INTERFACE_SKELETON(info->adc_skeleton),
+		info->connection, PERIPHERAL_GDBUS_ADC_PATH, &error);
+
+	if (ret == FALSE) {
+		_E("Can not skeleton_export %s", error->message);
+		g_error_free(error);
+	}
+
+	return true;
+}
+
 static gboolean __uart_init(peripheral_info_s *info)
 {
 	GDBusObjectManagerServer *manager;
@@ -230,6 +267,9 @@ static void on_bus_acquired(GDBusConnection *connection,
 		_E("Can not signal connect");
 
 	if (__pwm_init(info) == FALSE)
+		_E("Can not signal connect");
+
+	if (__adc_init(info) == FALSE)
 		_E("Can not signal connect");
 
 	if (__uart_init(info) == FALSE)

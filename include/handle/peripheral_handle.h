@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Samsung Electronics Co., Ltd.
+ * Copyright (c) 2016-2018 Samsung Electronics Co., Ltd.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ typedef struct {
 	GList *gpio_list;
 	GList *i2c_list;
 	GList *pwm_list;
+	GList *adc_list;
 	GList *uart_list;
 	GList *spi_list;
 	/* gdbus variable */
@@ -35,6 +36,7 @@ typedef struct {
 	PeripheralIoGdbusGpio *gpio_skeleton;
 	PeripheralIoGdbusI2c *i2c_skeleton;
 	PeripheralIoGdbusPwm *pwm_skeleton;
+	PeripheralIoGdbusAdc *adc_skeleton;
 	PeripheralIoGdbusUart *uart_skeleton;
 	PeripheralIoGdbusSpi *spi_skeleton;
 } peripheral_info_s;
@@ -54,6 +56,11 @@ typedef struct {
 } peripheral_handle_pwm_s;
 
 typedef struct {
+	int device;
+	int channel;
+} peripheral_handle_adc_s;
+
+typedef struct {
 	int port;
 } peripheral_handle_uart_s;
 
@@ -69,6 +76,7 @@ typedef struct {
 		peripheral_handle_gpio_s gpio;
 		peripheral_handle_i2c_s i2c;
 		peripheral_handle_pwm_s pwm;
+		peripheral_handle_adc_s adc;
 		peripheral_handle_uart_s uart;
 		peripheral_handle_spi_s spi;
 	} type;
