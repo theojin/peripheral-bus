@@ -16,8 +16,3 @@ SUBSYSTEM=="i2c-dev", KERNEL=="i2c-*", ACTION=="add", \
 
 SUBSYSTEM=="spidev", KERNEL=="spidev*.*", ACTION=="add", \
  MODE="0660", OWNER="root", GROUP="root", SECLABEL{smack}="*"
-
-SUBSYSTEM=="iio", KERNEL=="iio*", PROGRAM="/bin/sh -c 'find /sys%p/ | grep in_voltage'", ACTION=="add", \
- RUN+="/bin/chown root:root %c", \
- RUN+="/bin/chmod 0660 %c", \
- RUN+="/bin/chsmack -a * %c"
