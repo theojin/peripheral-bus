@@ -29,7 +29,7 @@ static int __peripheral_interface_adc_fd_open(int device, int channel, int *fd_o
 	char path[MAX_BUF_LEN] = {0, };
 
 	snprintf(path, MAX_BUF_LEN, "/sys/bus/iio/devices/iio:device%d/in_voltage%d_raw", device, channel);
-	fd = open(path, O_RDWR);
+	fd = open(path, O_RDONLY);
 	IF_ERROR_RETURN(fd < 0);
 
 	*fd_out = fd;
