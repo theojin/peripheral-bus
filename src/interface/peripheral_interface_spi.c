@@ -50,6 +50,7 @@ int peripheral_interface_spi_fd_list_create(int bus, int cs, GUnixFDList **list_
 	ret = __peripheral_interface_spi_fd_open(bus, cs, &fd);
 	if (ret != PERIPHERAL_ERROR_NONE) {
 		_E("Failed to open spi fd");
+		goto out;
 	}
 
 	list = g_unix_fd_list_new();
@@ -65,7 +66,8 @@ int peripheral_interface_spi_fd_list_create(int bus, int cs, GUnixFDList **list_
 	*list_out = list;
 
 out:
-	close(fd);
+	if (fd >= 0)
+		close(fd);
 
 	return ret;
 }

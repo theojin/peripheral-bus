@@ -65,6 +65,7 @@ int peripheral_interface_uart_fd_list_create(int port, GUnixFDList **list_out)
 	ret = __peripheral_interface_uart_fd_open(port, &fd);
 	if (ret != PERIPHERAL_ERROR_NONE) {
 		_E("Failed to open uart fd");
+		goto out;
 	}
 
 	list = g_unix_fd_list_new();
@@ -80,7 +81,8 @@ int peripheral_interface_uart_fd_list_create(int port, GUnixFDList **list_out)
 	*list_out = list;
 
 out:
-	close(fd);
+	if (fd >= 0)
+		close(fd);
 
 	return ret;
 }
