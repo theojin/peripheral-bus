@@ -51,6 +51,7 @@ int peripheral_interface_adc_fd_list_create(int device, int channel, GUnixFDList
 	ret = __peripheral_interface_adc_fd_open(device, channel, &fd);
 	if (ret != PERIPHERAL_ERROR_NONE) {
 		_E("Failed to open adc fd");
+		goto out;
 	}
 
 	list = g_unix_fd_list_new();
@@ -66,7 +67,8 @@ int peripheral_interface_adc_fd_list_create(int device, int channel, GUnixFDList
 	*list_out = list;
 
 out:
-	close(fd);
+	if (fd >= 0)
+		close(fd);
 
 	return ret;
 }

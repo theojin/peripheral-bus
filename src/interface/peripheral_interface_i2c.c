@@ -57,6 +57,7 @@ int peripheral_interface_i2c_fd_list_create(int bus, int address, GUnixFDList **
 	ret = __peripheral_interface_i2c_fd_open(bus, address, &fd);
 	if (ret != PERIPHERAL_ERROR_NONE) {
 		_E("Failed to open i2c fd");
+		goto out;
 	}
 
 	list = g_unix_fd_list_new();
@@ -72,7 +73,8 @@ int peripheral_interface_i2c_fd_list_create(int bus, int address, GUnixFDList **
 	*list_out = list;
 
 out:
-	close(fd);
+	if (fd >= 0)
+		close(fd);
 
 	return ret;
 }
