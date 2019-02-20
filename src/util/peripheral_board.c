@@ -34,6 +34,9 @@
 #define BOARD_INI_ARTIK520_PATH BOARD_INI_BASE "pio_board_artik520.ini"
 #define BOARD_INI_RP3_B_PATH    BOARD_INI_BASE "pio_board_rp3_b.ini"
 #define BOARD_INI_EAGLEYE_PATH  BOARD_INI_BASE "pio_board_eagleye.ini"
+#if defined(SDATA7D) // Dynsis for imx7d
+#define	BOARD_INI_TECHNEXION_PICO_IMX7D BOARD_INI_BASE "pio_board_techenxion_pico_imx7.ini"
+#endif
 #define BOARD_INI_UNKNOWN_PATH  BOARD_INI_BASE "pio_board_unknown.ini"
 
 
@@ -43,6 +46,9 @@ static const pb_board_type_s pb_board_type[] = {
 	{PB_BOARD_ARTIK520, "ARTIK5 board",    BOARD_INI_ARTIK520_PATH},
 	{PB_BOARD_RP3_B,    "Raspberry Pi 3 Model B", BOARD_INI_RP3_B_PATH},
 	{PB_BOARD_EAGLEYE,  "artik530 compy",  BOARD_INI_EAGLEYE_PATH},
+#if defined(SDATA7D) // Dynsis for imx7d
+	{PB_BOARD_TECHNEXION_PICO_IMX7D, "Technexion Pico i.MX7D Board", BOARD_INI_TECHNEXION_PICO_IMX7D},
+#endif
 	{PB_BOARD_UNKNOWN,  "unknown board",   BOARD_INI_UNKNOWN_PATH},
 };
 

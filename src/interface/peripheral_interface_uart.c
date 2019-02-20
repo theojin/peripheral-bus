@@ -32,6 +32,9 @@ static int __peripheral_interface_uart_fd_open(int port, int *fd_out)
 		"/dev/ttyS",
 		"/dev/ttyAMA",
 		"/dev/ttySAC",
+#if defined(SDATA7D) // Dynsis for imx7d
+		"/dev/ttymxc",
+#endif
 	};
 
 	int index;

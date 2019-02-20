@@ -27,6 +27,9 @@ typedef enum {
 	PB_BOARD_ARTIK520,
 	PB_BOARD_RP3_B,
 	PB_BOARD_EAGLEYE,
+#if defined(SDATA7D) // Dynsis for imx7d
+	PB_BOARD_TECHNEXION_PICO_IMX7D,
+#endif
 	PB_BOARD_UNKNOWN,
 } pb_board_type_e;
 
