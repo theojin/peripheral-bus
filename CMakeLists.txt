@@ -57,7 +57,7 @@ ENDFOREACH(flag)
 
 TARGET_LINK_LIBRARIES(${PROJECT_NAME} ${pbus_pkg_LDFLAGS})
 
-SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fpic -Wall -Werror -fvisibility=hidden -DSDATA7D")
+SET(EXTRA_CFLAGS "${EXTRA_CFLAGS} -fpic -Wall -Werror -fvisibility=hidden -DSDTA7D")
 SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${EXTRA_CFLAGS}")
 
 SET(CMAKE_EXE_LINKER_FLAGS " -Wl,--as-needed -pie -Wl,--hash-style=both")

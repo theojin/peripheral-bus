@@ -29,12 +29,12 @@ static int __peripheral_interface_uart_fd_open(int port, int *fd_out)
 	RETVM_IF(fd_out == NULL, PERIPHERAL_ERROR_INVALID_PARAMETER, "Invalid fd_out for uart");
 
 	static char *sysfs_uart_path[] = {
+#if defined(SDTA7D)
+		"/dev/ttymxc",
+#endif
 		"/dev/ttyS",
 		"/dev/ttyAMA",
 		"/dev/ttySAC",
-#if defined(SDATA7D)
-		"/dev/ttymxc",
-#endif
 	};
 
 	int index;
